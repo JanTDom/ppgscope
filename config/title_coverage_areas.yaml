@@ -1,0 +1,117 @@
+# Konfiguracja obszarów geograficznych dla tytułów Polska Press Grupa
+# Używana przez klasyfikator do wyznaczania wariantu lokalności:
+# L (lokalny dla tytułu), CL (centralny z rozwinięciem lokalnym), C (centralny), other_region (temat z innego regionu PPG)
+
+gazetakrakowska_pl:
+  name: "Gazeta Krakowska"
+  voivodeships: ["Małopolskie"]
+  cities: ["Kraków", "Tarnów", "Nowy Sącz", "Oświęcim", "Chrzanów", "Olkusz", "Nowy Targ", "Bochnia", "Gorlice", "Zakopane", "Wieliczka", "Wadowice", "Andrychów", "Kęty", "Myślenice", "Limanowa", "Miechów", "Brzesko", "Dąbrowa Tarnowska"]
+  counties: ["krakowski", "tarnowski", "nowosądecki", "oświęcimski", "chrzanowski", "olkuski", "nowotarski", "tatrzański", "bocheński", "gorlicki", "wielicki", "wadowicki", "myślenicki", "limanowski", "miechowski", "brzeski", "dąbrowski"]
+
+dziennikpolski24_pl:
+  name: "Dziennik Polski"
+  voivodeships: ["Małopolskie"]
+  cities: ["Kraków", "Tarnów", "Nowy Sącz", "Oświęcim", "Wieliczka", "Bochnia", "Chrzanów", "Olkusz", "Myślenice", "Wadowice", "Zakopane"]
+  counties: ["krakowski", "wielicki", "bocheński", "chrzanowski", "olkuski", "myślenicki", "wadowicki", "tatrzański", "nowotarski", "tarnowski", "nowosądecki"]
+
+gazetapomorska_pl:
+  name: "Gazeta Pomorska"
+  voivodeships: ["Kujawsko-Pomorskie"]
+  cities: ["Bydgoszcz", "Toruń", "Grudziądz", "Włocławek", "Inowrocław", "Świecie", "Chełmno", "Brodnica", "Nakło nad Notecią", "Rypin", "Solec Kujawski", "Lipno", "Żnin", "Tuchola", "Mogilno", "Golub-Dobrzyń", "Aleksandrów Kujawski", "Radziejów", "Ciechocinek", "Sępólno Krajeńskie"]
+  counties: ["bydgoski", "toruński", "grudziądzki", "włocławski", "inowrocławski", "świecki", "chełmiński", "brodnicki", "nakielski", "rypiński", "lipnowski", "żniński", "tucholski", "mogileński", "golubsko-dobrzyński", "aleksandrowski", "radziejowski", "sępoleński"]
+
+dziennikbaltycki_pl:
+  name: "Dziennik Bałtycki"
+  voivodeships: ["Pomorskie"]
+  cities: ["Gdańsk", "Gdynia", "Sopot", "Tczew", "Malbork", "Słupsk", "Chojnice", "Starogard Gdański", "Kwidzyn", "Wejherowo", "Rumia", "Reda", "Kościerzyna", "Kartuzy", "Bytów", "Puck", "Lębork", "Pruszcz Gdański", "Ustka", "Hel", "Władysławowo"]
+  counties: ["gdański", "kartuski", "kościerski", "pucki", "starogardzki", "tczewski", "wejherowski", "słupski", "chojnicki", "kwidzyński", "malborski", "bytowski", "lęborski", "nowodworski", "człuchowski", "sztumski"]
+
+dzienniklodzki_pl:
+  name: "Dziennik Łódzki"
+  voivodeships: ["Łódzkie"]
+  cities: ["Łódź", "Piotrków Trybunalski", "Pabianice", "Tomaszów Mazowiecki", "Bełchatów", "Zgierz", "Skierniewice", "Radomsko", "Kutno", "Sieradz", "Zduńska Wola", "Łowicz", "Wieluń", "Aleksandrów Łódzki", "Opoczno", "Ozorków", "Konstantynów Łódzki", "Rawa Mazowiecka", "Łask", "Głowno", "Łęczyca"]
+  counties: ["łódzki wschodni", "pabianicki", "zgierski", "piotrkowski", "tomaszowski", "bełchatowski", "radomszczański", "kutnowski", "sieradzki", "zduńskowolski", "łowicki", "wieluński", "opoczyński", "rawski", "łaski", "łęczycki", "poddębicki", "pajęczański", "brzeziński", "wieruszowski"]
+
+dziennikzachodni_pl:
+  name: "Dziennik Zachodni"
+  voivodeships: ["Śląskie"]
+  cities: ["Katowice", "Częstochowa", "Sosnowiec", "Gliwice", "Zabrze", "Bielsko-Biała", "Bytom", "Ruda Śląska", "Rybnik", "Tychy", "Dąbrowa Górnicza", "Chorzów", "Jaworzno", "Jastrzębie-Zdrój", "Mikołów", "Tarnowskie Góry", "Pszczyna", "Cieszyn", "Żywiec", "Zawiercie", "Wodzisław Śląski", "Racibórz", "Knurów", "Świętochłowice", "Siemianowice Śląskie", "Piekary Śląskie", "Będzin", "Czeladź"]
+  counties: ["będziński", "bielski", "bieruńsko-lędziński", "cieszyński", "częstochowski", "gliwicki", "kłobucki", "lubliniecki", "mikołowski", "myszkowski", "pszczyński", "raciborski", "rybnicki", "tarnogórski", "wodzisławski", "zawierciański", "żywiecki"]
+
+gloswielkopolski_pl:
+  name: "Głos Wielkopolski"
+  voivodeships: ["Wielkopolskie"]
+  cities: ["Poznań", "Kalisz", "Konin", "Piła", "Ostrów Wielkopolski", "Gniezno", "Leszno", "Swarzędz", "Śrem", "Krotoszyn", "Września", "Turek", "Jarocin", "Wągrowiec", "Kościan", "Koło", "Środa Wielkopolska", "Rawicz", "Gostyń", "Chodzież", "Szamotuły", "Złotów", "Oborniki", "Pleszew", "Trzcianka", "Nowy Tomyśl", "Kępno", "Ostrzeszów", "Grodzisk Wielkopolski", "Wolsztyn"]
+  counties: ["poznański", "kaliski", "koniński", "pilski", "ostrowski", "gnieźnieński", "leszczyński", "śremski", "krotoszyński", "wrzesiński", "turecki", "jarociński", "wągrowiecki", "kościański", "kolski", "średzki", "rawicki", "gostyński", "chodzieski", "szamotulski", "złotowski", "obornicki", "pleszewski", "czarnkowsko-trzcianecki", "nowotomyski", "kępiński", "ostrzeszowski", "grodziski", "wolsztyński", "słupecki", "międzychodzki"]
+
+gazetawroclawska_pl:
+  name: "Gazeta Wrocławska"
+  voivodeships: ["Dolnośląskie"]
+  cities: ["Wrocław", "Wałbrzych", "Legnica", "Jelenia Góra", "Lubin", "Głogów", "Świdnica", "Bolesławiec", "Oleśnica", "Dzierżoniów", "Oława", "Zgorzelec", "Bielawa", "Kłodzko", "Jawor", "Świebodzice", "Polkowice", "Nowa Ruda", "Lubań", "Kamienna Góra", "Bogatynia", "Strzegom", "Złotoryja", "Ząbkowice Śląskie", "Jelcz-Laskowice", "Trzebnica", "Brzeg Dolny"]
+  counties: ["wrocławski", "bocheński", "bolesławiecki", "dzierżoniowski", "głogowski", "górowski", "jaworski", "kamiennogórski", "karkonoski", "kłodzki", "legnicki", "lubański", "lubiński", "lwówecki", "milicki", "oleśnicki", "oławski", "polkowicki", "strzeliński", "średzki", "świdnicki", "trzebnicki", "wałbrzyski", "wołowski", "ząbkowicki", "zgorzelecki", "złotoryjski"]
+
+echodnia_eu:
+  name: "Echo Dnia"
+  voivodeships: ["Świętokrzyskie", "Mazowieckie", "Podkarpackie"]
+  cities: ["Kielce", "Radom", "Ostrowiec Świętokrzyski", "Starachowice", "Skarżysko-Kamienna", "Sandomierz", "Końskie", "Busko-Zdrój", "Jędrzejów", "Staszów", "Pińczów", "Włoszczowa", "Kazimierza Wielka", "Opatów", "Tarnobrzeg", "Stalowa Wola", "Pionki", "Kozienice", "Szydłowiec", "Zwoleń", "Lipsko"]
+  counties: ["kielecki", "radomski", "ostrowiecki", "starachowicki", "skarżyski", "sandomierski", "konecki", "buski", "jędrzejowski", "staszowski", "pińczowski", "włoszczowski", "kazimierski", "opatowski", "tarnobrzeski", "stalowowolski", "kozienicki", "szydłowiecki", "zwoleński", "lipski"]
+
+gazetalubuska_pl:
+  name: "Gazeta Lubuska"
+  voivodeships: ["Lubuskie"]
+  cities: ["Zielona Góra", "Gorzów Wielkopolski", "Nowa Sól", "Żary", "Żagań", "Świebodzin", "Międzyrzecz", "Kostrzyn nad Odrą", "Sulechów", "Słubice", "Gubin", "Lubsko", "Wschowa", "Szprotawa", "Krosno Odrzańskie", "Drezdenko", "Sulęcin", "Strzelce Krajeńskie", "Skwierzyna"]
+  counties: ["zielonogórski", "gorzowski", "nowosolski", "żarski", "żagański", "świebodziński", "międzyrzecki", "słubicki", "wschowski", "krośnieński", "strzelecko-drezdenecki", "sulęciński"]
+
+nowiny24_pl:
+  name: "Nowiny"
+  voivodeships: ["Podkarpackie"]
+  cities: ["Rzeszów", "Przemyśl", "Stalowa Wola", "Mielec", "Tarnobrzeg", "Krosno", "Dębica", "Jarosław", "Sanok", "Jasło", "Łańcut", "Ropczyce", "Przeworsk", "Nisko", "Leżajsk", "Lubaczów", "Kolbuszowa", "Ustrzyki Dolne", "Strzyżów", "Lesko", "Brzozów"]
+  counties: ["rzeszowski", "przemyski", "stalowowolski", "mielecki", "tarnobrzeski", "krośnieński", "dębicki", "jarosławski", "sanocki", "jasielski", "łańcucki", "ropczycko-sędziszowski", "przeworski", "niżański", "leżajski", "lubaczowski", "kolbuszowski", "bieszczadzki", "strzyżowski", "leski", "brzozowski"]
+
+kurierlubelski_pl:
+  name: "Kurier Lubelski"
+  voivodeships: ["Lubelskie"]
+  cities: ["Lublin", "Zamość", "Chełm", "Biała Podlaska", "Puławy", "Świdnik", "Kraśnik", "Łuków", "Biłgoraj", "Lubartów", "Tomaszów Lubelski", "Łęczna", "Krasnystaw", "Hrubieszów", "Międzyrzec Podlaski", "Dęblin", "Radzyń Podlaski", "Włodawa", "Janów Lubelski", "Parczew", "Ryki", "Poniatowa", "Opole Lubelskie", "Bełżyce", "Szczebrzeszyn"]
+  counties: ["lubelski", "zamojski", "chełmski", "bialski", "puławski", "świdnicki", "kraśnicki", "łukowski", "biłgorajski", "lubartowski", "tomaszowski", "łęczyński", "krasnostawski", "hrubieszowski", "radzyński", "włodawski", "janowski", "parczewski", "rycki", "opolski"]
+
+nto_pl:
+  name: "Nowa Trybuna Opolska (NTO)"
+  voivodeships: ["Opolskie"]
+  cities: ["Opole", "Kędzierzyn-Koźle", "Nysa", "Brzeg", "Kluczbork", "Prudnik", "Strzelce Opolskie", "Krapkowice", "Namysłów", "Głuchołazy", "Głubczyce", "Zdzieszowice", "Olesno", "Ozimek", "Grodków", "Praszka", "Paczków", "Zawadzkie", "Gogolin", "Otmuchów", "Niemodlin", "Kietrz", "Wołczyn"]
+  counties: ["opolski", "kędzierzyńsko-kozielski", "nyski", "brzeski", "kluczborski", "prudnicki", "strzelecki", "krapkowicki", "namysłowski", "głubczycki", "oleski"]
+
+kurierporanny_pl:
+  name: "Kurier Poranny"
+  voivodeships: ["Podlaskie"]
+  cities: ["Białystok", "Suwałki", "Łomża", "Augustów", "Bielsk Podlaski", "Zambrów", "Grajewo", "Hajnówka", "Sokółka", "Łapy", "Siemiatycze", "Wasilków", "Kolno", "Mońki", "Czarna Białostocka", "Wysokie Mazowieckie"]
+  counties: ["białostocki", "suwalski", "łomżyński", "augustowski", "bielski", "zambrowski", "grajewski", "hajnowski", "sokólski", "siemiatycki", "kolneński", "moniecki", "wysokomazowiecki", "sejneński"]
+
+wspolczesna_pl:
+  name: "Gazeta Współczesna"
+  voivodeships: ["Podlaskie", "Warmińsko-Mazurskie"]
+  cities: ["Białystok", "Łomża", "Suwałki", "Ełk", "Augustów", "Bielsk Podlaski", "Grajewo", "Zambrów", "Hajnówka", "Sokółka", "Ostrów Mazowiecka", "Olecko", "Gołdap", "Pisz"]
+  counties: ["białostocki", "łomżyński", "suwalski", "ełcki", "augustowski", "grajewski", "zambrowski", "hajnowski", "sokólski", "olecki", "gołdapski", "piski"]
+
+gs24_pl:
+  name: "Głos Szczeciński"
+  voivodeships: ["Zachodniopomorskie"]
+  cities: ["Szczecin", "Stargard", "Świnoujście", "Police", "Goleniów", "Gryfino", "Nowogard", "Gryfice", "Choszczno", "Pyrzyce", "Barlinek", "Dębno", "Kamień Pomorski", "Wolin"]
+  counties: ["policki", "stargardzki", "goleniowski", "gryfiński", "gryficki", "choszczeński", "pyrzycki", "myśliborski", "kamieński"]
+
+gk24_pl:
+  name: "Głos Koszaliński"
+  voivodeships: ["Zachodniopomorskie"]
+  cities: ["Koszalin", "Kołobrzeg", "Szczecinek", "Białogard", "Świdwin", "Wałcz", "Złocieniec", "Drawsko Pomorskie", "Darłowo", "Sławno", "Czaplinek", "Połczyn-Zdrój"]
+  counties: ["koszaliński", "kołobrzeski", "szczecinecki", "białogardzki", "świdwiński", "wałecki", "drawski", "sławieński"]
+
+to_com_pl:
+  name: "Tygodnik Ostrołęcki"
+  voivodeships: ["Mazowieckie"]
+  cities: ["Ostrołęka", "Ostrów Mazowiecka", "Wyszków", "Maków Mazowiecki", "Przasnysz", "Pułtusk", "Ciechanów"]
+  counties: ["ostrołęcki", "ostrowski", "wyszkowski", "makowski", "przasnyski", "pułtuski", "ciechanowski"]
+
+i_pl:
+  name: "i.pl"
+  voivodeships: ["Polska", "Mazowieckie", "Małopolskie", "Śląskie", "Wielkopolskie", "Dolnośląskie", "Pomorskie", "Łódzkie", "Kujawsko-Pomorskie", "Lubelskie", "Podkarpackie", "Świętokrzyskie", "Podlaskie", "Zachodniopomorskie", "Warmińsko-Mazurskie", "Lubuskie", "Opolskie"]
+  cities: ["Warszawa", "Kraków", "Łódź", "Wrocław", "Poznań", "Gdańsk", "Szczecin", "Bydgoszcz", "Lublin", "Białystok", "Katowice", "Gdynia", "Częstochowa", "Radom", "Toruń", "Sosnowiec", "Rzeszów", "Kielce", "Gliwice", "Olsztyn", "Zabrze", "Bielsko-Biała", "Bytom", "Zielona Góra", "Rybnik", "Ruda Śląska", "Opole", "Tychy", "Gorzów Wielkopolski", "Dąbrowa Górnicza", "Elbląg", "Płock", "Wałbrzych", "Włocławek", "Tarnów"]
+  counties: ["ogólnopolski"]

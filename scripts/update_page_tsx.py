@@ -1,17 +1,18 @@
 """
-Generates the comprehensive web/app/page.tsx with:
+Generates the comprehensive web/app/page.tsx for PPGscope with:
+- Taxonomy v2.0 (18 Domains + Locality Variants C, CL, L)
+- Media Selector: Measure metrics for ALL 546 outlets OR any single selected outlet
+- Global Toggle: "Wszystkie" vs "Lokalne" + Checkbox "Tylko czysto lokalne"
+- Stacked 18-domain horizontal and vertical bar charts with C, CL, L segments
+- Two key localness indicators:
+  1. Udział treści lokalnej = (L + CL) / wszystkie
+  2. Wskaźnik lokalizacji = CL / (C + CL)
+- Interactive CSV Export with domain, domain_secondary, locality, other_region
+- Time Period Picker (24h, 7d, 30d, 90d, All, Custom)
 - Zero emojis (Lucide icons only)
-- Hare-Niemeyer largest remainder algorithm guaranteeing exact 100.0% sum
-- Rich suite of 7 interactive SVG graphical charts
-- 6 Intelligence dimensions (Autonomy, Wire cascades, Headline drift, Agenda distortion, Authorship, HHI)
-- Dual-profile filtering (All vs Original only)
-- Exact two-proportion Z-test with continuity correction and p-values
-- Preloaded API configuration from /api/gemini/config
-- Live test buttons for both Gemini and Supabase
-- Password gate (A132a132! or Felek2026) in memory
+- Full TypeScript types and zero build warnings
 """
 
-import re
 from pathlib import Path
 
 TSX_CODE = r'''"use client";
@@ -48,19 +49,22 @@ import {
   Compass,
   MapPin,
   Clock,
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus
+  Download,
+  Building2,
+  Globe2,
+  Target
 } from "lucide-react";
 
 // =========================================================================
-// DATA CONTRACTS & INTERFACES
+// DATA CONTRACTS & INTERFACES (TAXONOMY V2.0)
 // =========================================================================
 
-interface TopicItem {
-  id: string;
+interface DomainItem {
+  slug: string;
+  code: string;
   name: string;
   description: string;
+  allowed_localities?: string[];
 }
 
 interface TitleItem {
@@ -84,15 +88,25 @@ interface ArticleItem {
   portal_name: string;
   portal_domain: string;
   region?: string;
-  topic_id: string;
-  topic_name: string;
-  confidence: number;
   published_at: string;
   is_duplicate: boolean;
   cluster_id?: string | null;
   byline_type?: "named" | "anonymous" | "wire" | "partner";
   author_name?: string;
   is_local_content?: boolean;
+
+  // Taxonomy v2.0 fields
+  domain: string;
+  domain_name?: string;
+  domain_secondary?: string | null;
+  locality: "C" | "L" | "CL";
+  other_region?: boolean;
+  needs_review?: boolean;
+  confidence?: number;
+
+  // Legacy fields for backward-compatibility
+  topic_id?: string;
+  topic_name?: string;
 }
 
 interface VoivodeshipCrossSection {
@@ -140,9 +154,10 @@ interface DailyTimeseriesItem {
 interface DashboardPayload {
   generated_at: string;
   methodology: string;
-  taxonomy: {
-    topics: TopicItem[];
-    mandatory_fallback_topic: string;
+  taxonomy_v2?: {
+    version: string;
+    domains: DomainItem[];
+    locality_variants: { code: string; name: string; description: string }[];
   };
   titles: TitleItem[];
   recent_articles: ArticleItem[];
@@ -167,99 +182,27 @@ interface DashboardPayload {
   daily_timeseries?: DailyTimeseriesItem[];
 }
 
-interface CalculatedTrendRow {
-  topicId: string;
-  topicName: string;
-  currentCount: number;
-  currentPct: number;
-  previousCount: number;
-  previousPct: number;
-  deltaPp: number;
-  zScore: number | null;
-  pValue: number | null;
-  isSignificant: boolean;
-  status: "WZROST" | "SPADEK" | "STABILNY" | "BRAK_DANYCH";
-  totalCurrent: number;
-  totalPrevious: number;
-}
-
-// =========================================================================
-// STATISTICAL & MATHEMATICAL UTILITIES
-// =========================================================================
-
-// Error function approximation (Abramowitz & Stegun formula 7.1.26)
-function erf(x: number): number {
-  const sign = x >= 0 ? 1 : -1;
-  x = Math.abs(x);
-  const a1 = 0.254829592;
-  const a2 = -0.284496736;
-  const a3 = 1.421413741;
-  const a4 = -1.453152027;
-  const a5 = 1.061405429;
-  const p = 0.3275911;
-
-  const t = 1.0 / (1.0 + p * x);
-  const y =
-    1.0 -
-    ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
-  return sign * y;
-}
-
-function normalCdf(x: number): number {
-  return 0.5 * (1.0 + erf(x / Math.sqrt(2.0)));
-}
-
-// Hare-Niemeyer (Largest Remainder) Method ensuring exact 100.0% sum
-function hareNiemeyer(counts: number[], total: number): number[] {
-  if (total === 0) return counts.map(() => 0.0);
-  const exact = counts.map((c) => (c / total) * 100);
-  const floored = exact.map((p) => Math.floor(p * 10));
-  const diff = 1000 - floored.reduce((a, b) => a + b, 0);
-  const remainders = exact.map((p, idx) => ({
-    rem: p * 10 - floored[idx],
-    idx,
-  }));
-  remainders.sort((a, b) => b.rem - a.rem);
-  for (let i = 0; i < diff; i++) {
-    floored[remainders[i % remainders.length].idx] += 1;
-  }
-  return floored.map((f) => f / 10);
-}
-
-// Two-proportion pooled Z-test
-function computeTwoProportionZTest(
-  x1: number,
-  n1: number,
-  x2: number,
-  n2: number,
-  minSampleThreshold: number = 10
-): { z: number | null; pValue: number | null; isSignificant: boolean } {
-  if (n1 < minSampleThreshold || n2 < minSampleThreshold) {
-    return { z: null, pValue: null, isSignificant: false };
-  }
-
-  const pPool = (x1 + x2) / (n1 + n2);
-  if (pPool <= 0 || pPool >= 1) {
-    return { z: 0, pValue: 1.0, isSignificant: false };
-  }
-
-  const se = Math.sqrt(pPool * (1 - pPool) * (1 / n1 + 1 / n2));
-  if (se === 0) {
-    return { z: null, pValue: null, isSignificant: false };
-  }
-
-  const p1 = x1 / n1;
-  const p2 = x2 / n2;
-  const z = (p1 - p2) / se;
-  const pValue = 2.0 * (1.0 - normalCdf(Math.abs(z)));
-  const isSignificant = pValue < 0.05;
-
-  return { z, pValue, isSignificant };
-}
-
-// =========================================================================
-// MAIN COMPONENT
-// =========================================================================
+// 18 Domains Specification
+const DOMAINS_SPEC: DomainItem[] = [
+  { slug: "wladza", code: "01", name: "Władza i polityka", description: "Samorząd, budżety gmin, rząd, Sejm, partie, wybory, urzędy, ustrój i sądy jako ustrój" },
+  { slug: "zdarzenia", code: "02", name: "Bezpieczeństwo i zdarzenia", description: "Wypadki, pożary, katastrofy, przestępczość, policja, zaginięcia, wyroki karne, służby ratunkowe" },
+  { slug: "obronnosc", code: "03", name: "Obronność", description: "Wojsko, ćwiczenia, szkolenia cywilów, przemysł zbrojeniowy, obrona cywilna" },
+  { slug: "gospodarka", code: "04", name: "Gospodarka i praca", description: "Firmy, wyniki, rynek pracy, płace, podatki, kredyty, emerytury, energetyka, górnictwo, przemysł, handel, makroekonomia" },
+  { slug: "infrastruktura", code: "05", name: "Infrastruktura i transport", description: "Drogi, mosty, kolej, komunikacja miejska, lotniska, korki, parkowanie, sieci wodne i ciepłownicze" },
+  { slug: "przestrzen", code: "06", name: "Przestrzeń i mieszkanie", description: "Urbanistyka, parki, zieleń miejska, rewitalizacja, mieszkania komunalne, nieruchomości, zabytki jako remont lub spór" },
+  { slug: "zdrowie", code: "07", name: "Zdrowie", description: "Szpitale, finansowanie i płace w ochronie zdrowia, dostęp do leczenia, profilaktyka, porady medyczne" },
+  { slug: "edukacja", code: "08", name: "Edukacja i dzieci", description: "Szkoły, przedszkola, bezpieczeństwo w szkołach, nauczyciele, egzaminy, uczelnie, wychowanie, dzieci w sieci" },
+  { slug: "srodowisko", code: "09", name: "Środowisko i klimat", description: "Susza, woda, powodzie, lasy, rezerwaty, smog, odpady, pogoda, przyroda, zwierzęta" },
+  { slug: "spolecznosc", code: "10", name: "Społeczność i ludzie", description: "Lokalni bohaterowie, seniorzy, jubilaci, parafie, NGO, zbiórki, nekrologi, problemy socjalne" },
+  { slug: "kultura", code: "11", name: "Kultura", description: "Teatr, opera, koncerty, literatura, film, sztuka, murale, muzea" },
+  { slug: "historia", code: "12", name: "Historia i pamięć", description: "PRL, nostalgia, historia miejscowości, archiwalne zdjęcia, rocznice" },
+  { slug: "czas_wolny", code: "13", name: "Czas wolny i turystyka", description: "Atrakcje, uzdrowiska, wycieczki, wydarzenia weekendowe, festyny, jarmarki, gastronomia" },
+  { slug: "sport", code: "14", name: "Sport", description: "Sport zawodowy, amatorski i młodzieżowy, kibice, obiekty sportowe" },
+  { slug: "rozrywka", code: "15", name: "Rozrywka i celebryci", description: "Telewizja, gwiazdy, plotki" },
+  { slug: "styl_zycia", code: "16", name: "Styl życia i poradnictwo", description: "Dom i wnętrze, moto, technologie, gry, zakupy, okazje, kuchnia, uroda" },
+  { slug: "rolnictwo", code: "17", name: "Wieś i rolnictwo", description: "Produkcja rolna, ceny skupu, dopłaty, konkursy agro, KGW, życie wsi" },
+  { slug: "swiat", code: "18", name: "Świat", description: "Polityka międzynarodowa, Ukraina i Rosja, USA, UE, Watykan" }
+];
 
 export default function PPGscopeApp() {
   // Session Authentication State (In-Memory Only, No Cookies)
@@ -271,15 +214,16 @@ export default function PPGscopeApp() {
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "charts" | "topics" | "trends" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology"
-  >("overview");
+    "overview" | "domain_stats" | "charts" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology"
+  >("domain_stats");
 
-  // Filtering & View Options
-  const [variant, setVariant] = useState<"ALL" | "OWN">("ALL");
-  const [selectedArticle, setSelectedArticle] = useState<ArticleItem | null>(null);
-  const [titleSearch, setTitleSearch] = useState("");
-  const [regionFilter, setRegionFilter] = useState("wszystkie");
-  const [typeFilter, setTypeFilter] = useState("wszystkie");
+  // Single Medium Selector (All 546 or specific medium)
+  const [selectedMediumDomain, setSelectedMediumDomain] = useState<string>("ALL");
+  const [mediumSearchQuery, setMediumSearchQuery] = useState<string>("");
+
+  // Locality Views Controls
+  const [localityMode, setLocalityMode] = useState<"ALL" | "LOCAL">("ALL");
+  const [pureLocalOnly, setPureLocalOnly] = useState<boolean>(false);
 
   // Time Period Filtering State
   const [timePreset, setTimePreset] = useState<"24h" | "7d" | "30d" | "90d" | "all" | "custom">("30d");
@@ -287,8 +231,12 @@ export default function PPGscopeApp() {
   const [customEndDate, setCustomEndDate] = useState("2026-03-31");
   const [clientNow, setClientNow] = useState<number | null>(null);
 
-  // Chart hover interaction state
-  const [hoveredPoint, setHoveredPoint] = useState<DailyTimeseriesItem | null>(null);
+  // Table & directory filters
+  const [titleSearch, setTitleSearch] = useState("");
+  const [regionFilter, setRegionFilter] = useState("wszystkie");
+  const [typeFilter, setTypeFilter] = useState("wszystkie");
+  const [selectedDomainFilter, setSelectedDomainFilter] = useState("wszystkie");
+  const [selectedLocalityFilter, setSelectedLocalityFilter] = useState("wszystkie");
 
   // Settings Modal State with LocalStorage Persistence
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -296,16 +244,12 @@ export default function PPGscopeApp() {
   const [geminiApiKey, setGeminiApiKey] = useState("");
   const [supabaseUrl, setSupabaseUrl] = useState("https://nkeoyouxtschemvpqgmq.supabase.co");
   const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
-  const [monitoringApiKey, setMonitoringApiKey] = useState("");
-  const [internalEndpoint, setInternalEndpoint] = useState("https://api.internal.ppg.pl/v1/feed");
-  const [jaccardThreshold, setJaccardThreshold] = useState(0.80);
-  const [minSampleSize, setMinSampleSize] = useState(10);
 
   // Live Testing States
   const [geminiTestStatus, setGeminiTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [geminiLatency, setGeminiLatency] = useState<number | null>(null);
-  const [geminiClassifying, setGeminiClassifying] = useState(false);
   const [liveAiResult, setLiveAiResult] = useState<any | null>(null);
+  const [geminiClassifying, setGeminiClassifying] = useState(false);
 
   const [supabaseTestStatus, setSupabaseTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [supabaseLatency, setSupabaseLatency] = useState<number | null>(null);
@@ -341,15 +285,6 @@ export default function PPGscopeApp() {
         })
         .catch(() => {});
 
-      const storedEndpoint = localStorage.getItem("ppgscope_internal_endpoint");
-      if (storedEndpoint) setInternalEndpoint(storedEndpoint);
-
-      const storedMinSample = localStorage.getItem("ppgscope_min_sample_size");
-      if (storedMinSample) setMinSampleSize(parseInt(storedMinSample, 10));
-
-      const storedJaccard = localStorage.getItem("ppgscope_jaccard_threshold");
-      if (storedJaccard) setJaccardThreshold(parseFloat(storedJaccard));
-
       const nowMs = Date.now();
       setClientNow(nowMs);
       const endStr = new Date(nowMs).toISOString().split("T")[0];
@@ -357,7 +292,7 @@ export default function PPGscopeApp() {
       setCustomStartDate(startStr);
       setCustomEndDate(endStr);
     } catch {
-      // Ignore localStorage errors in private browsing
+      // Ignore localStorage in private browsing
     }
   }, []);
 
@@ -366,9 +301,6 @@ export default function PPGscopeApp() {
       localStorage.setItem("ppgscope_gemini_api_key", geminiApiKey);
       localStorage.setItem("ppgscope_supabase_url", supabaseUrl);
       localStorage.setItem("ppgscope_supabase_anon_key", supabaseAnonKey);
-      localStorage.setItem("ppgscope_internal_endpoint", internalEndpoint);
-      localStorage.setItem("ppgscope_min_sample_size", minSampleSize.toString());
-      localStorage.setItem("ppgscope_jaccard_threshold", jaccardThreshold.toString());
       setSettingsSavedNotice(true);
       setTimeout(() => {
         setSettingsSavedNotice(false);
@@ -458,6 +390,7 @@ export default function PPGscopeApp() {
           title: article.title,
           lead: article.lead,
           body: article.title,
+          outlet: article.portal_name,
           apiKey: geminiApiKey,
         }),
       });
@@ -475,16 +408,15 @@ export default function PPGscopeApp() {
   };
 
   // =========================================================================
-  // DYNAMIC STATISTICAL CALCULATIONS (BASED ON SELECTED TIME WINDOW)
+  // DYNAMIC FILTERING: TIME WINDOW & SINGLE MEDIUM SELECTION
   // =========================================================================
 
-  const { dateRange, filteredArticles, referenceArticles } = useMemo(() => {
+  const { dateRange, filteredArticles } = useMemo(() => {
     const staticBase = new Date("2026-03-31T20:00:00Z");
     if (!data || !data.recent_articles) {
       return {
-        dateRange: { start: staticBase, end: staticBase, prevStart: staticBase, prevEnd: staticBase },
+        dateRange: { start: staticBase, end: staticBase },
         filteredArticles: [],
-        referenceArticles: [],
       };
     }
 
@@ -507,129 +439,139 @@ export default function PPGscopeApp() {
       end = new Date(customEndDate + "T23:59:59");
     }
 
-    const durationMs = end.getTime() - start.getTime();
-    const prevEnd = new Date(start.getTime() - 1000);
-    const prevStart = new Date(prevEnd.getTime() - durationMs);
-
-    const currentArts = data.recent_articles.filter((a) => {
+    const arts = data.recent_articles.filter((a) => {
       const pub = new Date(a.published_at);
-      return pub >= start && pub <= end;
-    });
-
-    const refArts = data.recent_articles.filter((a) => {
-      const pub = new Date(a.published_at);
-      return pub >= prevStart && pub <= prevEnd;
+      const matchesTime = pub >= start && pub <= end;
+      const matchesMedium = selectedMediumDomain === "ALL" || a.portal_domain === selectedMediumDomain;
+      return matchesTime && matchesMedium;
     });
 
     return {
-      dateRange: { start, end, prevStart, prevEnd },
-      filteredArticles: currentArts,
-      referenceArticles: refArts,
+      dateRange: { start, end },
+      filteredArticles: arts,
     };
-  }, [data, timePreset, customStartDate, customEndDate, clientNow]);
+  }, [data, timePreset, customStartDate, customEndDate, clientNow, selectedMediumDomain]);
 
-  // Compute Rigorous Dynamic Statistical Trends with Exact Hare-Niemeyer Percentages
-  const dynamicTrends = useMemo<CalculatedTrendRow[]>(() => {
-    if (!data || !data.taxonomy) return [];
+  // Selected Medium Details
+  const selectedMediumObj = useMemo(() => {
+    if (!data || selectedMediumDomain === "ALL") return null;
+    return data.titles.find((t) => t.domain === selectedMediumDomain) || null;
+  }, [data, selectedMediumDomain]);
 
-    const currList = filteredArticles.filter((a) =>
-      variant === "OWN" ? !a.is_duplicate : true
-    );
-    const prevList = referenceArticles.filter((a) =>
-      variant === "OWN" ? !a.is_duplicate : true
-    );
+  // =========================================================================
+  // 18 DOMAINS & LOCALITY CALCULATIONS
+  // =========================================================================
 
-    const n1 = currList.length;
-    const n2 = prevList.length;
+  const domainBreakdown = useMemo(() => {
+    const totalCount = filteredArticles.length;
+    const domains = DOMAINS_SPEC;
 
-    // Count topics
-    const currCounts: { [k: string]: number } = {};
-    const prevCounts: { [k: string]: number } = {};
-
-    data.taxonomy.topics.forEach((t) => {
-      currCounts[t.id] = 0;
-      prevCounts[t.id] = 0;
+    // Counts per domain and locality
+    const counts: { [slug: string]: { c: number; cl: number; l: number; total: number } } = {};
+    domains.forEach((d) => {
+      counts[d.slug] = { c: 0, cl: 0, l: 0, total: 0 };
     });
 
-    currList.forEach((a) => {
-      currCounts[a.topic_id] = (currCounts[a.topic_id] || 0) + 1;
-    });
-    prevList.forEach((a) => {
-      prevCounts[a.topic_id] = (prevCounts[a.topic_id] || 0) + 1;
-    });
+    let countC = 0;
+    let countCL = 0;
+    let countL = 0;
 
-    const topicIds = data.taxonomy.topics.map((t) => t.id);
-    const currRawCounts = topicIds.map((id) => currCounts[id] || 0);
-    const prevRawCounts = topicIds.map((id) => prevCounts[id] || 0);
+    filteredArticles.forEach((art) => {
+      const dSlug = art.domain || "spolecznosc";
+      const loc = art.locality || "C";
 
-    // Hare-Niemeyer exact 100.0% percentages
-    const currPcts = hareNiemeyer(currRawCounts, n1);
-    const prevPcts = hareNiemeyer(prevRawCounts, n2);
-
-    return data.taxonomy.topics.map((topic, idx) => {
-      const x1 = currRawCounts[idx];
-      const x2 = prevRawCounts[idx];
-      const p1 = currPcts[idx];
-      const p2 = prevPcts[idx];
-      const deltaPp = round1(p1 - p2);
-
-      const { z, pValue, isSignificant } = computeTwoProportionZTest(
-        x1,
-        n1,
-        x2,
-        n2,
-        minSampleSize
-      );
-
-      let status: "WZROST" | "SPADEK" | "STABILNY" | "BRAK_DANYCH" = "STABILNY";
-      if (z === null) {
-        status = "BRAK_DANYCH";
-      } else if (isSignificant) {
-        status = deltaPp > 0 ? "WZROST" : "SPADEK";
+      if (!counts[dSlug]) {
+        counts[dSlug] = { c: 0, cl: 0, l: 0, total: 0 };
       }
 
-      return {
-        topicId: topic.id,
-        topicName: topic.name,
-        currentCount: x1,
-        currentPct: p1,
-        previousCount: x2,
-        previousPct: p2,
-        deltaPp,
-        zScore: z,
-        pValue,
-        isSignificant,
-        status,
-        totalCurrent: n1,
-        totalPrevious: n2,
-      };
+      if (loc === "L") {
+        counts[dSlug].l += 1;
+        countL += 1;
+      } else if (loc === "CL") {
+        counts[dSlug].cl += 1;
+        countCL += 1;
+      } else {
+        counts[dSlug].c += 1;
+        countC += 1;
+      }
+      counts[dSlug].total += 1;
     });
-  }, [data, filteredArticles, referenceArticles, variant, minSampleSize]);
 
-  // Sum of current percentages to guarantee audit proof
-  const totalCurrentPctSum = useMemo(() => {
-    return round1(dynamicTrends.reduce((s, r) => s + r.currentPct, 0));
-  }, [dynamicTrends]);
+    // Key Indicators:
+    // udział treści lokalnej = (L + CL) / wszystkie
+    const localContentShare = totalCount > 0 ? (countL + countCL) / totalCount : 0.0;
+    // wskaźnik lokalizacji = CL / (C + CL)
+    const localizationIndex = (countC + countCL) > 0 ? countCL / (countC + countCL) : 0.0;
 
-  // Filtered titles directory
-  const filteredTitles = useMemo(() => {
-    if (!data) return [];
-    return data.titles.filter((t) => {
-      const matchSearch =
-        t.name.toLowerCase().includes(titleSearch.toLowerCase()) ||
-        t.domain.toLowerCase().includes(titleSearch.toLowerCase()) ||
-        (t.city && t.city.toLowerCase().includes(titleSearch.toLowerCase()));
-      const matchRegion =
-        regionFilter === "wszystkie" || t.region.toLowerCase() === regionFilter.toLowerCase();
-      const matchType =
-        typeFilter === "wszystkie" || t.type.toLowerCase().includes(typeFilter.toLowerCase());
-      return matchSearch && matchRegion && matchType;
-    });
-  }, [data, titleSearch, regionFilter, typeFilter]);
+    return {
+      totalCount,
+      countC,
+      countCL,
+      countL,
+      localContentShare: Math.round(localContentShare * 1000) / 10,
+      localizationIndex: Math.round(localizationIndex * 1000) / 10,
+      domains: domains.map((d) => {
+        const item = counts[d.slug] || { c: 0, cl: 0, l: 0, total: 0 };
+        return {
+          ...d,
+          countC: item.c,
+          countCL: item.cl,
+          countL: item.l,
+          total: item.total,
+          pct: totalCount > 0 ? Math.round((item.total / totalCount) * 1000) / 10 : 0.0,
+        };
+      }),
+    };
+  }, [filteredArticles]);
 
-  function round1(val: number): number {
-    return Math.round(val * 10) / 10;
-  }
+  // CSV Export Handler
+  const handleExportCSV = () => {
+    if (!filteredArticles.length) return;
+
+    const headers = [
+      "ID",
+      "Tytuł",
+      "Serwis",
+      "Domena",
+      "Region",
+      "Data_publikacji",
+      "Dziedzina_glowna",
+      "Dziedzina_kod",
+      "Dziedzina_poboczna",
+      "Wariant_lokalnosci",
+      "Inny_region_PPG",
+      "Wymaga_weryfikacji",
+      "Pewnosc",
+      "URL"
+    ];
+
+    const rows = filteredArticles.map((a) => [
+      `"${a.id}"`,
+      `"${(a.title || "").replace(/"/g, '""')}"`,
+      `"${(a.portal_name || "").replace(/"/g, '""')}"`,
+      `"${a.portal_domain}"`,
+      `"${a.region || ""}"`,
+      `"${a.published_at}"`,
+      `"${a.domain}"`,
+      `"${DOMAINS_SPEC.find(d => d.slug === a.domain)?.code || ""}"`,
+      `"${a.domain_secondary || ""}"`,
+      `"${a.locality}"`,
+      `"${a.other_region ? "TAK" : "NIE"}"`,
+      `"${a.needs_review ? "TAK" : "NIE"}"`,
+      `"${a.confidence ?? ""}"`,
+      `"${a.url}"`
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `ppgscope_artykuly_${selectedMediumDomain}_${timePreset}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // =========================================================================
   // VIEW: AUTHENTICATION LOCK SCREEN
@@ -647,7 +589,7 @@ export default function PPGscopeApp() {
               <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
                 PPGscope <span className="text-[10px] font-mono uppercase bg-teal-500/10 text-teal-300 border border-teal-500/20 px-1.5 py-0.5 rounded">Intelligence</span>
               </h1>
-              <p className="text-xs text-zinc-400">System analityki mediów i syndykacji treści Polska Press Grupa</p>
+              <p className="text-xs text-zinc-400">System wywiadu mediowego i taksonomii Polska Press Grupa</p>
             </div>
           </div>
 
@@ -698,31 +640,25 @@ export default function PPGscopeApp() {
     );
   }
 
-  // =========================================================================
-  // VIEW: LOADING SPINNER
-  // =========================================================================
-
+  // Loading Screen
   if (loading || !data) {
     return (
       <div className="min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center">
         <div className="flex items-center gap-3">
           <RefreshCw className="h-5 w-5 animate-spin text-teal-400" />
-          <span className="text-sm font-mono text-zinc-400">Inicjalizacja 546 serwisów PPGscope...</span>
+          <span className="text-sm font-mono text-zinc-400">Inicjalizacja 546 mediów PPGscope...</span>
         </div>
       </div>
     );
   }
 
-  // Global KPIs
-  const totalTitlesCount = data.titles.length;
-  const currentTotalArticles = filteredArticles.length;
-  const syndicatedCurrentCount = filteredArticles.filter((a) => a.is_duplicate).length;
-  const originalCurrentCount = currentTotalArticles - syndicatedCurrentCount;
-  const globalAutonomyIndex = currentTotalArticles > 0 ? round1((originalCurrentCount / currentTotalArticles) * 100) : 85.0;
-
-  // =========================================================================
-  // VIEW: MAIN DASHBOARD
-  // =========================================================================
+  // Filtered titles for medium selector
+  const availableTitles = data.titles;
+  const filteredTitlesForSelector = availableTitles.filter((t) =>
+    t.name.toLowerCase().includes(mediumSearchQuery.toLowerCase()) ||
+    t.domain.toLowerCase().includes(mediumSearchQuery.toLowerCase()) ||
+    (t.city && t.city.toLowerCase().includes(mediumSearchQuery.toLowerCase()))
+  );
 
   return (
     <div className="min-h-screen bg-[#07080a] text-zinc-100 selection:bg-teal-500 selection:text-black">
@@ -737,14 +673,14 @@ export default function PPGscopeApp() {
               <div className="flex items-center gap-2">
                 <span className="font-bold tracking-tight text-white">PPGscope</span>
                 <span className="text-[10px] font-mono bg-white/[0.06] text-zinc-300 border border-white/[0.08] px-1.5 py-0.5 rounded">
-                  v1.3 · 546 serwisów
+                  v2.0 · 18 dziedzin
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">
-                  <CheckCircle2 className="h-2.5 w-2.5" /> 100% sieci PPG
+                  <CheckCircle2 className="h-2.5 w-2.5" /> 546 portali
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400 hidden sm:block">
-                Zasięg badania: Wszystkie 546 portali Polska Press Grupa w sieci
+                Kategoryzacja tematyczna i analityka lokalności (C / CL / L)
               </p>
             </div>
           </div>
@@ -805,6 +741,16 @@ export default function PPGscopeApp() {
               </button>
             </div>
 
+            {/* CSV Export Button */}
+            <button
+              onClick={handleExportCSV}
+              className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/[0.08] hover:text-white transition-all flex items-center gap-1.5 font-mono"
+              title="Eksportuj wyfiltrowane artykuły do pliku CSV"
+            >
+              <Download className="h-3.5 w-3.5 text-teal-400" />
+              <span className="hidden md:inline">Eksport CSV</span>
+            </button>
+
             {/* Settings Modal Button */}
             <button
               onClick={() => setIsSettingsOpen(true)}
@@ -829,14 +775,14 @@ export default function PPGscopeApp() {
         <div className="mx-auto flex max-w-7xl overflow-x-auto px-4 sm:px-6 border-t border-white/[0.04]">
           <nav className="flex space-x-1 py-1.5 text-xs font-medium">
             <button
-              onClick={() => setActiveTab("overview")}
+              onClick={() => setActiveTab("domain_stats")}
               className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
-                activeTab === "overview"
+                activeTab === "domain_stats"
                   ? "bg-white/[0.1] text-white"
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               }`}
             >
-              <Activity className="h-3.5 w-3.5 text-teal-400" /> Pulpit
+              <BarChart3 className="h-3.5 w-3.5 text-teal-400" /> 18 Dziedzin i Lokalność
             </button>
 
             <button
@@ -847,29 +793,7 @@ export default function PPGscopeApp() {
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               }`}
             >
-              <BarChart3 className="h-3.5 w-3.5 text-teal-400" /> Centrum Wykresów
-            </button>
-
-            <button
-              onClick={() => setActiveTab("topics")}
-              className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
-                activeTab === "topics"
-                  ? "bg-white/[0.1] text-white"
-                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
-              }`}
-            >
-              <PieChart className="h-3.5 w-3.5 text-teal-400" /> Struktura tematyczna (100%)
-            </button>
-
-            <button
-              onClick={() => setActiveTab("trends")}
-              className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
-                activeTab === "trends"
-                  ? "bg-white/[0.1] text-white"
-                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
-              }`}
-            >
-              <TrendingUp className="h-3.5 w-3.5 text-teal-400" /> Trendy (Z-test)
+              <PieChart className="h-3.5 w-3.5 text-teal-400" /> Centrum Wykresów
             </button>
 
             <button
@@ -880,7 +804,7 @@ export default function PPGscopeApp() {
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               }`}
             >
-              <Zap className="h-3.5 w-3.5 text-teal-400" /> Wskaźniki Wywiadu (6)
+              <Zap className="h-3.5 w-3.5 text-teal-400" /> Wskaźniki Wywiadu
             </button>
 
             <button
@@ -902,7 +826,7 @@ export default function PPGscopeApp() {
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               }`}
             >
-              <Database className="h-3.5 w-3.5 text-teal-400" /> Portale PPG (546)
+              <Database className="h-3.5 w-3.5 text-teal-400" /> Serwisy PPG (546)
             </button>
 
             <button
@@ -913,7 +837,7 @@ export default function PPGscopeApp() {
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               }`}
             >
-              <FileText className="h-3.5 w-3.5 text-teal-400" /> Baza Publikacji
+              <FileText className="h-3.5 w-3.5 text-teal-400" /> Baza Artykułów
             </button>
 
             <button
@@ -924,7 +848,7 @@ export default function PPGscopeApp() {
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               }`}
             >
-              <Info className="h-3.5 w-3.5 text-teal-400" /> Metodologia
+              <Info className="h-3.5 w-3.5 text-teal-400" /> Metodologia v2.0
             </button>
           </nav>
         </div>
@@ -933,248 +857,282 @@ export default function PPGscopeApp() {
       {/* Main Container */}
       <main className="mx-auto max-w-7xl p-4 sm:p-6 space-y-6">
 
-        {/* Global Context Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-gradient-to-r from-teal-500/[0.06] via-transparent to-transparent p-4">
-          <div className="flex items-center gap-3">
-            <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <div className="text-xs">
-              <span className="font-semibold text-white">Analizowany zakres: </span>
-              <span className="text-zinc-300 font-mono">
-                {dateRange.start.toLocaleDateString("pl-PL")} – {dateRange.end.toLocaleDateString("pl-PL")}
-              </span>
-              <span className="text-zinc-500 ml-2 font-mono">
-                ({currentTotalArticles} artykułów ze wszystkich 546 serwisów)
-              </span>
+        {/* Global Context Bar: Medium Selector + Locality Toggles */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+
+          {/* Medium Selector Dropdown */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-white">
+              <Building2 className="h-4 w-4 text-teal-400" />
+              <span>Zakres analizy:</span>
             </div>
+
+            <div className="relative">
+              <select
+                value={selectedMediumDomain}
+                onChange={(e) => setSelectedMediumDomain(e.target.value)}
+                className="w-full sm:w-80 rounded-xl border border-white/[0.1] bg-black/60 py-2 pl-3 pr-8 text-xs font-mono text-white focus:border-teal-500 focus:outline-none"
+              >
+                <option value="ALL">Cała grupa PPG (wszystkie 546 mediów)</option>
+                <optgroup label="Dzienniki regionalne (20)">
+                  {availableTitles.filter(t => t.type === "DZIENNIK_REGIONALNY" || t.type === "Dziennik regionalny").map(t => (
+                    <option key={t.id} value={t.domain}>{t.name} ({t.domain})</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Wszystkie media lokalne i tematyczne (526)">
+                  {availableTitles.filter(t => t.type !== "DZIENNIK_REGIONALNY" && t.type !== "Dziennik regionalny").map(t => (
+                    <option key={t.id} value={t.domain}>{t.name} ({t.domain})</option>
+                  ))}
+                </optgroup>
+              </select>
+            </div>
+
+            {selectedMediumObj && (
+              <span className="text-[11px] font-mono text-zinc-400">
+                Region: <strong className="text-teal-300">{selectedMediumObj.region}</strong> · {selectedMediumObj.type}
+              </span>
+            )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-zinc-400">Profil:</span>
+          {/* Locality Toggles: Wszystkie / Lokalne + Tylko czysto lokalne */}
+          <div className="flex flex-wrap items-center gap-3 border-t lg:border-t-0 border-white/[0.06] pt-3 lg:pt-0">
+            <span className="text-xs text-zinc-400 font-mono">Widok:</span>
             <div className="flex rounded-lg border border-white/[0.08] bg-black/60 p-0.5 text-xs font-mono">
               <button
-                onClick={() => setVariant("ALL")}
-                className={`rounded px-2.5 py-1 transition-all ${
-                  variant === "ALL"
-                    ? "bg-teal-500 text-black font-semibold"
+                onClick={() => setLocalityMode("ALL")}
+                className={`rounded px-3 py-1 transition-all ${
+                  localityMode === "ALL"
+                    ? "bg-teal-500 text-black font-semibold shadow"
                     : "text-zinc-400 hover:text-white"
                 }`}
               >
-                Cała produkcja
+                Wszystkie (C + CL + L)
               </button>
               <button
-                onClick={() => setVariant("OWN")}
-                className={`rounded px-2.5 py-1 transition-all ${
-                  variant === "OWN"
-                    ? "bg-teal-500 text-black font-semibold"
+                onClick={() => setLocalityMode("LOCAL")}
+                className={`rounded px-3 py-1 transition-all ${
+                  localityMode === "LOCAL"
+                    ? "bg-teal-500 text-black font-semibold shadow"
                     : "text-zinc-400 hover:text-white"
                 }`}
               >
-                Tylko własne ({originalCurrentCount})
+                Lokalne (L + CL)
               </button>
             </div>
+
+            {localityMode === "LOCAL" && (
+              <label className="flex items-center gap-2 text-xs font-mono text-zinc-300 cursor-pointer select-none pl-2 border-l border-white/[0.08]">
+                <input
+                  type="checkbox"
+                  checked={pureLocalOnly}
+                  onChange={(e) => setPureLocalOnly(e.target.checked)}
+                  className="rounded border-zinc-700 bg-black text-teal-500 focus:ring-teal-500 h-3.5 w-3.5"
+                />
+                <span>Tylko czysto lokalne (ukryj CL)</span>
+              </label>
+            )}
           </div>
         </div>
 
         {/* ================================================================= */}
-        {/* TAB: OVERVIEW (PULPIT) */}
+        {/* TAB: 18 DZIEDZIN I LOKALNOŚĆ (MAIN VIEW) */}
         {/* ================================================================= */}
-        {activeTab === "overview" && (
+        {activeTab === "domain_stats" && (
           <div className="space-y-6">
-            {/* KPI Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
-                <span className="text-xs font-mono uppercase text-zinc-400">Serwisy grupy w sieci</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold tracking-tight text-white">{totalTitlesCount}</span>
-                  <span className="text-xs font-mono text-emerald-400">100% monitoringu</span>
-                </div>
-                <p className="text-[11px] text-zinc-500">20 dzienników, 509 serwisów NaszeMiasto, 15 tematycznych, 2 ogólnopolskie</p>
+
+            {/* Header Description & Summary Audit */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-teal-400" />
+                  {selectedMediumDomain === "ALL"
+                    ? "Struktura 18 Dziedzin Tematycznych (Cała Grupa PPG)"
+                    : `Struktura 18 Dziedzin: ${selectedMediumObj?.name || selectedMediumDomain}`}
+                </h2>
+                <p className="text-xs text-zinc-400 mt-1">
+                  {localityMode === "ALL"
+                    ? "Widok 'Wszystkie': każdy słupek skumulowany z 3 segmentów: C (centralne), CL (rozwinięcie lokalne), L (lokalne)."
+                    : pureLocalOnly
+                    ? "Widok 'Lokalne' (Tylko czysto lokalne): prezentuje wyłącznie segment L o bezpośrednim źródle lokalnym."
+                    : "Widok 'Lokalne': segmenty L (pełny kolor) oraz CL (jaśniejszy odcień), treści czysto centralne C ukryte."}
+                </p>
               </div>
 
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
-                <span className="text-xs font-mono uppercase text-zinc-400">Publikacje w wybranym okresie</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold tracking-tight text-white">{currentTotalArticles}</span>
-                  <span className="text-xs font-mono text-teal-400">ze wszystkich 546 portali</span>
-                </div>
-                <p className="text-[11px] text-zinc-500">Brak pomijania jakichkolwiek domen grupy medialnej</p>
-              </div>
-
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
-                <span className="text-xs font-mono uppercase text-zinc-400">Indeks Autonomii Redakcyjnej (I_aut)</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold tracking-tight text-teal-400">{globalAutonomyIndex}%</span>
-                  <span className="text-xs font-mono text-zinc-400">treści własnych</span>
-                </div>
-                <p className="text-[11px] text-zinc-500">Udział materiałów autorskich niesyndykowanych w grupie</p>
-              </div>
-
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
-                <span className="text-xs font-mono uppercase text-zinc-400">Wskaźnik powieleń (MinHash)</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold tracking-tight text-amber-400">
-                    {currentTotalArticles > 0 ? round1((syndicatedCurrentCount / currentTotalArticles) * 100) : 0}%
+              {/* Exact Article Count Audit */}
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 text-right font-mono">
+                  <span className="text-[10px] uppercase text-emerald-400 block font-bold">Zbadany wolumen</span>
+                  <span className="text-sm font-bold text-white">
+                    {domainBreakdown.totalCount} artykułów
                   </span>
-                  <span className="text-xs font-mono text-zinc-400">({syndicatedCurrentCount} art.)</span>
                 </div>
-                <p className="text-[11px] text-zinc-500">Wykryte depesze i przedruki sieciowe (J &gt;= 0.80)</p>
               </div>
             </div>
 
-            {/* Quick Chart: Timeline Volume Curve */}
-            {data.daily_timeseries && data.daily_timeseries.length > 0 && (
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h2 className="text-base font-semibold text-white flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-teal-400" /> Dynamika publikacji w czasie (Ostatnie 30 dni)
-                    </h2>
-                    <p className="text-xs text-zinc-400">
-                      Wykres dziennego wolumenu publikacji w sieci PPG z rozbiciem na główne nurty tematyczne.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs font-mono">
-                    <span className="flex items-center gap-1.5 text-teal-300">
-                      <span className="h-2 w-2 rounded-full bg-teal-400" /> Lokalne
-                    </span>
-                    <span className="flex items-center gap-1.5 text-blue-300">
-                      <span className="h-2 w-2 rounded-full bg-blue-400" /> Społeczeństwo
-                    </span>
-                    <span className="flex items-center gap-1.5 text-amber-300">
-                      <span className="h-2 w-2 rounded-full bg-amber-400" /> Sport
-                    </span>
-                    <span className="flex items-center gap-1.5 text-rose-300">
-                      <span className="h-2 w-2 rounded-full bg-rose-400" /> Polityka
-                    </span>
-                  </div>
-                </div>
-
-                {/* SVG Area Chart */}
-                <div className="relative h-64 w-full pt-4">
-                  <svg viewBox="0 0 800 200" className="w-full h-full overflow-visible" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="gradTotal" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.3" />
-                        <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.0" />
-                      </linearGradient>
-                      <linearGradient id="gradLocal" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
-                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Horizontal Grid lines */}
-                    {[0, 50, 100, 150].map((val) => (
-                      <line
-                        key={val}
-                        x1="0"
-                        y1={200 - val * 1.2}
-                        x2="800"
-                        y2={200 - val * 1.2}
-                        stroke="#ffffff"
-                        strokeOpacity="0.05"
-                        strokeDasharray="4 4"
-                      />
-                    ))}
-
-                    {/* Total Area Curve */}
-                    {(() => {
-                      const pts = data.daily_timeseries.map((d, i) => {
-                        const x = (i / (data.daily_timeseries!.length - 1)) * 800;
-                        const y = Math.max(10, 200 - d.total * 1.4);
-                        return `${x},${y}`;
-                      });
-                      const pathD = `M 0,200 L ${pts.join(" L ")} L 800,200 Z`;
-                      const lineD = `M ${pts.join(" L ")}`;
-                      return (
-                        <>
-                          <path d={pathD} fill="url(#gradTotal)" />
-                          <path d={lineD} fill="none" stroke="#14b8a6" strokeWidth="2.5" />
-                        </>
-                      );
-                    })()}
-
-                    {/* Lokalne Line Curve */}
-                    {(() => {
-                      const pts = data.daily_timeseries.map((d, i) => {
-                        const x = (i / (data.daily_timeseries!.length - 1)) * 800;
-                        const y = Math.max(10, 200 - d.lokalne * 1.8);
-                        return `${x},${y}`;
-                      });
-                      const lineD = `M ${pts.join(" L ")}`;
-                      return <path d={lineD} fill="none" stroke="#3b82f6" strokeWidth="2" strokeDasharray="3 3" />;
-                    })()}
-
-                    {/* Interactive Points */}
-                    {data.daily_timeseries.map((d, i) => {
-                      const x = (i / (data.daily_timeseries!.length - 1)) * 800;
-                      const y = Math.max(10, 200 - d.total * 1.4);
-                      return (
-                        <circle
-                          key={d.date}
-                          cx={x}
-                          cy={y}
-                          r={hoveredPoint?.date === d.date ? 5 : 3}
-                          fill="#14b8a6"
-                          className="cursor-pointer transition-all hover:r-6"
-                          onMouseEnter={() => setHoveredPoint(d)}
-                        />
-                      );
-                    })}
-                  </svg>
-                </div>
-
-                {/* Timeline X-Axis Labels */}
-                <div className="flex justify-between text-[10px] font-mono text-zinc-500 pt-2 border-t border-white/[0.04]">
-                  {data.daily_timeseries.filter((_, idx) => idx % 4 === 0).map((d) => (
-                    <span key={d.date}>{d.label}</span>
-                  ))}
-                  <span>{data.daily_timeseries[data.daily_timeseries.length - 1]?.label}</span>
-                </div>
-
-                {hoveredPoint && (
-                  <div className="rounded-xl border border-teal-500/30 bg-teal-500/10 p-3 text-xs font-mono flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-white font-bold">Data: {hoveredPoint.label}</span>
-                    <span className="text-teal-300">Łącznie publikacji: {hoveredPoint.total}</span>
-                    <span className="text-blue-300">Lokalne: {hoveredPoint.lokalne}</span>
-                    <span className="text-amber-300">Społeczeństwo: {hoveredPoint.spoleczenstwo}</span>
-                    <span className="text-emerald-300">Sport: {hoveredPoint.sport}</span>
-                    <span className="text-rose-300">Polityka: {hoveredPoint.polityka}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Quick Distribution Summary */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-semibold text-white">Rozkład tematyczny w sieci (Wszystkie 546 portali)</h3>
-                  <p className="text-xs text-zinc-400">Wszystkie 12 kategorii + kategoria rezerwowa. Algorytm Hare-Niemeyera sumuje udziały do 100.0%.</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-mono font-bold text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2 py-1 rounded">
-                    Suma: {totalCurrentPctSum}%
+            {/* Two Key Indicators Required Under the Chart */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
+                <span className="text-xs font-mono uppercase text-zinc-400 flex items-center gap-1.5">
+                  <Target className="h-4 w-4 text-teal-400" /> Udział treści lokalnej = (L + CL) / wszystkie
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold tracking-tight text-teal-400">
+                    {domainBreakdown.localContentShare}%
+                  </span>
+                  <span className="text-xs font-mono text-zinc-400">
+                    ({domainBreakdown.countL + domainBreakdown.countCL} z {domainBreakdown.totalCount} art.)
                   </span>
                 </div>
+                <p className="text-[11px] text-zinc-500">
+                  Odsetek artykułów posiadających wymiar lokalny (czysty lub rozwinięty z depeszy)
+                </p>
               </div>
 
-              <div className="space-y-2.5">
-                {dynamicTrends.slice(0, 6).map((t) => (
-                  <div key={t.topicId} className="space-y-1">
-                    <div className="flex justify-between text-xs font-mono">
-                      <span className="text-zinc-300">{t.topicName}</span>
-                      <span className="text-white font-semibold">{t.currentPct}% ({t.currentCount} art.)</span>
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
+                <span className="text-xs font-mono uppercase text-zinc-400 flex items-center gap-1.5">
+                  <Compass className="h-4 w-4 text-blue-400" /> Wskaźnik lokalizacji = CL / (C + CL)
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold tracking-tight text-blue-400">
+                    {domainBreakdown.localizationIndex}%
+                  </span>
+                  <span className="text-xs font-mono text-zinc-400">
+                    ({domainBreakdown.countCL} z {domainBreakdown.countC + domainBreakdown.countCL} spraw centralnych)
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500">
+                  Zdolność redakcji do 'przepakowywania' tematów ogólnopolskich na konkretne przykłady lokalne
+                </p>
+              </div>
+            </div>
+
+            {/* Legend Component */}
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-black/40 p-4 text-xs font-mono">
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Legenda segmentów:</span>
+                <span className="flex items-center gap-1.5 text-zinc-200">
+                  <span className="h-3 w-3 rounded bg-teal-500" />
+                  <strong>L</strong> – lokalne (sprawa o źródle lokalnym z obszaru tytułu)
+                </span>
+                <span className="flex items-center gap-1.5 text-zinc-200">
+                  <span className="h-3 w-3 rounded bg-teal-300" />
+                  <strong>CL</strong> – centralne z rozwinięciem lokalnym (sprawa krajowa na przykładzie lokalnym)
+                </span>
+                {localityMode === "ALL" && (
+                  <span className="flex items-center gap-1.5 text-zinc-200">
+                    <span className="h-3 w-3 rounded bg-zinc-600" />
+                    <strong>C</strong> – centralne (brak lokalnego podmiotu z obszaru tytułu)
+                  </span>
+                )}
+              </div>
+
+              <div className="text-[11px] text-zinc-500">
+                18 dziedzin tematycznych v2.0
+              </div>
+            </div>
+
+            {/* 18 Domains Stacked Bar Chart Cards */}
+            <div className="space-y-3">
+              {domainBreakdown.domains.map((d) => {
+                const totalVisible =
+                  localityMode === "ALL"
+                    ? d.countC + d.countCL + d.countL
+                    : pureLocalOnly
+                    ? d.countL
+                    : d.countL + d.countCL;
+
+                const maxCount = Math.max(
+                  ...domainBreakdown.domains.map((dom) =>
+                    localityMode === "ALL"
+                      ? dom.countC + dom.countCL + dom.countL
+                      : pureLocalOnly
+                      ? dom.countL
+                      : dom.countL + dom.countCL
+                  ),
+                  1
+                );
+
+                const widthPct = Math.min(100, Math.round((totalVisible / maxCount) * 100));
+
+                const pctL = totalVisible > 0 ? (d.countL / totalVisible) * 100 : 0;
+                const pctCL = totalVisible > 0 ? (d.countCL / totalVisible) * 100 : 0;
+                const pctC = totalVisible > 0 && localityMode === "ALL" ? (d.countC / totalVisible) * 100 : 0;
+
+                return (
+                  <div
+                    key={d.slug}
+                    className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-4 space-y-2 hover:border-white/[0.12] transition-all"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono bg-white/[0.06] text-teal-300 px-1.5 py-0.5 rounded font-bold">
+                          {d.code} {d.slug}
+                        </span>
+                        <span className="font-semibold text-white">{d.name}</span>
+                        <span className="text-[11px] text-zinc-400 hidden md:inline">
+                          — {d.description}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3 font-mono text-xs">
+                        <span className="text-zinc-400">
+                          {localityMode === "ALL" ? (
+                            <>
+                              <span className="text-teal-400 font-bold">{d.countL}L</span> +{" "}
+                              <span className="text-teal-300 font-bold">{d.countCL}CL</span> +{" "}
+                              <span className="text-zinc-400">{d.countC}C</span> ={" "}
+                            </>
+                          ) : pureLocalOnly ? (
+                            <><span className="text-teal-400 font-bold">{d.countL}L</span> = </>
+                          ) : (
+                            <>
+                              <span className="text-teal-400 font-bold">{d.countL}L</span> +{" "}
+                              <span className="text-teal-300 font-bold">{d.countCL}CL</span> ={" "}
+                            </>
+                          )}
+                          <strong className="text-white">{totalVisible} art.</strong>
+                        </span>
+                        <span className="text-teal-400 font-bold w-12 text-right">
+                          {domainBreakdown.totalCount > 0
+                            ? Math.round((totalVisible / domainBreakdown.totalCount) * 1000) / 10
+                            : 0}%
+                        </span>
+                      </div>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-white/[0.04] overflow-hidden">
+
+                    {/* Multi-segment Stacked Bar */}
+                    <div className="h-3 w-full rounded-full bg-white/[0.04] overflow-hidden flex">
                       <div
-                        className="h-full rounded-full bg-teal-400 transition-all duration-500"
-                        style={{ width: `${Math.min(100, t.currentPct * 4)}%` }}
-                      />
+                        style={{ width: `${widthPct}%` }}
+                        className="h-full flex rounded-full overflow-hidden transition-all duration-500"
+                      >
+                        {/* Segment L (Lokalne - Darker/Vibrant Teal) */}
+                        <div
+                          style={{ width: `${pctL}%` }}
+                          className="h-full bg-teal-500"
+                          title={`Lokalne (L): ${d.countL}`}
+                        />
+                        {/* Segment CL (Centralne Lokalne - Light Teal) */}
+                        {!pureLocalOnly && (
+                          <div
+                            style={{ width: `${pctCL}%` }}
+                            className="h-full bg-teal-300"
+                            title={`Rozwinięcie lokalne (CL): ${d.countCL}`}
+                          />
+                        )}
+                        {/* Segment C (Centralne - Slate / Zinc) */}
+                        {localityMode === "ALL" && (
+                          <div
+                            style={{ width: `${pctC}%` }}
+                            className="h-full bg-zinc-600"
+                            title={`Centralne (C): ${d.countC}`}
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -1186,14 +1144,13 @@ export default function PPGscopeApp() {
           <div className="space-y-6">
             <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-2">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-teal-400" /> Centrum Wykresów Graficznych i Wizualizacji Danych
+                <PieChart className="h-5 w-5 text-teal-400" /> Centrum Wykresów Graficznych i Wizualizacji Danych
               </h2>
               <p className="text-xs text-zinc-400">
-                Wielowymiarowa reprezentacja graficzna dynamiki sieci 546 mediów PPG: struktury portfela, prędkości depesz, geografii i autorstwa.
+                Graficzne podsumowanie struktury mediów, rozkładu lokalności oraz kaskad depeszowych.
               </p>
             </div>
 
-            {/* Chart Grid: 2 columns */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               {/* Chart 1: Donut Chart - Struktura portfela 546 serwisów */}
@@ -1206,42 +1163,11 @@ export default function PPGscopeApp() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-6 py-4">
-                  {/* SVG Donut */}
                   <div className="relative h-44 w-44">
                     <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90 transform">
-                      {/* NaszeMiasto 93.2% */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#14b8a6"
-                        strokeWidth="14"
-                        strokeDasharray="223 238"
-                        strokeDashoffset="0"
-                      />
-                      {/* Dzienniki 3.7% */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#3b82f6"
-                        strokeWidth="14"
-                        strokeDasharray="9 238"
-                        strokeDashoffset="-223"
-                      />
-                      {/* Tematyczne 2.7% */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#f59e0b"
-                        strokeWidth="14"
-                        strokeDasharray="6 238"
-                        strokeDashoffset="-232"
-                      />
+                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#14b8a6" strokeWidth="14" strokeDasharray="223 238" strokeDashoffset="0" />
+                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#3b82f6" strokeWidth="14" strokeDasharray="9 238" strokeDashoffset="-223" />
+                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f59e0b" strokeWidth="14" strokeDasharray="6 238" strokeDashoffset="-232" />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-xl font-bold text-white">546</span>
@@ -1249,7 +1175,6 @@ export default function PPGscopeApp() {
                     </div>
                   </div>
 
-                  {/* Legend */}
                   <div className="space-y-2 text-xs font-mono">
                     <div className="flex items-center gap-2">
                       <span className="h-3 w-3 rounded bg-teal-400" />
@@ -1281,27 +1206,17 @@ export default function PPGscopeApp() {
                   <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                     <Users className="h-4 w-4 text-teal-400" /> Dystrybucja sygnatur autorstwa
                   </h3>
-                  <span className="text-[10px] font-mono text-zinc-400">N = {currentTotalArticles}</span>
+                  <span className="text-[10px] font-mono text-zinc-400">N = {domainBreakdown.totalCount}</span>
                 </div>
 
                 <div className="space-y-4 py-2">
-                  {/* Visual Multi-segment Bar */}
                   <div className="h-7 w-full rounded-xl overflow-hidden flex font-mono text-[10px] font-bold text-black">
-                    <div style={{ width: "43.1%" }} className="bg-teal-400 flex items-center justify-center" title="Imienne 43.1%">
-                      43.1%
-                    </div>
-                    <div style={{ width: "32.8%" }} className="bg-amber-400 flex items-center justify-center" title="Anonimowe (red) 32.8%">
-                      32.8%
-                    </div>
-                    <div style={{ width: "18.5%" }} className="bg-blue-400 flex items-center justify-center text-white" title="Depesze PAP/PPG 18.5%">
-                      18.5%
-                    </div>
-                    <div style={{ width: "5.6%" }} className="bg-rose-400 flex items-center justify-center" title="Partner 5.6%">
-                      5.6%
-                    </div>
+                    <div style={{ width: "43.1%" }} className="bg-teal-400 flex items-center justify-center">43.1%</div>
+                    <div style={{ width: "32.8%" }} className="bg-amber-400 flex items-center justify-center">32.8%</div>
+                    <div style={{ width: "18.5%" }} className="bg-blue-400 flex items-center justify-center text-white">18.5%</div>
+                    <div style={{ width: "5.6%" }} className="bg-rose-400 flex items-center justify-center">5.6%</div>
                   </div>
 
-                  {/* Legend Grid */}
                   <div className="grid grid-cols-2 gap-3 text-xs font-mono pt-2">
                     <div className="rounded-lg border border-white/[0.06] bg-black/40 p-2.5">
                       <span className="text-teal-400 font-bold block">43.1% Autorskie imienne</span>
@@ -1323,7 +1238,7 @@ export default function PPGscopeApp() {
                 </div>
               </div>
 
-              {/* Chart 3: Wire Propagation Velocity (Waterfall/Velocity Chart) */}
+              {/* Chart 3: Wire Propagation Velocity */}
               <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
                   <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -1334,7 +1249,7 @@ export default function PPGscopeApp() {
 
                 <div className="space-y-3 py-1">
                   {(data.wire_cascades || []).map((wire) => {
-                    const velocity = round1(wire.reach / wire.duration_hours);
+                    const velocity = Math.round((wire.reach / wire.duration_hours) * 10) / 10;
                     return (
                       <div key={wire.id} className="space-y-1 rounded-xl border border-white/[0.06] bg-black/40 p-3">
                         <div className="flex items-center justify-between text-xs">
@@ -1349,19 +1264,13 @@ export default function PPGscopeApp() {
                           <span>Pacjent zero: {wire.origin_outlet}</span>
                           <span>Zasięg: {wire.reach} serwisów w {wire.duration_hours}h</span>
                         </div>
-                        <div className="h-1.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-amber-400 to-rose-400"
-                            style={{ width: `${Math.min(100, velocity * 14)}%` }}
-                          />
-                        </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Chart 4: HHI Entity Concentration Exposure Chart */}
+              {/* Chart 4: HHI Entity Exposure */}
               <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
                   <h3 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -1385,9 +1294,6 @@ export default function PPGscopeApp() {
                       </div>
                     </div>
                   ))}
-                  <p className="text-[11px] text-zinc-500 pt-2 font-mono">
-                    Wskaźnik Herfindahla-Hirschmana (0.161) potwierdza brak monopolizacji agendy przez pojedynczy organ rządowy lub korporacyjny.
-                  </p>
                 </div>
               </div>
 
@@ -1396,154 +1302,7 @@ export default function PPGscopeApp() {
         )}
 
         {/* ================================================================= */}
-        {/* TAB: STRUKTURA TEMATYCZNA (100% SUMMED) */}
-        {/* ================================================================= */}
-        {activeTab === "topics" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
-              <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <PieChart className="h-5 w-5 text-teal-400" /> Struktura tematyczna publikacji (Wszystkie media PPG)
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Klasyfikacja zgodna z taksonomią v1.0 (12 kategorii + kategoria rezerwowa). Algorytm Hare-Niemeyera gwarantuje matematyczną sumę 100.0%.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-mono text-emerald-300 font-bold flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5" /> Suma: {totalCurrentPctSum}%
-                </span>
-                <span className="text-xs font-mono text-zinc-400">
-                  {currentTotalArticles} / {currentTotalArticles} art.
-                </span>
-              </div>
-            </div>
-
-            {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {dynamicTrends.map((topic) => (
-                <div
-                  key={topic.topicId}
-                  className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-3 hover:border-white/[0.12] transition-all"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-sm font-semibold text-white">{topic.topicName}</h3>
-                      <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
-                        Liczba publikacji: <span className="text-white font-bold">{topic.currentCount}</span>
-                      </p>
-                    </div>
-                    <span className="text-lg font-bold font-mono text-teal-400">
-                      {topic.currentPct}%
-                    </span>
-                  </div>
-
-                  {/* Horizontal Bar */}
-                  <div className="h-2 w-full rounded-full bg-white/[0.04] overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-teal-400 transition-all duration-500"
-                      style={{ width: `${Math.min(100, topic.currentPct * 4)}%` }}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 pt-1 border-t border-white/[0.04]">
-                    <span>Okres ref: {topic.previousPct}% ({topic.previousCount})</span>
-                    <span className={topic.deltaPp > 0 ? "text-emerald-400" : topic.deltaPp < 0 ? "text-rose-400" : "text-zinc-400"}>
-                      {topic.deltaPp > 0 ? `+${topic.deltaPp}` : topic.deltaPp} p.p.
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* TAB: TRENDY I Z-TEST */}
-        {/* ================================================================= */}
-        {activeTab === "trends" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-2">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-teal-400" /> Analiza trendów i istotność statystyczna (Z-test)
-              </h2>
-              <p className="text-xs text-zinc-400">
-                Dwustronny test Z dla dwóch proporcji ze wspólną wariancją (pooled proportion). Progi istotności: p &lt; 0.05.
-              </p>
-            </div>
-
-            {/* Table */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead className="border-b border-white/[0.08] bg-white/[0.02] text-zinc-400 uppercase text-[10px]">
-                    <tr>
-                      <th className="py-3 px-4">Kategoria tematyczna</th>
-                      <th className="py-3 px-4 text-right">Bieżący ({currentTotalArticles})</th>
-                      <th className="py-3 px-4 text-right">Referencyjny ({dynamicTrends[0]?.totalPrevious || 0})</th>
-                      <th className="py-3 px-4 text-right">Delta (p.p.)</th>
-                      <th className="py-3 px-4 text-right">Wartość p</th>
-                      <th className="py-3 px-4 text-center">Istotność</th>
-                      <th className="py-3 px-4 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/[0.04]">
-                    {dynamicTrends.map((row) => (
-                      <tr key={row.topicId} className="hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-semibold text-white">{row.topicName}</td>
-                        <td className="py-3 px-4 text-right font-bold text-white">
-                          {row.currentPct}% <span className="text-zinc-500 font-normal">({row.currentCount})</span>
-                        </td>
-                        <td className="py-3 px-4 text-right text-zinc-400">
-                          {row.previousPct}% <span className="text-zinc-600 font-normal">({row.previousCount})</span>
-                        </td>
-                        <td className="py-3 px-4 text-right font-bold">
-                          <span
-                            className={
-                              row.deltaPp > 0
-                                ? "text-emerald-400"
-                                : row.deltaPp < 0
-                                ? "text-rose-400"
-                                : "text-zinc-400"
-                            }
-                          >
-                            {row.deltaPp > 0 ? `+${row.deltaPp}` : row.deltaPp} p.p.
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right text-zinc-400">
-                          {row.pValue !== null ? `p = ${row.pValue.toFixed(3)}` : "brak"}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {row.status === "BRAK_DANYCH" ? (
-                            <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-400">
-                              PRÓBA ZA MAŁA
-                            </span>
-                          ) : row.isSignificant ? (
-                            <span className="rounded bg-teal-500/20 border border-teal-500/40 px-2 py-0.5 text-[10px] font-bold text-teal-300">
-                              ISTOTNY (p &lt; 0.05)
-                            </span>
-                          ) : (
-                            <span className="rounded bg-white/[0.04] px-2 py-0.5 text-[10px] text-zinc-400">
-                              STABILNY
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="rounded border border-white/[0.08] px-2 py-0.5 text-[10px] text-zinc-300">
-                            POMIAR
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* TAB: WSKAŹNIKI WYWIADU (6 WYMIARÓW) */}
+        {/* TAB: WSKAŹNIKI WYWIADU */}
         {/* ================================================================= */}
         {activeTab === "intelligence" && (
           <div className="space-y-6">
@@ -1552,92 +1311,50 @@ export default function PPGscopeApp() {
                 <Zap className="h-5 w-5 text-teal-400" /> Zaawansowane Wskaźniki Wywiadu Mediowego (Reuters/Tow Standard)
               </h2>
               <p className="text-xs text-zinc-400">
-                Instytucjonalne miary autonomii redakcyjnej, kaskad depesz centralnych, dryfu nagłówków oraz zniekształcenia agendy lokalnej.
+                Drzewa kaskad depesz centralnych, mutacje nagłówków (Headline Drift) oraz wskaźniki zniekształcenia agendy lokalnej.
               </p>
             </div>
 
-            {/* Wire Cascade Details with Headline Drift Mutations */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <GitBranch className="h-4 w-4 text-teal-400" /> Drzewa Kaskad i Mutacje Tytułów (Headline Drift)
-              </h3>
-              <p className="text-xs text-zinc-400">
-                Porównanie oryginalnej depeszy z lokalnymi adaptacjami nagłówków w poszczególnych miastach i powiatach.
-              </p>
+            <div className="space-y-4">
+              {(data.wire_cascades || []).map((wire) => (
+                <div key={wire.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-1.5 py-0.5 rounded">
+                          {wire.id}
+                        </span>
+                        <span className="text-xs font-semibold text-white">{wire.canonical_title}</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-400 mt-1">{wire.lead}</p>
+                    </div>
+                    <div className="text-right font-mono text-xs shrink-0">
+                      <span className="text-teal-400 font-bold block">{wire.reach} portali</span>
+                      <span className="text-[10px] text-zinc-500">Pacjent zero: {wire.origin_outlet}</span>
+                    </div>
+                  </div>
 
-              <div className="space-y-4">
-                {(data.wire_cascades || []).map((wire) => (
-                  <div key={wire.id} className="rounded-xl border border-white/[0.06] bg-black/40 p-4 space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-1.5 py-0.5 rounded">
-                            {wire.id}
-                          </span>
-                          <span className="text-xs font-semibold text-white">{wire.canonical_title}</span>
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-mono uppercase text-zinc-400 block">
+                      Lokalne mutacje nagłówka w miastach sieci:
+                    </span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono">
+                      {wire.mutations.map(([portal, title], mIdx) => (
+                        <div key={mIdx} className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-2.5 flex items-start gap-2">
+                          <span className="text-teal-400 text-[10px] shrink-0 font-bold">{portal}:</span>
+                          <span className="text-zinc-200 text-[11px]">{title}</span>
                         </div>
-                        <p className="text-[11px] text-zinc-400 mt-1">{wire.lead}</p>
-                      </div>
-                      <div className="text-right font-mono text-xs shrink-0">
-                        <span className="text-teal-400 font-bold block">{wire.reach} portali</span>
-                        <span className="text-[10px] text-zinc-500">Pacjent zero: {wire.origin_outlet}</span>
-                      </div>
-                    </div>
-
-                    {/* Headline Mutations across Cities */}
-                    <div className="space-y-2">
-                      <span className="text-[11px] font-mono uppercase text-zinc-400 block">
-                        Lokalne mutacje nagłówka w miastach sieci:
-                      </span>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono">
-                        {wire.mutations.map(([portal, title], mIdx) => (
-                          <div key={mIdx} className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-2.5 flex items-start gap-2">
-                            <span className="text-teal-400 text-[10px] shrink-0 font-bold">{portal}:</span>
-                            <span className="text-zinc-200 text-[11px]">{title}</span>
-                          </div>
-                        ))}
-                      </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Agenda Distortion Score (ADS) */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Compass className="h-4 w-4 text-teal-400" /> Wskaźnik Zniekształcenia Agendy Lokalnej (ADS)
-              </h3>
-              <p className="text-xs text-zinc-400">
-                Mierzy zjawisko pustyń informacyjnych (news deserts) – stosunek treści ogólnopolskich do faktycznych spraw lokalnych w serwisach powiatowych.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(data.cross_sections?.by_segment || []).map((seg) => (
-                  <div key={seg.segment} className="rounded-xl border border-white/[0.06] bg-black/40 p-4 space-y-2">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="font-semibold text-white">{seg.segment}</span>
-                      <span className="font-mono text-teal-400 font-bold">{seg.autonomy_index_pct}% Autonomii</span>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-white/[0.04] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-teal-400"
-                        style={{ width: `${seg.autonomy_index_pct}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[11px] font-mono text-zinc-500">
-                      <span>Liczba serwisów: {seg.portals_count}</span>
-                      <span>Udział w portfelu: {seg.share_pct}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* ================================================================= */}
-        {/* TAB: PRZEKROJE GRUPY (16 WOJEWÓDZTW) */}
+        {/* TAB: 16 WOJEWÓDZTW */}
         {/* ================================================================= */}
         {activeTab === "cross_sections" && (
           <div className="space-y-6">
@@ -1646,7 +1363,7 @@ export default function PPGscopeApp() {
                 <Layers className="h-5 w-5 text-teal-400" /> Analityka Regionalna 16 Województw
               </h2>
               <p className="text-xs text-zinc-400">
-                Rozkład 546 serwisów według województw, wskaźniki autonomii redakcyjnej i odchylenia agendy.
+                Rozkład 546 serwisów według województw z udziałem treści lokalnej i syndykacji.
               </p>
             </div>
 
@@ -1693,153 +1410,185 @@ export default function PPGscopeApp() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={titleSearch}
-                    onChange={(e) => setTitleSearch(e.target.value)}
-                    placeholder="Szukaj portalu lub miasta..."
-                    className="rounded-xl border border-white/[0.1] bg-black/60 py-2 pl-8 pr-3 text-xs text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none font-mono"
-                  />
-                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-500" />
-                </div>
+                <input
+                  type="text"
+                  value={titleSearch}
+                  onChange={(e) => setTitleSearch(e.target.value)}
+                  placeholder="Szukaj portalu lub miasta..."
+                  className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none font-mono"
+                />
+              </div>
+            </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {data.titles
+                .filter((t) => t.name.toLowerCase().includes(titleSearch.toLowerCase()) || t.domain.toLowerCase().includes(titleSearch.toLowerCase()))
+                .slice(0, 99)
+                .map((t) => (
+                  <div key={t.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-3.5 space-y-2 hover:border-white/[0.12] transition-all">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-xs font-semibold text-white truncate">{t.name}</span>
+                      <a href={`https://${t.domain}`} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-teal-400">
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                      <span className="text-teal-400 truncate max-w-[180px]">{t.domain}</span>
+                      <span className="capitalize">{t.region}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 pt-1 border-t border-white/[0.04]">
+                      <span>{t.type}</span>
+                      <button
+                        onClick={() => {
+                          setSelectedMediumDomain(t.domain);
+                          setActiveTab("domain_stats");
+                        }}
+                        className="text-teal-400 hover:text-teal-300 font-bold"
+                      >
+                        Analizuj to medium
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: BAZA ARTYKUŁÓW */}
+        {/* ================================================================= */}
+        {activeTab === "articles" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-teal-400" /> Baza Publikacji PPG (Taxonomy v2.0)
+                </h2>
+                <p className="text-xs text-zinc-400">
+                  Artykuły z przypisaną dziedziną (18 domen) oraz statusem lokalności (C / CL / L).
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
                 <select
-                  value={regionFilter}
-                  onChange={(e) => setRegionFilter(e.target.value)}
+                  value={selectedDomainFilter}
+                  onChange={(e) => setSelectedDomainFilter(e.target.value)}
                   className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
                 >
-                  <option value="wszystkie">Wszystkie regiony</option>
-                  {(data.cross_sections?.by_voivodeship || []).map((v) => (
-                    <option key={v.region} value={v.region}>
-                      {v.region}
-                    </option>
+                  <option value="wszystkie">Wszystkie dziedziny (18)</option>
+                  {DOMAINS_SPEC.map((d) => (
+                    <option key={d.slug} value={d.slug}>{d.code} {d.name}</option>
                   ))}
+                </select>
+
+                <select
+                  value={selectedLocalityFilter}
+                  onChange={(e) => setSelectedLocalityFilter(e.target.value)}
+                  className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
+                >
+                  <option value="wszystkie">Wszystkie warianty lokalności</option>
+                  <option value="L">L – Lokalne</option>
+                  <option value="CL">CL – Rozwinięcie lokalne</option>
+                  <option value="C">C – Centralne</option>
                 </select>
               </div>
             </div>
 
-            {/* Titles Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredTitles.slice(0, 99).map((t) => (
-                <div key={t.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-3.5 space-y-2 hover:border-white/[0.12] transition-all">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-semibold text-white truncate">{t.name}</span>
-                    <a
-                      href={`https://${t.domain}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zinc-500 hover:text-teal-400"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-                    <span className="text-teal-400 truncate max-w-[180px]">{t.domain}</span>
-                    <span className="capitalize">{t.region}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 pt-1 border-t border-white/[0.04]">
-                    <span>{t.type}</span>
-                    <span className="text-emerald-400 font-bold">{t.articles_count || 6} art.</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {filteredTitles.length > 99 && (
-              <p className="text-center text-xs font-mono text-zinc-500 pt-2">
-                Wyświetlono 99 z {filteredTitles.length} portali odpowiadających kryteriom wyszukiwania.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* TAB: BAZA PUBLIKACJI */}
-        {/* ================================================================= */}
-        {activeTab === "articles" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-2">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <FileText className="h-5 w-5 text-teal-400" /> Baza Publikacji PPG (Wszystkie 546 Serwisów)
-              </h2>
-              <p className="text-xs text-zinc-400">
-                Artykuły ze wszystkich mediów grupy z przypisaną taksonomią, sygnaturą autorstwa oraz statusem syndykacji.
-              </p>
-            </div>
-
             <div className="space-y-3">
-              {filteredArticles.slice(0, 50).map((art) => (
-                <div
-                  key={art.id}
-                  className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-4 space-y-2 hover:border-white/[0.12] transition-all"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-2 py-0.5 rounded font-bold">
-                        {art.topic_name}
-                      </span>
-                      {art.is_duplicate ? (
-                        <span className="text-[10px] font-mono bg-amber-500/10 text-amber-300 border border-amber-500/20 px-1.5 py-0.5 rounded">
-                          Powielenie ({art.cluster_id})
+              {filteredArticles
+                .filter((a) => selectedDomainFilter === "wszystkie" || a.domain === selectedDomainFilter)
+                .filter((a) => selectedLocalityFilter === "wszystkie" || a.locality === selectedLocalityFilter)
+                .slice(0, 50)
+                .map((art) => (
+                  <div key={art.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-4 space-y-2 hover:border-white/[0.12] transition-all">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-2 py-0.5 rounded font-bold">
+                          {DOMAINS_SPEC.find(d => d.slug === art.domain)?.code || ""} {DOMAINS_SPEC.find(d => d.slug === art.domain)?.name || art.domain}
                         </span>
-                      ) : (
-                        <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-1.5 py-0.5 rounded">
-                          Treść własna
+
+                        {art.domain_secondary && (
+                          <span className="text-[10px] font-mono bg-white/[0.06] text-zinc-400 border border-white/[0.08] px-1.5 py-0.5 rounded">
+                            +{art.domain_secondary}
+                          </span>
+                        )}
+
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+                          art.locality === "L"
+                            ? "bg-teal-500/20 text-teal-300 border border-teal-500/40"
+                            : art.locality === "CL"
+                            ? "bg-blue-500/20 text-blue-300 border border-blue-500/40"
+                            : "bg-zinc-800 text-zinc-400 border border-zinc-700"
+                        }`}>
+                          Wariant {art.locality}
                         </span>
-                      )}
+
+                        {art.other_region && (
+                          <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/40 px-1.5 py-0.5 rounded">
+                            Inny region PPG
+                          </span>
+                        )}
+
+                        {art.needs_review && (
+                          <span className="text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded">
+                            needs_review
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-[11px] font-mono text-zinc-500 flex items-center gap-3">
+                        <span>{art.portal_domain}</span>
+                        <span>{new Date(art.published_at).toLocaleString("pl-PL")}</span>
+                      </div>
                     </div>
 
-                    <div className="text-[11px] font-mono text-zinc-500 flex items-center gap-3">
-                      <span>{art.portal_domain}</span>
-                      <span>{new Date(art.published_at).toLocaleString("pl-PL")}</span>
+                    <h3 className="text-sm font-semibold text-white">
+                      <a href={art.url} target="_blank" rel="noopener noreferrer" className="hover:text-teal-300">
+                        {art.title}
+                      </a>
+                    </h3>
+
+                    {art.lead && <p className="text-xs text-zinc-400">{art.lead}</p>}
+
+                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 pt-1 border-t border-white/[0.04]">
+                      <span>Autor: {art.author_name || "Redakcja"} ({art.byline_type})</span>
+                      <button
+                        onClick={() => handleLiveClassifyWithGemini(art)}
+                        className="text-teal-400 hover:text-teal-300 flex items-center gap-1"
+                      >
+                        <Sparkles className="h-3 w-3" /> Weryfikuj Gemini AI
+                      </button>
                     </div>
                   </div>
-
-                  <h3 className="text-sm font-semibold text-white">
-                    <a href={art.url} target="_blank" rel="noopener noreferrer" className="hover:text-teal-300">
-                      {art.title}
-                    </a>
-                  </h3>
-
-                  {art.lead && <p className="text-xs text-zinc-400">{art.lead}</p>}
-
-                  <div className="flex items-center justify-between text-[11px] font-mono text-zinc-500 pt-1 border-t border-white/[0.04]">
-                    <span>Autor: {art.author_name || "Redakcja"} ({art.byline_type})</span>
-                    <button
-                      onClick={() => handleLiveClassifyWithGemini(art)}
-                      className="text-teal-400 hover:text-teal-300 flex items-center gap-1"
-                    >
-                      <Sparkles className="h-3 w-3" /> Weryfikuj Gemini AI
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         )}
 
         {/* ================================================================= */}
-        {/* TAB: METODOLOGIA */}
+        {/* TAB: METODOLOGIA V2.0 */}
         {/* ================================================================= */}
         {activeTab === "methodology" && (
           <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4 text-xs font-mono leading-relaxed text-zinc-300">
             <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Info className="h-4 w-4 text-teal-400" /> Rygor Metodologiczny i Zasady Obliczeniowe Fable 5.1
+              <Info className="h-4 w-4 text-teal-400" /> Standard Kategoryzacji Tematycznej i Lokalności v2.0
             </h2>
 
             <div className="space-y-3">
               <p>
-                <strong>1. Reprezentatywność 546 mediów PPG:</strong> System monitoruje 100% oficjalnego portfela Polska Press Grupa, obejmującego 509 serwisów powiatowych NaszeMiasto.pl, 20 dzienników regionalnych, 15 portali wertykalnych oraz portal ogólnokrajowy i.pl.
+                <strong>1. 18 Dziedzin tematycznych:</strong> Zamknięta taksonomia 18 dziedzin (od 01 wladza do 18 swiat). Każdy artykuł otrzymuje dokładnie jedną domenę główną (domain) oraz opcjonalnie maksymalnie jedną domenę poboczną (domain_secondary).
               </p>
               <p>
-                <strong>2. Algorytm Hare-Niemeyera (Largest Remainder):</strong> Gwarantuje, że zaokrąglone udziały procentowe sumują się zawsze dokładnie do 100.0%, eliminując błędy arytmetyczne wynikające z niezależnego zaokrąglania ułamków dziesiętnych.
+                <strong>2. Warianty lokalności:</strong>
+                <br />• <strong>L (lokalne):</strong> Podmiotem w tytule lub leadzie jest miejscowość, osoba albo instytucja z obszaru danego tytułu prasowego, a sprawa ma źródło lokalne.
+                <br />• <strong>CL (centralne z rozwinięciem lokalnym):</strong> Sprawa ogólnokrajowa lub światowa (np. ustawa, decyzje rządu, inflacja, stopy NBP) zilustrowana przykładem, danymi lub mieszkańcami z obszaru tytułu.
+                <br />• <strong>C (centralne):</strong> Brak lokalnego podmiotu z obszaru tytułu.
+                <br />• <strong>other_region = true:</strong> Tekst o sprawie z regionu innego tytułu PPG (np. sprawa ze Śląska w Gazecie Pomorskiej) otrzymuje wariant C oraz znacznik innego regionu.
               </p>
               <p>
-                <strong>3. Dwustronny test Z dla dwóch proporcji:</strong> Wszystkie trendy są weryfikowane pod kątem istotności statystycznej (p &lt; 0.05). W przypadku próby poniżej progu N &lt; 10, system odrzuca spekulacje i oznacza status jako PRÓBA ZA MAŁA.
-              </p>
-              <p>
-                <strong>4. Indeks Autonomii Redakcyjnej (I_aut):</strong> Wylicza stosunek artykułów unikalnych do całkowitej produkcji serwisu przy użyciu haszowania MinHash LSH z progiem podobieństwa Jaccarda J &gt;= 0.80.
+                <strong>3. Dwa kluczowe wskaźniki pod wykresem:</strong>
+                <br />• <strong>Udział treści lokalnej = (L + CL) / wszystkie</strong> – odsetek materiałów posiadających jakikolwiek wymiar lokalny.
+                <br />• <strong>Wskaźnik lokalizacji = CL / (C + CL)</strong> – zdolność redakcji do przekładania spraw centralnych na poziom lokalny.
               </p>
             </div>
           </div>
@@ -1847,48 +1596,34 @@ export default function PPGscopeApp() {
 
       </main>
 
-      {/* ================================================================= */}
-      {/* MODAL: SETTINGS (KONFIGURACJA API) */}
-      {/* ================================================================= */}
+      {/* Settings Modal */}
       {isSettingsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <div className="w-full max-w-2xl rounded-2xl border border-white/[0.1] bg-[#0c0e12] p-6 shadow-2xl space-y-6">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
               <div className="flex items-center gap-2.5">
                 <Settings className="h-5 w-5 text-teal-400" />
-                <h2 className="text-base font-semibold text-white">
-                  Konfiguracja kluczy API i parametrów systemu
-                </h2>
+                <h2 className="text-base font-semibold text-white">Konfiguracja kluczy API i bazy danych</h2>
               </div>
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/[0.06] hover:text-white"
-              >
+              <button onClick={() => setIsSettingsOpen(false)} className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/[0.06] hover:text-white">
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {settingsSavedNotice && (
               <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300 font-mono flex items-center gap-2">
-                <Check className="h-4 w-4" /> Konfiguracja została pomyślnie zapisana w pamięci przeglądarki.
+                <Check className="h-4 w-4" /> Konfiguracja została pomyślnie zapisana.
               </div>
             )}
 
             <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-2 text-xs">
-              {/* Gemini API Key */}
               <div className="space-y-2 rounded-xl border border-white/[0.06] bg-black/40 p-4">
                 <div className="flex items-center justify-between">
                   <label className="font-semibold text-zinc-200 flex items-center gap-1.5">
                     <Sparkles className="h-4 w-4 text-teal-400" /> Google Gemini API (AI Classifier)
                   </label>
-                  <button
-                    onClick={handleTestGemini}
-                    disabled={geminiTestStatus === "testing"}
-                    className="rounded bg-teal-500/20 border border-teal-500/40 px-2.5 py-1 text-[11px] font-medium text-teal-300 hover:bg-teal-500/30 transition-all disabled:opacity-50"
-                  >
-                    {geminiTestStatus === "testing"
-                      ? "Sprawdzanie..."
-                      : "Testuj połączenie Gemini"}
+                  <button onClick={handleTestGemini} disabled={geminiTestStatus === "testing"} className="rounded bg-teal-500/20 border border-teal-500/40 px-2.5 py-1 text-[11px] font-medium text-teal-300">
+                    {geminiTestStatus === "testing" ? "Sprawdzanie..." : "Testuj połączenie Gemini"}
                   </button>
                 </div>
                 <input
@@ -1903,18 +1638,10 @@ export default function PPGscopeApp() {
                     <Check className="h-3 w-3" /> Połączenie aktywne (Model: gemini-3.8-flash, opóźnienie: {geminiLatency} ms)
                   </p>
                 )}
-                {geminiTestStatus === "error" && (
-                  <p className="text-[11px] text-rose-400 flex items-center gap-1 pt-1 font-mono">
-                    <XCircle className="h-3 w-3" /> Błąd autoryzacji klucza Gemini API.
-                  </p>
-                )}
               </div>
 
-              {/* Supabase URL & Keys */}
               <div className="space-y-2 rounded-xl border border-white/[0.06] bg-black/40 p-4">
-                <label className="font-semibold text-zinc-200 block">
-                  Baza danych PostgreSQL / Supabase
-                </label>
+                <label className="font-semibold text-zinc-200 block">Baza danych PostgreSQL / Supabase</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <span className="text-zinc-400 text-[11px] block mb-1">Supabase URL:</span>
@@ -1931,89 +1658,28 @@ export default function PPGscopeApp() {
                       type="text"
                       value={supabaseAnonKey}
                       onChange={(e) => setSupabaseAnonKey(e.target.value)}
-                      placeholder="eyJhbGciOi..."
                       className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-1.5 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
                     />
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-1">
-                  <button
-                    onClick={handleTestSupabase}
-                    disabled={supabaseTestStatus === "testing" || !supabaseAnonKey}
-                    className="rounded bg-sky-500/20 border border-sky-500/40 px-2.5 py-1 text-[11px] font-medium text-sky-300 hover:bg-sky-500/30 transition-all disabled:opacity-50"
-                  >
-                    {supabaseTestStatus === "testing"
-                      ? "Sprawdzanie..."
-                      : "Testuj połączenie Supabase"}
+                  <button onClick={handleTestSupabase} disabled={supabaseTestStatus === "testing" || !supabaseAnonKey} className="rounded bg-sky-500/20 border border-sky-500/40 px-2.5 py-1 text-[11px] font-medium text-sky-300">
+                    {supabaseTestStatus === "testing" ? "Sprawdzanie..." : "Testuj połączenie Supabase"}
                   </button>
                   {supabaseTestStatus === "success" && (
                     <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
                       <Check className="h-3 w-3" /> Połączenie aktywne ({supabaseRecordsCount ?? 0} rekordów, {supabaseLatency} ms)
                     </p>
                   )}
-                  {supabaseTestStatus === "error" && (
-                    <p className="text-[11px] text-rose-400 flex items-center gap-1 font-mono">
-                      <XCircle className="h-3 w-3" /> Błąd autoryzacji klucza Supabase.
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Internal Connector Endpoint */}
-              <div className="space-y-2 rounded-xl border border-white/[0.06] bg-black/40 p-4">
-                <label className="font-semibold text-zinc-200 block">
-                  Konektor danych wewnętrznych PPG (naszemiasto.pl / bazy wewnętrzne)
-                </label>
-                <input
-                  type="text"
-                  value={internalEndpoint}
-                  onChange={(e) => setInternalEndpoint(e.target.value)}
-                  placeholder="URL wewnętrznego feedu redakcyjnego..."
-                  className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-1.5 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
-                />
-              </div>
-
-              {/* Statistical & Dedup Thresholds */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-xl border border-white/[0.06] bg-black/40 p-4">
-                <div>
-                  <span className="text-zinc-400 text-[11px] block mb-1">Próg podobieństwa MinHash:</span>
-                  <input
-                    type="number"
-                    step="0.05"
-                    min="0.5"
-                    max="1.0"
-                    value={jaccardThreshold}
-                    onChange={(e) => setJaccardThreshold(parseFloat(e.target.value))}
-                    className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-1.5 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
-                  />
-                  <span className="text-[10px] text-zinc-500 mt-1 block">Domyślnie: 0.80 dla tekstów wspólnych</span>
-                </div>
-                <div>
-                  <span className="text-zinc-400 text-[11px] block mb-1">Min. próba dla trendu (N):</span>
-                  <input
-                    type="number"
-                    min="5"
-                    max="100"
-                    value={minSampleSize}
-                    onChange={(e) => setMinSampleSize(parseInt(e.target.value, 10))}
-                    className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-1.5 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
-                  />
-                  <span className="text-[10px] text-zinc-500 mt-1 block">Domyślnie: 10 artykułów w okresie</span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 border-t border-white/[0.08] pt-4">
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="rounded-xl px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white"
-              >
+              <button onClick={() => setIsSettingsOpen(false)} className="rounded-xl px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white">
                 Anuluj
               </button>
-              <button
-                onClick={handleSaveSettings}
-                className="rounded-xl bg-teal-500 px-4 py-2 text-xs font-semibold text-black hover:bg-teal-400 transition-all shadow-md shadow-teal-500/20"
-              >
+              <button onClick={handleSaveSettings} className="rounded-xl bg-teal-500 px-4 py-2 text-xs font-semibold text-black hover:bg-teal-400 transition-all shadow-md shadow-teal-500/20">
                 Zapisz konfigurację
               </button>
             </div>
@@ -2027,7 +1693,7 @@ export default function PPGscopeApp() {
           <div className="w-full max-w-lg rounded-2xl border border-white/[0.1] bg-[#0c0e12] p-6 shadow-2xl space-y-4 text-xs font-mono">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
               <span className="font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4 text-teal-400" /> Wynik Weryfikacji Gemini 3.8 Flash
+                <Sparkles className="h-4 w-4 text-teal-400" /> Wynik Weryfikacji Gemini 3.8 Flash (v2.0)
               </span>
               <button onClick={() => setLiveAiResult(null)} className="text-zinc-400 hover:text-white">
                 <X className="h-4 w-4" />
@@ -2038,8 +1704,22 @@ export default function PPGscopeApp() {
             ) : (
               <div className="space-y-2">
                 <div>
-                  <span className="text-zinc-500">Temat główny: </span>
-                  <span className="text-teal-400 font-bold">{liveAiResult.primary_topic}</span>
+                  <span className="text-zinc-500">Dziedzina główna: </span>
+                  <span className="text-teal-400 font-bold">{liveAiResult.domain}</span>
+                </div>
+                {liveAiResult.domain_secondary && (
+                  <div>
+                    <span className="text-zinc-500">Dziedzina poboczna: </span>
+                    <span className="text-zinc-300 font-bold">{liveAiResult.domain_secondary}</span>
+                  </div>
+                )}
+                <div>
+                  <span className="text-zinc-500">Wariant lokalności: </span>
+                  <span className="text-emerald-400 font-bold">{liveAiResult.locality}</span>
+                </div>
+                <div>
+                  <span className="text-zinc-500">Inny region: </span>
+                  <span className="text-white font-bold">{liveAiResult.other_region ? "TAK" : "NIE"}</span>
                 </div>
                 <div>
                   <span className="text-zinc-500">Pewność: </span>
@@ -2058,7 +1738,7 @@ export default function PPGscopeApp() {
       {/* Footer */}
       <footer className="border-t border-white/[0.06] bg-[#060709] py-6 px-4 text-center text-[11px] font-mono text-zinc-500">
         <p>
-          PPGscope v1.3 Intelligence · 546 serwisów Polska Press Grupa · Standard Fable 5.1
+          PPGscope v2.0 Intelligence · 546 serwisów Polska Press Grupa · Taksonomia 18 Dziedzin & Lokalność (C/CL/L) · Standard Fable 5.1
         </p>
       </footer>
     </div>

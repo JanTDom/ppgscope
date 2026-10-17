@@ -1,25 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const TAXONOMY_DEFINITIONS = `
-Dozwolone kategorie tematyczne (wybierz dokładnie jedną kategorię główną i opcjonalnie do 2 pobocznych):
-- POLITYKA: Wydarzenia polityczne, wybory, rząd, parlament, partie, samorząd polityczny, relacje międzynarodowe.
-- GOSPODARKA: Gospodarka, finanse, rynek pracy, podatki, inflacja, stopy procentowe, inwestycje, przedsiębiorstwa, energetyka, nieruchomości komercyjne.
-- SPOLECZENSTWO: Życie społeczne, demografia, relacje, pomoc społeczna, strajki, protesty, kościół i religia, inicjatywy obywatelskie.
-- SPORT: Wydarzenia sportowe, mecze, ligi, turnieje, piłka nożna, siatkówka, sylwetki sportowców.
-- KULTURA_ROZRYWKA: Film, teatr, muzyka, literatura, sztuka, koncerty, festiwale, telewizja, życie gwiazd.
-- PRAWO_BEZPIECZENSTWO: Wypadki, przestępczość, interwencje policji i straży pożarnej, sądownictwo, prokuratura, służby.
-- ZDROWIE_STYL_ZYCIA: Ochrona zdrowia, medycyna, szpitale, leki, profilaktyka, dietetyka, uroda, psychologia.
-- NAUKA_TECHNOLOGIE: Odkrycia, badania, innowacje, sztuczna inteligencja, smartfony, komputery, cyberbezpieczeństwo.
-- EDUKACJA: Szkoły, przedszkola, nauczyciele, matury, egzaminy, uniwersytety, oświata.
-- SRODOWISKO_ROLNICTWO: Klimat, ochrona przyrody, pogoda, kataklizmy, ekologia, rolnictwo, uprawy, plony.
-- MOTORYZACJA: Samochody, motocykle, testy pojazdów, przepisy drogowe, mandaty, rynek motoryzacyjny.
-- LOKALNE_REGIONALNE: Wydarzenia samorządowe, remonty dróg, inwestycje miejskie, komunikacja miejska, życie dzielnic i gmin.
-- INNE/NIEOKREŚLONE: Obowiązkowa kategoria zapasowa dla artykułów, które nie pasują wyraźnie do powyższych kategorii lub gdy brak pewności.
+const TAXONOMY_V2_DEFINITIONS = `
+Dozwolone dziedziny tematyczne (wybierz dokładnie jedną domenę główną i opcjonalnie maksymalnie jedną poboczną domain_secondary):
+01 wladza – Władza i polityka – samorząd, budżety gmin, rząd, Sejm, partie, wybory, urzędy, ustrój i sądy jako ustrój.
+02 zdarzenia – Bezpieczeństwo i zdarzenia – wypadki, pożary, katastrofy, przestępczość, policja, zaginięcia, wyroki karne, służby ratunkowe.
+03 obronnosc – Obronność – wojsko, ćwiczenia, szkolenia cywilów, przemysł zbrojeniowy, obrona cywilna.
+04 gospodarka – Gospodarka i praca – firmy, wyniki, rynek pracy, płace, podatki, kredyty, emerytury, energetyka, górnictwo, przemysł, handel, makroekonomia.
+05 infrastruktura – Infrastruktura i transport – drogi, mosty, kolej, komunikacja miejska, lotniska, korki, parkowanie, sieci wodne i ciepłownicze.
+06 przestrzen – Przestrzeń i mieszkanie – urbanistyka, parki, zieleń miejska, rewitalizacja, mieszkania komunalne, nieruchomości, zabytki jako remont lub spór.
+07 zdrowie – Zdrowie – szpitale, finansowanie i płace w ochronie zdrowia, dostęp do leczenia, profilaktyka, porady medyczne.
+08 edukacja – Edukacja i dzieci – szkoły, przedszkola, bezpieczeństwo w szkołach, nauczyciele, egzaminy, uczelnie, wychowanie, dzieci w sieci.
+09 srodowisko – Środowisko i klimat – susza, woda, powodzie, lasy, rezerwaty, smog, odpady, pogoda, przyroda, zwierzęta.
+10 spolecznosc – Społeczność i ludzie – lokalni bohaterowie, seniorzy, jubilaci, parafie, NGO, zbiórki, nekrologi, problemy socjalne.
+11 kultura – Kultura – teatr, opera, koncerty, literatura, film, sztuka, murale, muzea.
+12 historia – Historia i pamięć – PRL, nostalgia, historia miejscowości, archiwalne zdjęcia, rocznice.
+13 czas_wolny – Czas wolny i turystyka – atrakcje, uzdrowiska, wycieczki, wydarzenia weekendowe, festyny, jarmarki, gastronomia, zabytki jako atrakcja.
+14 sport – Sport – sport zawodowy, amatorski i młodzieżowy, kibice, obiekty sportowe.
+15 rozrywka – Rozrywka i celebryci – telewizja, gwiazdy, plotki. (Tylko C i L).
+16 styl_zycia – Styl życia i poradnictwo – dom i wnętrze, moto, technologie, gry, zakupy, okazje, kuchnia, uroda. (Tylko C i CL).
+17 rolnictwo – Wieś i rolnictwo – produkcja rolna, ceny skupu, dopłaty, konkursy agro, KGW, życie wsi.
+18 swiat – Świat – polityka międzynarodowa, Ukraina i Rosja, USA, UE, Watykan. (Tylko C i CL).
+
+Warianty lokalności:
+- L: podmiotem w tytule lub leadzie jest miejscowość, osoba albo instytucja z obszaru danego tytułu prasowego, a sprawa ma źródło lokalne.
+- CL: sprawa krajowa lub światowa (ustawa, decyzja rządu, trend, dane ogólnopolskie) pokazana na przykładzie, danych albo ludziach z obszaru tytułu.
+- C: w tekście nie ma lokalnego podmiotu z obszaru tytułu.
+Jeśli sprawa dotyczy innego regionu Polski niż obszar tytułu (np. Śląsk w Gazecie Pomorskiej): ustaw locality="C", other_region=true.
+
+Reguły rozstrzygania:
+1. O dziedzinie decyduje instytucja lub system, którego dotyczy sprawa, a nie miejsce akcji. "Szpital nie wypłaca pensji" to domain="zdrowie", domain_secondary="gospodarka".
+2. Spór polityczny o inwestycję to "wladza". Sama inwestycja to "infrastruktura" albo "przestrzen".
+3. Zdarzenie losowe zawsze trafia do "zdarzenia", niezależnie od miejsca: stadion, szkoła, las, hurtownia.
+4. Zabytek jako atrakcja to "czas_wolny", jako przeszłość to "historia", jako remont lub spór to "przestrzen".
+5. Format nie jest dziedziną. Quiz, galeria i ranking dostają dziedzinę według treści.
 `;
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, lead, body, apiKey } = await req.json();
+    const { title, lead, body, outlet, apiKey } = await req.json();
     const effectiveKey =
       apiKey ||
       process.env.PPGSCOPE_GEMINI_API_KEY ||
@@ -32,22 +50,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const promptText = `Jesteś rygorystycznym silnikiem klasyfikacji tematycznej dla mediów Polska Press Grupa (PPGscope).
-Twoim zadaniem jest sklasyfikować artykuł prasowy zgodnie ze ścisłą taksonomią.
+    const promptText = `Jesteś rygorystycznym silnikiem klasyfikacji dziedzinowej i lokalności dla mediów Polska Press Grupa (PPGscope).
+Twoim zadaniem jest sklasyfikować artykuł prasowy zgodnie z poniższą taksonomią.
 
-${TAXONOMY_DEFINITIONS}
+${TAXONOMY_V2_DEFINITIONS}
 
-ZASADY:
-1. Zwróć wyłącznie poprawny obiekt JSON, bez znaczników markdown i bez zbędnego tekstu.
-2. Schemat odpowiedzi JSON:
+Tytuł prasowy publikujący artykuł: ${outlet || "Portal regionalny PPG"}
+
+ZASADY ODPOWIEDZI:
+1. Zwróć wyłącznie poprawny obiekt JSON o schemacie:
 {
-  "primary_topic": "ID_KATEGORII",
-  "secondary_topics": ["ID_KATEGORII"],
+  "domain": "<slug_dziedziny>",
+  "domain_secondary": "<slug_dziedziny_lub_null>",
+  "locality": "C|L|CL",
+  "other_region": false,
   "confidence": 0.95,
-  "rationale": "Krótkie wyjaśnienie dlaczego wybrano tę kategorię"
+  "rationale": "Uzasadnienie klasyfikacji"
 }
-3. Jeśli artykuł nie pasuje jednoznacznie lub pewność jest niska (< 0.40), ustaw "primary_topic" na "INNE/NIEOKREŚLONE".
-4. "confidence" to liczba zmiennoprzecinkowa od 0.0 do 1.0.
+2. Jeśli confidence < 0.60, nie zgaduj.
+3. domain_secondary to maksymalnie jedna dziedzina poboczna lub null.
 
 TREŚĆ DO SKLASYFIKOWANIA:
 Tytuł: ${title || ""}
@@ -84,20 +105,50 @@ Fragment treści: ${(body || "").substring(0, 1500)}
     try {
       parsedResult = JSON.parse(rawText);
     } catch {
-      // Clean possible fences
       const cleanJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
       parsedResult = JSON.parse(cleanJson);
     }
 
+    const conf = Number(parsedResult.confidence) || 0.5;
+    const needsReview = conf < 0.60;
+
+    // Legacy fallback mapping
+    const LEGACY_MAP: Record<string, string> = {
+      wladza: "POLITYKA",
+      zdarzenia: "PRAWO_BEZPIECZENSTWO",
+      obronnosc: "POLITYKA",
+      gospodarka: "GOSPODARKA",
+      infrastruktura: "LOKALNE_REGIONALNE",
+      przestrzen: "LOKALNE_REGIONALNE",
+      zdrowie: "ZDROWIE_STYL_ZYCIA",
+      edukacja: "EDUKACJA",
+      srodowisko: "SRODOWISKO_ROLNICTWO",
+      spolecznosc: "SPOLECZENSTWO",
+      kultura: "KULTURA_ROZRYWKA",
+      historia: "KULTURA_ROZRYWKA",
+      czas_wolny: "KULTURA_ROZRYWKA",
+      sport: "SPORT",
+      rozrywka: "KULTURA_ROZRYWKA",
+      styl_zycia: "MOTORYZACJA",
+      rolnictwo: "SRODOWISKO_ROLNICTWO",
+      swiat: "POLITYKA",
+    };
+
     return NextResponse.json({
       ok: true,
       classification: {
-        primary_topic: parsedResult.primary_topic || "INNE/NIEOKREŚLONE",
-        secondary_topics: parsedResult.secondary_topics || [],
-        confidence: Number(parsedResult.confidence) || 0.5,
+        domain: parsedResult.domain || "spolecznosc",
+        domain_secondary: parsedResult.domain_secondary || null,
+        locality: parsedResult.locality || "C",
+        other_region: Boolean(parsedResult.other_region),
+        needs_review: needsReview,
+        confidence: conf,
         rationale: parsedResult.rationale || "",
+        // Backward-compatibility deprecated fields
+        primary_topic: LEGACY_MAP[parsedResult.domain] || "INNE/NIEOKREŚLONE",
+        secondary_topics: parsedResult.domain_secondary ? [LEGACY_MAP[parsedResult.domain_secondary] || "INNE/NIEOKREŚLONE"] : [],
         model_version: "gemini-3.8-flash",
-        taxonomy_version: "1.0.0",
+        taxonomy_version: "2.0.0",
         classified_at: new Date().toISOString(),
       },
     });

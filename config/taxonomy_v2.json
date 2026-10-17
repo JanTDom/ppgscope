@@ -1,0 +1,139 @@
+{
+  "version": "2.0.0",
+  "name": "Taksonomia Dziedzinowa i Lokalności PPGscope",
+  "created_at": "2026-10-18T00:35:00+02:00",
+  "description": "18 dziedzin tematycznych z wariantami lokalności (C, L, CL) dla Polska Press Grupa.",
+  "locality_variants": [
+    { "code": "L", "name": "Lokalne", "description": "Podmiotem w tytule lub leadzie jest miejscowość, osoba albo instytucja z obszaru danego tytułu prasowego, a sprawa ma źródło lokalne." },
+    { "code": "CL", "name": "Centralne z rozwinięciem lokalnym", "description": "Sprawa krajowa lub światowa pokazana na przykładzie, danych albo ludziach z obszaru tytułu." },
+    { "code": "C", "name": "Centralne", "description": "W tekście nie ma lokalnego podmiotu z obszaru tytułu." }
+  ],
+  "domains": [
+    {
+      "slug": "wladza",
+      "code": "01",
+      "name": "Władza i polityka",
+      "description": "Samorząd, budżety gmin, rząd, Sejm, partie, wybory, urzędy, ustrój i sądy jako ustrój.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "zdarzenia",
+      "code": "02",
+      "name": "Bezpieczeństwo i zdarzenia",
+      "description": "Wypadki, pożary, katastrofy, przestępczość, policja, zaginięcia, wyroki karne, służby ratunkowe.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "obronnosc",
+      "code": "03",
+      "name": "Obronność",
+      "description": "Wojsko, ćwiczenia, szkolenia cywilów, przemysł zbrojeniowy, obrona cywilna.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "gospodarka",
+      "code": "04",
+      "name": "Gospodarka i praca",
+      "description": "Firmy, wyniki, rynek pracy, płace, podatki, kredyty, emerytury, energetyka, górnictwo, przemysł, handel, makroekonomia.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "infrastruktura",
+      "code": "05",
+      "name": "Infrastruktura i transport",
+      "description": "Drogi, mosty, kolej, komunikacja miejska, lotniska, korki, parkowanie, sieci wodne i ciepłownicze.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "przestrzen",
+      "code": "06",
+      "name": "Przestrzeń i mieszkanie",
+      "description": "Urbanistyka, parki, zieleń miejska, rewitalizacja, mieszkania komunalne, nieruchomości, zabytki jako remont lub spór.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "zdrowie",
+      "code": "07",
+      "name": "Zdrowie",
+      "description": "Szpitale, finansowanie i płace w ochronie zdrowia, dostęp do leczenia, profilaktyka, porady medyczne.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "edukacja",
+      "code": "08",
+      "name": "Edukacja i dzieci",
+      "description": "Szkoły, przedszkola, bezpieczeństwo w szkołach, nauczyciele, egzaminy, uczelnie, wychowanie, dzieci w sieci.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "srodowisko",
+      "code": "09",
+      "name": "Środowisko i klimat",
+      "description": "Susza, woda, powodzie, lasy, rezerwaty, smog, odpady, pogoda, przyroda, zwierzęta.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "spolecznosc",
+      "code": "10",
+      "name": "Społeczność i ludzie",
+      "description": "Lokalni bohaterowie, seniorzy, jubilaci, parafie, NGO, zbiórki, nekrologi, problemy socjalne.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "kultura",
+      "code": "11",
+      "name": "Kultura",
+      "description": "Teatr, opera, koncerty, literatura, film, sztuka, murale, muzea.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "historia",
+      "code": "12",
+      "name": "Historia i pamięć",
+      "description": "PRL, nostalgia, historia miejscowości, archiwalne zdjęcia, rocznice.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "czas_wolny",
+      "code": "13",
+      "name": "Czas wolny i turystyka",
+      "description": "Atrakcje, uzdrowiska, wycieczki, wydarzenia weekendowe, festyny, jarmarki, gastronomia, zabytki jako atrakcja.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "sport",
+      "code": "14",
+      "name": "Sport",
+      "description": "Sport zawodowy, amatorski i młodzieżowy, kibice, obiekty sportowe.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "rozrywka",
+      "code": "15",
+      "name": "Rozrywka i celebryci",
+      "description": "Telewizja, gwiazdy, plotki.",
+      "allowed_localities": ["C", "L"]
+    },
+    {
+      "slug": "styl_zycia",
+      "code": "16",
+      "name": "Styl życia i poradnictwo",
+      "description": "Dom i wnętrze, moto, technologie, gry, zakupy, okazje, kuchnia, uroda.",
+      "allowed_localities": ["C", "CL"]
+    },
+    {
+      "slug": "rolnictwo",
+      "code": "17",
+      "name": "Wieś i rolnictwo",
+      "description": "Produkcja rolna, ceny skupu, dopłaty, konkursy agro, KGW, życie wsi.",
+      "allowed_localities": ["C", "CL", "L"]
+    },
+    {
+      "slug": "swiat",
+      "code": "18",
+      "name": "Świat",
+      "description": "Polityka międzynarodowa, Ukraina i Rosja, USA, UE, Watykan.",
+      "allowed_localities": ["C", "CL"]
+    }
+  ]
+}
