@@ -1,0 +1,58 @@
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { apiKey } = await req.json();
+    const effectiveKey =
+      apiKey ||
+      process.env.PPGSCOPE_GEMINI_API_KEY ||
+      process.env.GEMINI_API_KEY;
+
+    if (!effectiveKey) {
+      return NextResponse.json(
+        { ok: false, error: "Brak klucza API Gemini." },
+        { status: 400 }
+      );
+    }
+
+    const t0 = Date.now();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${effectiveKey}`;
+    
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: "Odpowiedz dokładnie jednym słowem: POŁĄCZENIE_ZWERYFIKOWANE" }],
+          },
+        ],
+      }),
+    });
+
+    const latency = Date.now() - t0;
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return NextResponse.json(
+        { ok: false, status: response.status, error: errText, latency_ms: latency },
+        { status: response.status }
+      );
+    }
+
+    const data = await response.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+    return NextResponse.json({
+      ok: true,
+      model: "gemini-3.8-flash",
+      latency_ms: latency,
+      reply,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { ok: false, error: error?.message || "Błąd sieciowy podczas sprawdzania Gemini API" },
+      { status: 500 }
+    );
+  }
+}
