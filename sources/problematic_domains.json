@@ -1,0 +1,22 @@
+[
+  {
+    "domain": "dziennikzachodni.pl",
+    "reason": "Cloudflare Challenge 403"
+  },
+  {
+    "domain": "polskatimes.pl",
+    "reason": "HTTP 410 Gone (wycofana)"
+  },
+  {
+    "domain": "naszemiasto.pl",
+    "reason": "Cloudflare Challenge 403"
+  },
+  {
+    "domain": "polskapress.pl",
+    "reason": "Brak google_news i rss"
+  },
+  {
+    "domain": "mediappg.pl",
+    "reason": "Brak google_news i rss"
+  }
+]
