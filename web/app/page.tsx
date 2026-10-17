@@ -265,6 +265,13 @@ export default function PPGscopeApp() {
   const [supabaseLatency, setSupabaseLatency] = useState<number | null>(null);
   const [supabaseRecordsCount, setSupabaseRecordsCount] = useState<number | null>(null);
 
+  // Live In-Flight Session Articles (Zero Database Storage - Pure Session Memory)
+  const [liveSessionArticles, setLiveSessionArticles] = useState<any[]>([]);
+  const [isFetchingLive, setIsFetchingLive] = useState(false);
+  const [liveFetchDomain, setLiveFetchDomain] = useState<string>("gazetakrakowska.pl");
+  const [liveFetchNotice, setLiveFetchNotice] = useState<string | null>(null);
+  const [articlesViewMode, setArticlesViewMode] = useState<"live_session" | "sample_archive">("live_session");
+
   // Initialize client time and load configuration
   useEffect(() => {
     try {
@@ -414,6 +421,25 @@ export default function PPGscopeApp() {
       setLiveAiResult({ error: err?.message || "Błąd sieci" });
     } finally {
       setGeminiClassifying(false);
+    }
+  };
+
+  const handleFetchLiveArticles = async (domainToFetch: string) => {
+    setIsFetchingLive(true);
+    setLiveFetchNotice(null);
+    try {
+      const res = await fetch(`/api/articles/live?domain=${domainToFetch}&limit=25`);
+      const resJson = await res.json();
+      if (res.ok && resJson.ok) {
+        setLiveSessionArticles(resJson.articles || []);
+        setLiveFetchNotice(`Pobrano na żywo w sesji: ${resJson.articles_count} najświeższych publikacji z ${domainToFetch} (w locie z sieci, bez zapisywania w bazie danych).`);
+      } else {
+        setLiveFetchNotice(resJson.error || "Błąd pobierania publikacji w locie");
+      }
+    } catch {
+      setLiveFetchNotice("Błąd połączenia z serwerem");
+    } finally {
+      setIsFetchingLive(false);
     }
   };
 
@@ -1685,47 +1711,126 @@ export default function PPGscopeApp() {
         {/* ================================================================= */}
         {activeTab === "articles" && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
-              <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-teal-400" /> Baza Publikacji PPG (Taxonomy v2.0)
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Artykuły z przypisaną dziedziną (18 domen) oraz statusem lokalności (C / CL / L).
-                </p>
+            <div className="flex flex-col gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-teal-400" /> Publikacje PPG i Taksonomia v2.0
+                  </h2>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    Tryb sesyjny w locie: artykuły pobierane bezpośrednio z sieci do pamięci sesji, bez zapisywania w bazie danych.
+                  </p>
+                </div>
+
+                {/* Mode toggle: Live Session vs Statistical Sample */}
+                <div className="flex items-center rounded-xl border border-white/[0.08] bg-black/40 p-1 text-xs font-mono">
+                  <button
+                    onClick={() => setArticlesViewMode("live_session")}
+                    className={`rounded-lg px-3 py-1.5 transition-all ${
+                      articlesViewMode === "live_session"
+                        ? "bg-teal-500 font-bold text-black shadow-md"
+                        : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Na żywo w sesji (z sieci)
+                  </button>
+                  <button
+                    onClick={() => setArticlesViewMode("sample_archive")}
+                    className={`rounded-lg px-3 py-1.5 transition-all ${
+                      articlesViewMode === "sample_archive"
+                        ? "bg-teal-500 font-bold text-black shadow-md"
+                        : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Próbka wzorcowa
+                  </button>
+                </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <select
-                  value={selectedDomainFilter}
-                  onChange={(e) => setSelectedDomainFilter(e.target.value)}
-                  className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
-                >
-                  <option value="wszystkie">Wszystkie dziedziny (18)</option>
-                  {DOMAINS_SPEC.map((d) => (
-                    <option key={d.slug} value={d.slug}>{d.code} {d.name}</option>
-                  ))}
-                </select>
+              {/* Live Session Controls */}
+              {articlesViewMode === "live_session" && (
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-white/[0.06]">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-mono text-zinc-400">Wybierz portal do podglądu na żywo:</span>
+                    <select
+                      value={liveFetchDomain}
+                      onChange={(e) => setLiveFetchDomain(e.target.value)}
+                      className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-200 focus:border-teal-500 focus:outline-none font-mono"
+                    >
+                      {availableTitles.slice(0, 40).map((t) => (
+                        <option key={t.domain} value={t.domain}>
+                          {t.name} ({t.domain})
+                        </option>
+                      ))}
+                    </select>
 
-                <select
-                  value={selectedLocalityFilter}
-                  onChange={(e) => setSelectedLocalityFilter(e.target.value)}
-                  className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
-                >
-                  <option value="wszystkie">Wszystkie warianty lokalności</option>
-                  <option value="L">L – Lokalne</option>
-                  <option value="CL">CL – Rozwinięcie lokalne</option>
-                  <option value="C">C – Centralne</option>
-                </select>
-              </div>
+                    <button
+                      onClick={() => handleFetchLiveArticles(liveFetchDomain)}
+                      disabled={isFetchingLive}
+                      className="rounded-xl bg-teal-500 px-4 py-2 text-xs font-bold text-black transition-all hover:bg-teal-400 disabled:opacity-50 flex items-center gap-1.5 shadow-md shadow-teal-500/20"
+                    >
+                      {isFetchingLive ? (
+                        <>
+                          <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Pobieranie w locie...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-3.5 w-3.5" /> Pobierz publikacje z sieci
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <span className="text-[11px] font-mono text-zinc-400 bg-white/[0.04] px-3 py-1.5 rounded-lg border border-white/[0.06]">
+                    Artykuły żyją w sieci · Baza nie magazynuje ich treści
+                  </span>
+                </div>
+              )}
+
+              {liveFetchNotice && (
+                <div className="rounded-lg bg-teal-500/10 border border-teal-500/20 p-2.5 text-xs text-teal-300 font-mono flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-teal-400" />
+                  <span>{liveFetchNotice}</span>
+                </div>
+              )}
+
+              {/* Filters for Sample Mode */}
+              {articlesViewMode === "sample_archive" && (
+                <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-white/[0.06]">
+                  <select
+                    value={selectedDomainFilter}
+                    onChange={(e) => setSelectedDomainFilter(e.target.value)}
+                    className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
+                  >
+                    <option value="wszystkie">Wszystkie dziedziny (18)</option>
+                    {DOMAINS_SPEC.map((d) => (
+                      <option key={d.slug} value={d.slug}>{d.code} {d.name}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={selectedLocalityFilter}
+                    onChange={(e) => setSelectedLocalityFilter(e.target.value)}
+                    className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
+                  >
+                    <option value="wszystkie">Wszystkie warianty lokalności</option>
+                    <option value="L">L – Lokalne</option>
+                    <option value="CL">CL – Rozwinięcie lokalne</option>
+                    <option value="C">C – Centralne</option>
+                  </select>
+                </div>
+              )}
             </div>
 
+            {/* List of Articles: Live Session or Sample Archive */}
             <div className="space-y-3">
-              {filteredArticles
-                .filter((a) => selectedDomainFilter === "wszystkie" || a.domain === selectedDomainFilter)
-                .filter((a) => selectedLocalityFilter === "wszystkie" || a.locality === selectedLocalityFilter)
-                .slice(0, 50)
-                .map((art) => (
+              {(articlesViewMode === "live_session" && liveSessionArticles.length > 0
+                ? liveSessionArticles
+                : filteredArticles
+                    .filter((a) => selectedDomainFilter === "wszystkie" || a.domain === selectedDomainFilter)
+                    .filter((a) => selectedLocalityFilter === "wszystkie" || a.locality === selectedLocalityFilter)
+                    .slice(0, 50)
+              ).map((art) => (
                   <div key={art.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-4 space-y-2 hover:border-white/[0.12] transition-all">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2">

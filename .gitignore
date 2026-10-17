@@ -45,3 +45,5 @@ yarn-error.log*
 Thumbs.db
 data/*.db
 data/*.log
+data/*.backup*.json
+data/*.backup.json
