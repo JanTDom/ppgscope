@@ -109,31 +109,62 @@ export async function GET(req: NextRequest) {
     const domain = searchParams.get("domain") || "gazetakrakowska.pl";
     const limit = parseInt(searchParams.get("limit") || "20", 10);
 
-    const rssUrl = `https://${domain}/rss`;
+    const directRssUrl = `https://${domain}/rss`;
+    const googleNewsUrl = `https://news.google.com/rss/search?q=site:${domain}&hl=pl&gl=PL&ceid=PL:pl`;
 
-    // Fetch live RSS feed directly from the media outlet
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const browserHeaders = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      Accept: "application/rss+xml, application/xml, text/xml, */*",
+    };
 
     let xmlText = "";
+    let sourceUsed = "direct_rss";
+
+    // 1. Try direct RSS feed
     try {
-      const resp = await fetch(rssUrl, {
-        headers: {
-          "User-Agent": "PPGscope-Intelligence/2.0 (Media Monitoring; +https://ppgscope.pl)",
-          Accept: "application/rss+xml, application/xml, text/xml",
-        },
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const resp = await fetch(directRssUrl, {
+        headers: browserHeaders,
         signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
-      if (!resp.ok) {
+      if (resp.ok) {
+        xmlText = await resp.text();
+      }
+    } catch {
+      // Fallback
+    }
+
+    // 2. If direct RSS failed or was blocked by firewall (403/404), fallback to Google News Live Index
+    if (!xmlText || !xmlText.includes("<item>")) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const gResp = await fetch(googleNewsUrl, {
+          headers: browserHeaders,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (gResp.ok) {
+          xmlText = await gResp.text();
+          sourceUsed = "google_news_live_stream";
+        }
+      } catch (err: any) {
         return NextResponse.json(
-          { ok: false, error: `Błąd serwera portalu ${domain} (HTTP ${resp.status})` },
+          { ok: false, error: `Błąd połączenia z siecią: ${err?.message}` },
           { status: 502 }
         );
       }
-      xmlText = await resp.text();
-    } finally {
-      clearTimeout(timeoutId);
+    }
+
+    if (!xmlText || !xmlText.includes("<item>")) {
+      return NextResponse.json(
+        { ok: false, error: `Brak dostępnych publikacji w bieżącym strumieniu dla portalu ${domain}` },
+        { status: 404 }
+      );
     }
 
     // Parse RSS XML items using regex for maximum speed & zero dependencies
