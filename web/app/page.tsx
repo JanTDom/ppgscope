@@ -242,29 +242,48 @@ export default function PPGscopeDashboard() {
   const [geminiClassifying, setGeminiClassifying] = useState(false);
   const [liveAiResult, setLiveAiResult] = useState<any | null>(null);
 
+  // Live Supabase Testing State
+  const [supabaseTestStatus, setSupabaseTestStatus] = useState<
+    "idle" | "testing" | "success" | "error"
+  >("idle");
+  const [supabaseLatency, setSupabaseLatency] = useState<number | null>(null);
+  const [supabaseRecordsCount, setSupabaseRecordsCount] = useState<number | null>(null);
+
   // Load configuration from localStorage on client mount
   useEffect(() => {
     try {
       const storedKey = localStorage.getItem("ppgscope_gemini_api_key");
       if (storedKey && storedKey.trim().length > 0) {
         setGeminiApiKey(storedKey);
-      } else {
-        fetch("/api/gemini/config")
-          .then((r) => r.json())
-          .then((d) => {
-            if (d.key) {
-              setGeminiApiKey(d.key);
-              localStorage.setItem("ppgscope_gemini_api_key", d.key);
-            }
-          })
-          .catch(() => {});
       }
 
       const storedSbUrl = localStorage.getItem("ppgscope_supabase_url");
-      if (storedSbUrl) setSupabaseUrl(storedSbUrl);
+      if (storedSbUrl && storedSbUrl.trim().length > 0) {
+        setSupabaseUrl(storedSbUrl);
+      }
 
       const storedSbAnon = localStorage.getItem("ppgscope_supabase_anon_key");
-      if (storedSbAnon) setSupabaseAnonKey(storedSbAnon);
+      if (storedSbAnon && storedSbAnon.trim().length > 0) {
+        setSupabaseAnonKey(storedSbAnon);
+      }
+
+      fetch("/api/gemini/config")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.key && (!storedKey || storedKey.trim().length === 0)) {
+            setGeminiApiKey(d.key);
+            localStorage.setItem("ppgscope_gemini_api_key", d.key);
+          }
+          if (d.supabaseUrl && (!storedSbUrl || storedSbUrl.trim().length === 0)) {
+            setSupabaseUrl(d.supabaseUrl);
+            localStorage.setItem("ppgscope_supabase_url", d.supabaseUrl);
+          }
+          if (d.supabaseAnonKey && (!storedSbAnon || storedSbAnon.trim().length === 0)) {
+            setSupabaseAnonKey(d.supabaseAnonKey);
+            localStorage.setItem("ppgscope_supabase_anon_key", d.supabaseAnonKey);
+          }
+        })
+        .catch(() => {});
 
       const storedEndpoint = localStorage.getItem("ppgscope_internal_endpoint");
       if (storedEndpoint) setInternalEndpoint(storedEndpoint);
@@ -350,6 +369,27 @@ export default function PPGscopeDashboard() {
       }
     } catch {
       setGeminiTestStatus("error");
+    }
+  };
+
+  const handleTestSupabase = async () => {
+    setSupabaseTestStatus("testing");
+    try {
+      const res = await fetch("/api/supabase/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: supabaseUrl, anonKey: supabaseAnonKey }),
+      });
+      const resJson = await res.json();
+      if (res.ok && resJson.ok) {
+        setSupabaseTestStatus("success");
+        setSupabaseLatency(resJson.latency_ms);
+        setSupabaseRecordsCount(resJson.records_count);
+      } else {
+        setSupabaseTestStatus("error");
+      }
+    } catch {
+      setSupabaseTestStatus("error");
     }
   };
 
@@ -1746,9 +1786,31 @@ export default function PPGscopeDashboard() {
                       type="text"
                       value={supabaseAnonKey}
                       onChange={(e) => setSupabaseAnonKey(e.target.value)}
+                      placeholder="eyJhbGciOi..."
                       className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-1.5 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
                     />
                   </div>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <button
+                    onClick={handleTestSupabase}
+                    disabled={supabaseTestStatus === "testing" || !supabaseAnonKey}
+                    className="rounded bg-sky-500/20 border border-sky-500/40 px-2.5 py-1 text-[11px] font-medium text-sky-300 hover:bg-sky-500/30 transition-all disabled:opacity-50"
+                  >
+                    {supabaseTestStatus === "testing"
+                      ? "Sprawdzanie..."
+                      : "Testuj połączenie Supabase"}
+                  </button>
+                  {supabaseTestStatus === "success" && (
+                    <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
+                      <Check className="h-3 w-3" /> Połączenie aktywne ({supabaseRecordsCount ?? 0} rekordów, {supabaseLatency} ms)
+                    </p>
+                  )}
+                  {supabaseTestStatus === "error" && (
+                    <p className="text-[11px] text-rose-400 flex items-center gap-1 font-mono">
+                      <XCircle className="h-3 w-3" /> Błąd autoryzacji klucza Supabase.
+                    </p>
+                  )}
                 </div>
               </div>
 
