@@ -204,6 +204,33 @@ const DOMAINS_SPEC: DomainItem[] = [
   { slug: "swiat", code: "18", name: "Świat", description: "Polityka międzynarodowa, Ukraina i Rosja, USA, UE, Watykan" }
 ];
 
+const DOMAIN_NAME_MAP: Record<string, string> = {
+  wladza: "Władza i polityka",
+  zdarzenia: "Bezpieczeństwo i zdarzenia",
+  obronnosc: "Obronność",
+  gospodarka: "Gospodarka i praca",
+  infrastruktura: "Infrastruktura i transport",
+  przestrzen: "Przestrzeń i mieszkanie",
+  zdrowie: "Zdrowie",
+  edukacja: "Edukacja i dzieci",
+  srodowisko: "Środowisko i klimat",
+  spolecznosc: "Społeczność i ludzie",
+  kultura: "Kultura",
+  historia: "Historia i pamięć",
+  czas_wolny: "Czas wolny i turystyka",
+  sport: "Sport",
+  rozrywka: "Rozrywka i celebryci",
+  styl_zycia: "Styl życia i poradnictwo",
+  rolnictwo: "Wieś i rolnictwo",
+  swiat: "Świat",
+};
+
+const LOCALITY_NAME_MAP: Record<string, string> = {
+  L: "Lokalne",
+  CL: "Centralne z rozwinięciem lokalnym",
+  C: "Centralne",
+};
+
 export default function PPGscopeApp() {
   // Session Authentication State (In-Memory Only, No Cookies)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -221,9 +248,8 @@ export default function PPGscopeApp() {
   const [selectedMediumDomain, setSelectedMediumDomain] = useState<string>("ALL");
   const [mediumSearchQuery, setMediumSearchQuery] = useState<string>("");
 
-  // Locality Views Controls
-  const [localityMode, setLocalityMode] = useState<"ALL" | "LOCAL">("ALL");
-  const [pureLocalOnly, setPureLocalOnly] = useState<boolean>(false);
+  // Three View Modes: Wszystkie / Podział na centralne i lokalne / Podział na C, CL, L
+  const [viewMode, setViewMode] = useState<"ALL" | "CENTRAL_LOCAL" | "THREE_WAY">("ALL");
 
   // Time Period Filtering State
   const [timePreset, setTimePreset] = useState<"24h" | "7d" | "30d" | "90d" | "1y" | "all" | "custom">("30d");
@@ -578,10 +604,12 @@ export default function PPGscopeApp() {
       "Domena",
       "Region",
       "Data_publikacji",
-      "Dziedzina_glowna",
-      "Dziedzina_kod",
-      "Dziedzina_poboczna",
+      "Dziedzina_glowna_nazwa",
+      "Dziedzina_glowna_kod",
+      "Dziedzina_glowna_slug",
+      "Dziedzina_poboczna_nazwa",
       "Wariant_lokalnosci",
+      "Wariant_lokalnosci_nazwa",
       "Inny_region_PPG",
       "Wymaga_weryfikacji",
       "Pewnosc",
@@ -595,10 +623,12 @@ export default function PPGscopeApp() {
       `"${a.portal_domain}"`,
       `"${a.region || ""}"`,
       `"${a.published_at}"`,
-      `"${a.domain}"`,
+      `"${DOMAIN_NAME_MAP[a.domain] || a.domain}"`,
       `"${DOMAINS_SPEC.find(d => d.slug === a.domain)?.code || ""}"`,
-      `"${a.domain_secondary || ""}"`,
+      `"${a.domain}"`,
+      `"${a.domain_secondary ? DOMAIN_NAME_MAP[a.domain_secondary] || a.domain_secondary : ""}"`,
       `"${a.locality}"`,
+      `"${LOCALITY_NAME_MAP[a.locality] || a.locality}"`,
       `"${a.other_region ? "TAK" : "NIE"}"`,
       `"${a.needs_review ? "TAK" : "NIE"}"`,
       `"${a.confidence ?? ""}"`,
@@ -948,43 +978,41 @@ export default function PPGscopeApp() {
             )}
           </div>
 
-          {/* Locality Toggles: Wszystkie / Lokalne + Tylko czysto lokalne */}
+          {/* View Mode Switcher: Wszystkie / Podział na centralne i lokalne / Podział na C, CL, L */}
           <div className="flex flex-wrap items-center gap-3 border-t lg:border-t-0 border-white/[0.06] pt-3 lg:pt-0">
             <span className="text-xs text-zinc-400 font-mono">Widok:</span>
-            <div className="flex rounded-lg border border-white/[0.08] bg-black/60 p-0.5 text-xs font-mono">
+            <div className="flex flex-wrap rounded-xl border border-white/[0.08] bg-black/60 p-1 text-xs font-mono">
               <button
-                onClick={() => setLocalityMode("ALL")}
-                className={`rounded px-3 py-1 transition-all ${
-                  localityMode === "ALL"
+                onClick={() => setViewMode("ALL")}
+                className={`rounded-lg px-3 py-1.5 transition-all ${
+                  viewMode === "ALL"
                     ? "bg-teal-500 text-black font-semibold shadow"
                     : "text-zinc-400 hover:text-white"
                 }`}
               >
-                Wszystkie (C + CL + L)
+                Wszystkie
               </button>
               <button
-                onClick={() => setLocalityMode("LOCAL")}
-                className={`rounded px-3 py-1 transition-all ${
-                  localityMode === "LOCAL"
+                onClick={() => setViewMode("CENTRAL_LOCAL")}
+                className={`rounded-lg px-3 py-1.5 transition-all ${
+                  viewMode === "CENTRAL_LOCAL"
                     ? "bg-teal-500 text-black font-semibold shadow"
                     : "text-zinc-400 hover:text-white"
                 }`}
               >
-                Lokalne (L + CL)
+                Podział na centralne i lokalne
+              </button>
+              <button
+                onClick={() => setViewMode("THREE_WAY")}
+                className={`rounded-lg px-3 py-1.5 transition-all ${
+                  viewMode === "THREE_WAY"
+                    ? "bg-teal-500 text-black font-semibold shadow"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                Podział na centralne, rozwinięcie i lokalne
               </button>
             </div>
-
-            {localityMode === "LOCAL" && (
-              <label className="flex items-center gap-2 text-xs font-mono text-zinc-300 cursor-pointer select-none pl-2 border-l border-white/[0.08]">
-                <input
-                  type="checkbox"
-                  checked={pureLocalOnly}
-                  onChange={(e) => setPureLocalOnly(e.target.checked)}
-                  className="rounded border-zinc-700 bg-black text-teal-500 focus:ring-teal-500 h-3.5 w-3.5"
-                />
-                <span>Tylko czysto lokalne (ukryj CL)</span>
-              </label>
-            )}
           </div>
         </div>
 
@@ -1004,11 +1032,11 @@ export default function PPGscopeApp() {
                     : `Struktura 18 Dziedzin: ${selectedMediumObj?.name || selectedMediumDomain}`}
                 </h2>
                 <p className="text-xs text-zinc-400 mt-1">
-                  {localityMode === "ALL"
-                    ? "Widok 'Wszystkie': każdy słupek skumulowany z 3 segmentów: C (centralne), CL (rozwinięcie lokalne), L (lokalne)."
-                    : pureLocalOnly
-                    ? "Widok 'Lokalne' (Tylko czysto lokalne): prezentuje wyłącznie segment L o bezpośrednim źródle lokalnym."
-                    : "Widok 'Lokalne': segmenty L (pełny kolor) oraz CL (jaśniejszy odcień), treści czysto centralne C ukryte."}
+                  {viewMode === "ALL"
+                    ? "Widok 'Wszystkie': pełne zestawienie 18 dziedzin tematycznych z łącznym udziałem procentowym."
+                    : viewMode === "CENTRAL_LOCAL"
+                    ? "Widok 'Podział na centralne i lokalne': każda dziedzina rozbita na dwa odrębne, niezależne słupki (Lokalne L+CL vs Centralne C)."
+                    : "Widok 'Podział na centralne, rozwinięcie i lokalne': każda dziedzina rozbita na trzy odrębne, niezależne słupki (L, CL, C)."}
                 </p>
               </div>
 
@@ -1026,20 +1054,40 @@ export default function PPGscopeApp() {
             {/* Legend Component */}
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-black/40 p-4 text-xs font-mono">
               <div className="flex flex-wrap items-center gap-4">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Legenda segmentów:</span>
-                <span className="flex items-center gap-1.5 text-zinc-200">
-                  <span className="h-3 w-3 rounded bg-teal-500" />
-                  <strong>L</strong> – lokalne (sprawa o źródle lokalnym z obszaru tytułu)
-                </span>
-                <span className="flex items-center gap-1.5 text-zinc-200">
-                  <span className="h-3 w-3 rounded bg-teal-300" />
-                  <strong>CL</strong> – centralne z rozwinięciem lokalnym (sprawa krajowa na przykładzie lokalnym)
-                </span>
-                {localityMode === "ALL" && (
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Legenda wykresu:</span>
+                {viewMode === "ALL" && (
                   <span className="flex items-center gap-1.5 text-zinc-200">
-                    <span className="h-3 w-3 rounded bg-zinc-600" />
-                    <strong>C</strong> – centralne (brak lokalnego podmiotu z obszaru tytułu)
+                    <span className="h-3 w-3 rounded bg-teal-500" />
+                    <strong>Łączny wolumen dziedziny</strong> (wszystkie artykuły z danego zakresu)
                   </span>
+                )}
+                {viewMode === "CENTRAL_LOCAL" && (
+                  <>
+                    <span className="flex items-center gap-1.5 text-zinc-200">
+                      <span className="h-3 w-3 rounded bg-teal-400" />
+                      <strong>Lokalne (L + CL)</strong> – sprawy o źródle lokalnym lub z kątem lokalnym
+                    </span>
+                    <span className="flex items-center gap-1.5 text-zinc-200">
+                      <span className="h-3 w-3 rounded bg-zinc-500" />
+                      <strong>Centralne (C)</strong> – depesze agencyjne i tematy ogólnopolskie
+                    </span>
+                  </>
+                )}
+                {viewMode === "THREE_WAY" && (
+                  <>
+                    <span className="flex items-center gap-1.5 text-zinc-200">
+                      <span className="h-3 w-3 rounded bg-teal-500" />
+                      <strong>L – lokalne</strong> (sprawa o źródle lokalnym z obszaru tytułu)
+                    </span>
+                    <span className="flex items-center gap-1.5 text-zinc-200">
+                      <span className="h-3 w-3 rounded bg-teal-300" />
+                      <strong>CL – centralne z rozwinięciem</strong> (sprawa krajowa na przykładzie lokalnym)
+                    </span>
+                    <span className="flex items-center gap-1.5 text-zinc-200">
+                      <span className="h-3 w-3 rounded bg-zinc-500" />
+                      <strong>C – centralne</strong> (brak lokalnego podmiotu z obszaru tytułu)
+                    </span>
+                  </>
                 )}
               </div>
 
@@ -1048,44 +1096,39 @@ export default function PPGscopeApp() {
               </div>
             </div>
 
-            {/* 18 Domains Stacked Bar Chart Cards */}
+            {/* 18 Domains Cards (Separated Bars) */}
             <div className="space-y-3">
               {domainBreakdown.domains.map((d) => {
-                const totalVisible =
-                  localityMode === "ALL"
-                    ? d.countC + d.countCL + d.countL
-                    : pureLocalOnly
-                    ? d.countL
-                    : d.countL + d.countCL;
-
-                const maxCount = Math.max(
-                  ...domainBreakdown.domains.map((dom) =>
-                    localityMode === "ALL"
-                      ? dom.countC + dom.countCL + dom.countL
-                      : pureLocalOnly
-                      ? dom.countL
-                      : dom.countL + dom.countCL
-                  ),
+                const maxTotal = Math.max(...domainBreakdown.domains.map((dom) => dom.total), 1);
+                const maxCentralLocal = Math.max(
+                  ...domainBreakdown.domains.flatMap((dom) => [dom.countL + dom.countCL, dom.countC]),
+                  1
+                );
+                const maxThreeWay = Math.max(
+                  ...domainBreakdown.domains.flatMap((dom) => [dom.countL, dom.countCL, dom.countC]),
                   1
                 );
 
-                const widthPct = Math.min(100, Math.round((totalVisible / maxCount) * 100));
+                const localTotal = d.countL + d.countCL;
+                const pctLocalInDomain = d.total > 0 ? Math.round((localTotal / d.total) * 1000) / 10 : 0;
+                const pctCentralInDomain = d.total > 0 ? Math.round((d.countC / d.total) * 1000) / 10 : 0;
 
-                const pctL = totalVisible > 0 ? (d.countL / totalVisible) * 100 : 0;
-                const pctCL = totalVisible > 0 ? (d.countCL / totalVisible) * 100 : 0;
-                const pctC = totalVisible > 0 && localityMode === "ALL" ? (d.countC / totalVisible) * 100 : 0;
+                const pctLInDomain = d.total > 0 ? Math.round((d.countL / d.total) * 1000) / 10 : 0;
+                const pctCLInDomain = d.total > 0 ? Math.round((d.countCL / d.total) * 1000) / 10 : 0;
+                const pctCInDomain = d.total > 0 ? Math.round((d.countC / d.total) * 1000) / 10 : 0;
 
                 return (
                   <div
                     key={d.slug}
-                    className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-4 space-y-2 hover:border-white/[0.12] transition-all"
+                    className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-4 space-y-3 hover:border-white/[0.12] transition-all"
                   >
+                    {/* Domain Header with Proper Polish Name */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono bg-white/[0.06] text-teal-300 px-1.5 py-0.5 rounded font-bold">
-                          {d.code} {d.slug}
+                        <span className="text-[10px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-2 py-0.5 rounded font-bold">
+                          {d.code}
                         </span>
-                        <span className="font-semibold text-white">{d.name}</span>
+                        <span className="font-semibold text-white text-sm">{d.name}</span>
                         <span className="text-[11px] text-zinc-400 hidden md:inline">
                           — {d.description}
                         </span>
@@ -1093,60 +1136,137 @@ export default function PPGscopeApp() {
 
                       <div className="flex items-center gap-3 font-mono text-xs">
                         <span className="text-zinc-400">
-                          {localityMode === "ALL" ? (
-                            <>
-                              <span className="text-teal-400 font-bold">{d.countL}L</span> +{" "}
-                              <span className="text-teal-300 font-bold">{d.countCL}CL</span> +{" "}
-                              <span className="text-zinc-400">{d.countC}C</span> ={" "}
-                            </>
-                          ) : pureLocalOnly ? (
-                            <><span className="text-teal-400 font-bold">{d.countL}L</span> = </>
-                          ) : (
-                            <>
-                              <span className="text-teal-400 font-bold">{d.countL}L</span> +{" "}
-                              <span className="text-teal-300 font-bold">{d.countCL}CL</span> ={" "}
-                            </>
-                          )}
-                          <strong className="text-white">{totalVisible} art.</strong>
+                          Razem w dziedzinie: <strong className="text-white">{d.total} art.</strong>
                         </span>
                         <span className="text-teal-400 font-bold w-12 text-right">
-                          {domainBreakdown.totalCount > 0
-                            ? Math.round((totalVisible / domainBreakdown.totalCount) * 1000) / 10
-                            : 0}%
+                          {d.pct}%
                         </span>
                       </div>
                     </div>
 
-                    {/* Multi-segment Stacked Bar */}
-                    <div className="h-3 w-full rounded-full bg-white/[0.04] overflow-hidden flex">
-                      <div
-                        style={{ width: `${widthPct}%` }}
-                        className="h-full flex rounded-full overflow-hidden transition-all duration-500"
-                      >
-                        {/* Segment L (Lokalne - Darker/Vibrant Teal) */}
-                        <div
-                          style={{ width: `${pctL}%` }}
-                          className="h-full bg-teal-500"
-                          title={`Lokalne (L): ${d.countL}`}
-                        />
-                        {/* Segment CL (Centralne Lokalne - Light Teal) */}
-                        {!pureLocalOnly && (
+                    {/* VIEW 1: WSZYSTKIE (Single Full Width Bar) */}
+                    {viewMode === "ALL" && (
+                      <div className="space-y-1 pt-1">
+                        <div className="h-3 w-full rounded-full bg-white/[0.04] overflow-hidden flex">
                           <div
-                            style={{ width: `${pctCL}%` }}
-                            className="h-full bg-teal-300"
-                            title={`Rozwinięcie lokalne (CL): ${d.countCL}`}
+                            style={{ width: `${(d.total / maxTotal) * 100}%` }}
+                            className="h-full bg-teal-500 rounded-full transition-all duration-500"
+                            title={`${d.name}: ${d.total} artykułów (${d.pct}%)`}
                           />
-                        )}
-                        {/* Segment C (Centralne - Slate / Zinc) */}
-                        {localityMode === "ALL" && (
-                          <div
-                            style={{ width: `${pctC}%` }}
-                            className="h-full bg-zinc-600"
-                            title={`Centralne (C): ${d.countC}`}
-                          />
-                        )}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* VIEW 2: PODZIAŁ NA CENTRALNE I LOKALNE (2 Separate Bars) */}
+                    {viewMode === "CENTRAL_LOCAL" && (
+                      <div className="space-y-2.5 pt-1">
+                        {/* Bar 1: Lokalne (L + CL) */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs font-mono">
+                            <span className="flex items-center gap-1.5 text-teal-300 font-medium">
+                              <span className="h-2 w-2 rounded-full bg-teal-400" />
+                              Lokalne (L + CL):
+                            </span>
+                            <span className="text-white font-bold">
+                              {localTotal} art. <span className="text-teal-400 font-normal">({pctLocalInDomain}%)</span>
+                            </span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
+                            <div
+                              style={{ width: `${(localTotal / maxCentralLocal) * 100}%` }}
+                              className="h-full bg-teal-400 rounded-full transition-all duration-500"
+                              title={`Lokalne (L + CL): ${localTotal} artykułów`}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Bar 2: Centralne (C) */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs font-mono">
+                            <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
+                              <span className="h-2 w-2 rounded-full bg-zinc-500" />
+                              Centralne (C):
+                            </span>
+                            <span className="text-white font-bold">
+                              {d.countC} art. <span className="text-zinc-400 font-normal">({pctCentralInDomain}%)</span>
+                            </span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
+                            <div
+                              style={{ width: `${(d.countC / maxCentralLocal) * 100}%` }}
+                              className="h-full bg-zinc-500 rounded-full transition-all duration-500"
+                              title={`Centralne (C): ${d.countC} artykułów`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* VIEW 3: PODZIAŁ NA C, CL, L (3 Separate Bars) */}
+                    {viewMode === "THREE_WAY" && (
+                      <div className="space-y-2.5 pt-1">
+                        {/* Bar 1: Lokalne (L) */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs font-mono">
+                            <span className="flex items-center gap-1.5 text-teal-400 font-medium">
+                              <span className="h-2 w-2 rounded-full bg-teal-500" />
+                              Lokalne (L):
+                            </span>
+                            <span className="text-white font-bold">
+                              {d.countL} art. <span className="text-teal-400 font-normal">({pctLInDomain}%)</span>
+                            </span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
+                            <div
+                              style={{ width: `${(d.countL / maxThreeWay) * 100}%` }}
+                              className="h-full bg-teal-500 rounded-full transition-all duration-500"
+                              title={`Lokalne (L): ${d.countL} artykułów`}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Bar 2: Centralne z rozwinięciem (CL) */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs font-mono">
+                            <span className="flex items-center gap-1.5 text-teal-300 font-medium">
+                              <span className="h-2 w-2 rounded-full bg-teal-300" />
+                              Centralne z rozwinięciem lokalnym (CL):
+                            </span>
+                            <span className="text-white font-bold">
+                              {d.countCL} art. <span className="text-teal-300 font-normal">({pctCLInDomain}%)</span>
+                            </span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
+                            <div
+                              style={{ width: `${(d.countCL / maxThreeWay) * 100}%` }}
+                              className="h-full bg-teal-300 rounded-full transition-all duration-500"
+                              title={`Rozwinięcie lokalne (CL): ${d.countCL} artykułów`}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Bar 3: Centralne (C) */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs font-mono">
+                            <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
+                              <span className="h-2 w-2 rounded-full bg-zinc-500" />
+                              Centralne (C):
+                            </span>
+                            <span className="text-white font-bold">
+                              {d.countC} art. <span className="text-zinc-400 font-normal">({pctCInDomain}%)</span>
+                            </span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
+                            <div
+                              style={{ width: `${(d.countC / maxThreeWay) * 100}%` }}
+                              className="h-full bg-zinc-500 rounded-full transition-all duration-500"
+                              title={`Centralne (C): ${d.countC} artykułów`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 );
               })}
@@ -1609,12 +1729,12 @@ export default function PPGscopeApp() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-2 py-0.5 rounded font-bold">
-                          {DOMAINS_SPEC.find(d => d.slug === art.domain)?.code || ""} {DOMAINS_SPEC.find(d => d.slug === art.domain)?.name || art.domain}
+                          {DOMAINS_SPEC.find(d => d.slug === art.domain)?.code || ""} · {DOMAINS_SPEC.find(d => d.slug === art.domain)?.name || DOMAIN_NAME_MAP[art.domain] || art.domain}
                         </span>
 
                         {art.domain_secondary && (
-                          <span className="text-[10px] font-mono bg-white/[0.06] text-zinc-400 border border-white/[0.08] px-1.5 py-0.5 rounded">
-                            +{art.domain_secondary}
+                          <span className="text-[10px] font-mono bg-white/[0.06] text-zinc-300 border border-white/[0.08] px-1.5 py-0.5 rounded">
+                            + {DOMAIN_NAME_MAP[art.domain_secondary] || art.domain_secondary}
                           </span>
                         )}
 
@@ -1625,7 +1745,7 @@ export default function PPGscopeApp() {
                             ? "bg-blue-500/20 text-blue-300 border border-blue-500/40"
                             : "bg-zinc-800 text-zinc-400 border border-zinc-700"
                         }`}>
-                          Wariant {art.locality}
+                          {LOCALITY_NAME_MAP[art.locality] || art.locality} ({art.locality})
                         </span>
 
                         {art.other_region && (
