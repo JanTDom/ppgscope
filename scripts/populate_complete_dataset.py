@@ -309,35 +309,42 @@ def run():
         "Zofia Mazur", "Maciej Kwiatkowski", "Dorota Krawczyk", "Łukasz Piotrowski"
     ]
 
-    for title in titles_raw:
-        # Determine number of articles for this title (5 to 8 articles across 60 days)
-        # Regional dailies get slightly more, hyperlocals get 5-7
-        num_arts = 8 if title["type"] == "Dziennik regionalny" else rng.randint(5, 7)
+    march_9_2024 = datetime(2024, 3, 9, 8, 0, 0, tzinfo=WARSAW_TZ)
 
-        # Distribute timestamps across 60 days:
+    for title in titles_raw:
+        # Determine number of articles for this title: 10 to 12 articles across the timeline back to March 9, 2024
+        # Regional dailies get 12 articles, hyperlocals get 10
+        num_arts = 12 if title["type"] == "Dziennik regionalny" else 10
+
+        # Distribute timestamps across distinct periods:
         # 1 article in last 24h
-        # 1-2 articles in last 7d
-        # 2 articles in last 30d
-        # 2 articles in reference period (31-60d ago)
+        # 1 article in 2-7d
+        # 2 articles in 8-30d
+        # 2 articles in 31-90d (quarter)
+        # 2 articles in 91-365d (full year)
+        # 2 articles in 366-945d (back to March 9, 2024)
         intervals = [
-            (0.1, 0.9),      # last 24 hours
-            (1.5, 6.5),      # last 7 days
-            (8.0, 14.0),     # last 14 days
-            (15.0, 29.0),    # last 30 days
-            (32.0, 45.0),    # reference period 1
-            (46.0, 58.0),    # reference period 2
+            (0.05, 0.95),     # last 24h
+            (1.2, 6.8),       # last 7 days
+            (8.0, 18.0),      # last 30 days (first half)
+            (19.0, 29.0),     # last 30 days (second half)
+            (32.0, 58.0),     # last 90 days (first half)
+            (61.0, 88.0),     # last 90 days (second half)
+            (95.0, 200.0),    # last 1 year (first half)
+            (210.0, 355.0),   # last 1 year (second half)
+            (370.0, 620.0),   # period since March 9, 2024 (part 1)
+            (630.0, 945.0),   # period since March 9, 2024 (part 2)
         ]
         if num_arts > len(intervals):
-            intervals.append((2.0, 20.0))
-        if num_arts > len(intervals):
-            intervals.append((35.0, 55.0))
+            intervals.append((25.0, 85.0))
+            intervals.append((110.0, 480.0))
 
         city_name = title.get("city", "")
 
         for i in range(num_arts):
             intv = intervals[i % len(intervals)]
             days_ago = rng.uniform(intv[0], intv[1])
-            pub_time = now - timedelta(days=days_ago)
+            pub_time = max(now - timedelta(days=days_ago), march_9_2024)
 
             # Topic selection: hyperlocals heavily focus on LOKALNE, SPOLECZENSTWO, PRAWO_BEZPIECZENSTWO, SPORT
             t_type = title.get("type", "").upper()

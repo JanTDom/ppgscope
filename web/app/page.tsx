@@ -209,9 +209,9 @@ export default function PPGscopeApp() {
   const [pureLocalOnly, setPureLocalOnly] = useState<boolean>(false);
 
   // Time Period Filtering State
-  const [timePreset, setTimePreset] = useState<"24h" | "7d" | "30d" | "90d" | "all" | "custom">("30d");
-  const [customStartDate, setCustomStartDate] = useState("2026-03-01");
-  const [customEndDate, setCustomEndDate] = useState("2026-03-31");
+  const [timePreset, setTimePreset] = useState<"24h" | "7d" | "30d" | "90d" | "1y" | "all" | "custom">("30d");
+  const [customStartDate, setCustomStartDate] = useState("2024-03-09");
+  const [customEndDate, setCustomEndDate] = useState("2026-10-18");
   const [clientNow, setClientNow] = useState<number | null>(null);
 
   // Table & directory filters
@@ -415,8 +415,10 @@ export default function PPGscopeApp() {
       start = new Date(now.getTime() - 30 * 86400 * 1000);
     } else if (timePreset === "90d") {
       start = new Date(now.getTime() - 90 * 86400 * 1000);
+    } else if (timePreset === "1y") {
+      start = new Date(now.getTime() - 365 * 86400 * 1000);
     } else if (timePreset === "all") {
-      start = new Date("2000-01-01");
+      start = new Date("2024-03-09T08:00:00+01:00");
     } else {
       start = new Date(customStartDate + "T00:00:00");
       end = new Date(customEndDate + "T23:59:59");
@@ -506,6 +508,47 @@ export default function PPGscopeApp() {
       }),
     };
   }, [filteredArticles]);
+
+  // Dynamic Authorship Breakdown for Selected Medium & Time Window
+  const authorshipStats = useMemo(() => {
+    const total = filteredArticles.length;
+    if (total === 0) {
+      return { named: 0, anon: 0, wire: 0, partner: 0, namedPct: 0, anonPct: 0, wirePct: 0, partnerPct: 0 };
+    }
+    const named = filteredArticles.filter((a) => a.byline_type === "named").length;
+    const anon = filteredArticles.filter((a) => a.byline_type === "anonymous").length;
+    const wire = filteredArticles.filter((a) => a.byline_type === "wire").length;
+    const partner = filteredArticles.filter((a) => a.byline_type === "partner").length;
+    return {
+      named,
+      anon,
+      wire,
+      partner,
+      namedPct: Math.round((named / total) * 1000) / 10,
+      anonPct: Math.round((anon / total) * 1000) / 10,
+      wirePct: Math.round((wire / total) * 1000) / 10,
+      partnerPct: Math.round((partner / total) * 1000) / 10,
+    };
+  }, [filteredArticles]);
+
+  // Dynamic Locality Breakdown for Selected Medium & Time Window
+  const localityStats = useMemo(() => {
+    const total = filteredArticles.length;
+    if (total === 0) {
+      return { l: 0, cl: 0, c: 0, lPct: 0, clPct: 0, cPct: 0 };
+    }
+    const l = domainBreakdown.countL;
+    const cl = domainBreakdown.countCL;
+    const c = domainBreakdown.countC;
+    return {
+      l,
+      cl,
+      c,
+      lPct: Math.round((l / total) * 1000) / 10,
+      clPct: Math.round((cl / total) * 1000) / 10,
+      cPct: Math.round((c / total) * 1000) / 10,
+    };
+  }, [filteredArticles, domainBreakdown]);
 
   // CSV Export Handler
   const handleExportCSV = () => {
@@ -713,14 +756,25 @@ export default function PPGscopeApp() {
                 90 dni
               </button>
               <button
+                onClick={() => setTimePreset("1y")}
+                className={`rounded-lg px-2 py-1 transition-all ${
+                  timePreset === "1y"
+                    ? "bg-teal-500 text-black font-semibold shadow"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                1 rok
+              </button>
+              <button
                 onClick={() => setTimePreset("all")}
                 className={`rounded-lg px-2 py-1 transition-all ${
                   timePreset === "all"
                     ? "bg-teal-500 text-black font-semibold shadow"
                     : "text-zinc-400 hover:text-white"
                 }`}
+                title="Wszystkie artykuły liczone od 9 marca 2024"
               >
-                Cała sieć
+                Wszystkie (od 9.03.2024)
               </button>
             </div>
 
@@ -952,43 +1006,6 @@ export default function PPGscopeApp() {
               </div>
             </div>
 
-            {/* Two Key Indicators Required Under the Chart */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
-                <span className="text-xs font-mono uppercase text-zinc-400 flex items-center gap-1.5">
-                  <Target className="h-4 w-4 text-teal-400" /> Udział treści lokalnej = (L + CL) / wszystkie
-                </span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold tracking-tight text-teal-400">
-                    {domainBreakdown.localContentShare}%
-                  </span>
-                  <span className="text-xs font-mono text-zinc-400">
-                    ({domainBreakdown.countL + domainBreakdown.countCL} z {domainBreakdown.totalCount} art.)
-                  </span>
-                </div>
-                <p className="text-[11px] text-zinc-500">
-                  Odsetek artykułów posiadających wymiar lokalny (czysty lub rozwinięty z depeszy)
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
-                <span className="text-xs font-mono uppercase text-zinc-400 flex items-center gap-1.5">
-                  <Compass className="h-4 w-4 text-blue-400" /> Wskaźnik lokalizacji = CL / (C + CL)
-                </span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold tracking-tight text-blue-400">
-                    {domainBreakdown.localizationIndex}%
-                  </span>
-                  <span className="text-xs font-mono text-zinc-400">
-                    ({domainBreakdown.countCL} z {domainBreakdown.countC + domainBreakdown.countCL} spraw centralnych)
-                  </span>
-                </div>
-                <p className="text-[11px] text-zinc-500">
-                  Zdolność redakcji do 'przepakowywania' tematów ogólnopolskich na konkretne przykłady lokalne
-                </p>
-              </div>
-            </div>
-
             {/* Legend Component */}
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-black/40 p-4 text-xs font-mono">
               <div className="flex flex-wrap items-center gap-4">
@@ -1117,6 +1134,43 @@ export default function PPGscopeApp() {
                 );
               })}
             </div>
+
+            {/* Two Key Indicators Required Under the Chart */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
+                <span className="text-xs font-mono uppercase text-zinc-400 flex items-center gap-1.5">
+                  <Target className="h-4 w-4 text-teal-400" /> Udział treści lokalnej = (L + CL) / wszystkie
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold tracking-tight text-teal-400">
+                    {domainBreakdown.localContentShare}%
+                  </span>
+                  <span className="text-xs font-mono text-zinc-400">
+                    ({domainBreakdown.countL + domainBreakdown.countCL} z {domainBreakdown.totalCount} art.)
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500">
+                  Odsetek artykułów posiadających wymiar lokalny (czysty lub rozwinięty z depeszy)
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-1">
+                <span className="text-xs font-mono uppercase text-zinc-400 flex items-center gap-1.5">
+                  <Compass className="h-4 w-4 text-blue-400" /> Wskaźnik lokalizacji = CL / (C + CL)
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold tracking-tight text-blue-400">
+                    {domainBreakdown.localizationIndex}%
+                  </span>
+                  <span className="text-xs font-mono text-zinc-400">
+                    ({domainBreakdown.countCL} z {domainBreakdown.countC + domainBreakdown.countCL} spraw centralnych)
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500">
+                  Zdolność redakcji do 'przepakowywania' tematów ogólnopolskich na konkretne przykłady lokalne
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1183,39 +1237,90 @@ export default function PPGscopeApp() {
                 </div>
               </div>
 
-              {/* Chart 2: Stacked Authorship Distribution Bar */}
+              {/* Chart 2: Stacked Authorship Distribution Bar (Dynamic for selected medium) */}
               <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
                   <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                     <Users className="h-4 w-4 text-teal-400" /> Dystrybucja sygnatur autorstwa
                   </h3>
-                  <span className="text-[10px] font-mono text-zinc-400">N = {domainBreakdown.totalCount}</span>
+                  <span className="text-[10px] font-mono text-zinc-400">
+                    {selectedMediumDomain === "ALL" ? "Cała sieć" : selectedMediumDomain} · N = {authorshipStats.named + authorshipStats.anon + authorshipStats.wire + authorshipStats.partner}
+                  </span>
                 </div>
 
                 <div className="space-y-4 py-2">
                   <div className="h-7 w-full rounded-xl overflow-hidden flex font-mono text-[10px] font-bold text-black">
-                    <div style={{ width: "43.1%" }} className="bg-teal-400 flex items-center justify-center">43.1%</div>
-                    <div style={{ width: "32.8%" }} className="bg-amber-400 flex items-center justify-center">32.8%</div>
-                    <div style={{ width: "18.5%" }} className="bg-blue-400 flex items-center justify-center text-white">18.5%</div>
-                    <div style={{ width: "5.6%" }} className="bg-rose-400 flex items-center justify-center">5.6%</div>
+                    <div style={{ width: `${authorshipStats.namedPct}%` }} className="bg-teal-400 flex items-center justify-center">
+                      {authorshipStats.namedPct > 6 ? `${authorshipStats.namedPct}%` : ""}
+                    </div>
+                    <div style={{ width: `${authorshipStats.anonPct}%` }} className="bg-amber-400 flex items-center justify-center">
+                      {authorshipStats.anonPct > 6 ? `${authorshipStats.anonPct}%` : ""}
+                    </div>
+                    <div style={{ width: `${authorshipStats.wirePct}%` }} className="bg-blue-400 flex items-center justify-center text-white">
+                      {authorshipStats.wirePct > 6 ? `${authorshipStats.wirePct}%` : ""}
+                    </div>
+                    <div style={{ width: `${authorshipStats.partnerPct}%` }} className="bg-rose-400 flex items-center justify-center">
+                      {authorshipStats.partnerPct > 6 ? `${authorshipStats.partnerPct}%` : ""}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-xs font-mono pt-2">
                     <div className="rounded-lg border border-white/[0.06] bg-black/40 p-2.5">
-                      <span className="text-teal-400 font-bold block">43.1% Autorskie imienne</span>
+                      <span className="text-teal-400 font-bold block">{authorshipStats.namedPct}% Autorskie imienne ({authorshipStats.named})</span>
                       <span className="text-[11px] text-zinc-400">Dziennikarze z imienia i nazwiska</span>
                     </div>
                     <div className="rounded-lg border border-white/[0.06] bg-black/40 p-2.5">
-                      <span className="text-amber-400 font-bold block">32.8% Anonimowe (red)</span>
-                      <span className="text-[11px] text-zinc-400">Materiały z sygnaturą redakcyjną</span>
+                      <span className="text-amber-400 font-bold block">{authorshipStats.anonPct}% Anonimowe ({authorshipStats.anon})</span>
+                      <span className="text-[11px] text-zinc-400">Materiały z sygnaturą redakcyjną (red)</span>
                     </div>
                     <div className="rounded-lg border border-white/[0.06] bg-black/40 p-2.5">
-                      <span className="text-blue-400 font-bold block">18.5% Depesze agencyjne</span>
-                      <span className="text-[11px] text-zinc-400">PAP oraz centrala PPG</span>
+                      <span className="text-blue-400 font-bold block">{authorshipStats.wirePct}% Depesze ({authorshipStats.wire})</span>
+                      <span className="text-[11px] text-zinc-400">PAP oraz centrala redakcyjna PPG</span>
                     </div>
                     <div className="rounded-lg border border-white/[0.06] bg-black/40 p-2.5">
-                      <span className="text-rose-400 font-bold block">5.6% Materiały partnera</span>
-                      <span className="text-[11px] text-zinc-400">Artykuły sponsorowane / komercyjne</span>
+                      <span className="text-rose-400 font-bold block">{authorshipStats.partnerPct}% Partner ({authorshipStats.partner})</span>
+                      <span className="text-[11px] text-zinc-400">Artykuły sponsorowane i komercyjne</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chart 3: Locality Proportions (L / CL / C) */}
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                  <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                    <Compass className="h-4 w-4 text-teal-400" /> Rozkład wariantów lokalności (L / CL / C)
+                  </h3>
+                  <span className="text-[10px] font-mono text-zinc-400">
+                    {selectedMediumDomain === "ALL" ? "Cała grupa" : selectedMediumDomain} · N = {localityStats.l + localityStats.cl + localityStats.c}
+                  </span>
+                </div>
+
+                <div className="space-y-4 py-2">
+                  <div className="h-7 w-full rounded-xl overflow-hidden flex font-mono text-[10px] font-bold text-black">
+                    <div style={{ width: `${localityStats.lPct}%` }} className="bg-teal-500 flex items-center justify-center text-black">
+                      {localityStats.lPct > 6 ? `${localityStats.lPct}%` : ""}
+                    </div>
+                    <div style={{ width: `${localityStats.clPct}%` }} className="bg-teal-300 flex items-center justify-center text-black">
+                      {localityStats.clPct > 6 ? `${localityStats.clPct}%` : ""}
+                    </div>
+                    <div style={{ width: `${localityStats.cPct}%` }} className="bg-zinc-600 flex items-center justify-center text-white">
+                      {localityStats.cPct > 6 ? `${localityStats.cPct}%` : ""}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-xs font-mono pt-2">
+                    <div className="rounded-lg border border-teal-500/20 bg-teal-500/10 p-2.5">
+                      <span className="text-teal-400 font-bold block">{localityStats.lPct}% Lokalne</span>
+                      <span className="text-[11px] text-zinc-400">{localityStats.l} art. (źródło lokalne)</span>
+                    </div>
+                    <div className="rounded-lg border border-teal-300/20 bg-teal-300/10 p-2.5">
+                      <span className="text-teal-300 font-bold block">{localityStats.clPct}% Rozwinięcie</span>
+                      <span className="text-[11px] text-zinc-400">{localityStats.cl} art. (krajowe z kątem)</span>
+                    </div>
+                    <div className="rounded-lg border border-zinc-700 bg-zinc-800/40 p-2.5">
+                      <span className="text-zinc-300 font-bold block">{localityStats.cPct}% Centralne</span>
+                      <span className="text-[11px] text-zinc-400">{localityStats.c} art. (brak kąta lokalnego)</span>
                     </div>
                   </div>
                 </div>
