@@ -340,13 +340,14 @@ def run():
             pub_time = now - timedelta(days=days_ago)
 
             # Topic selection: hyperlocals heavily focus on LOKALNE, SPOLECZENSTWO, PRAWO_BEZPIECZENSTWO, SPORT
-            if title["type"] == "Serwis miejski/powiatowy (NaszeMiasto)":
+            t_type = title.get("type", "").upper()
+            if "NASZEMIASTO" in t_type or "LOKALNY" in t_type:
                 chosen_topic = rng.choices(
                     ["LOKALNE_REGIONALNE", "SPOLECZENSTWO", "PRAWO_BEZPIECZENSTWO", "SPORT", "KULTURA_ROZRYWKA", "POLITYKA", "GOSPODARKA", "MOTORYZACJA", "ZDROWIE_STYL_ZYCIA"],
                     weights=[35, 20, 15, 12, 8, 3, 3, 2, 2],
                     k=1
                 )[0]
-            elif title["type"] == "Dziennik regionalny":
+            elif "DZIENNIK" in t_type or "REGIONALNY" in t_type:
                 chosen_topic = rng.choices(
                     ["LOKALNE_REGIONALNE", "POLITYKA", "GOSPODARKA", "SPOLECZENSTWO", "SPORT", "PRAWO_BEZPIECZENSTWO", "KULTURA_ROZRYWKA", "ZDROWIE_STYL_ZYCIA"],
                     weights=[25, 15, 15, 15, 10, 10, 5, 5],
