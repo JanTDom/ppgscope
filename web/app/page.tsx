@@ -34,6 +34,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Minus,
+  X,
 } from "lucide-react";
 
 interface MetricProof {
@@ -1315,7 +1316,7 @@ export default function PPGscopeDashboard() {
                 onClick={() => setIsSettingsOpen(false)}
                 className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/[0.06] hover:text-white"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             </div>
 
