@@ -51,6 +51,28 @@ interface DomainItem {
   allowed_localities?: string[];
 }
 
+interface DomainStatItem {
+  slug: string;
+  code: string;
+  name: string;
+  description: string;
+  countC: number;
+  countCL: number;
+  countL: number;
+  total: number;
+  pct: number;
+}
+
+interface DomainBreakdownResult {
+  totalCount: number;
+  countC: number;
+  countCL: number;
+  countL: number;
+  localContentShare: number;
+  localizationIndex: number;
+  domains: DomainStatItem[];
+}
+
 interface TitleItem {
   id: string;
   name: string;
@@ -164,6 +186,7 @@ interface DashboardPayload {
     entities: { name: string; count: number; topic: string }[];
   };
   daily_timeseries?: DailyTimeseriesItem[];
+  server_aggregates?: Record<string, { global: DomainBreakdownResult; per_medium: Record<string, DomainBreakdownResult> }>;
 }
 
 // 18 Domains Specification
@@ -500,7 +523,19 @@ export default function PPGscopeApp() {
   // 18 DOMAINS & LOCALITY CALCULATIONS
   // =========================================================================
 
-  const domainBreakdown = useMemo(() => {
+  const domainBreakdown: DomainBreakdownResult = useMemo(() => {
+    // 1. If server-side pre-computed full-scale aggregates are available for this preset
+    if (timePreset !== "custom" && data?.server_aggregates?.[timePreset]) {
+      const agg = data.server_aggregates[timePreset];
+      if (selectedMediumDomain === "ALL" && agg.global) {
+        return agg.global;
+      }
+      if (selectedMediumDomain !== "ALL" && agg.per_medium?.[selectedMediumDomain]) {
+        return agg.per_medium[selectedMediumDomain];
+      }
+    }
+
+    // 2. Fallback to client sample calculation for custom date ranges
     const totalCount = filteredArticles.length;
     const domains = DOMAINS_SPEC;
 
@@ -560,7 +595,7 @@ export default function PPGscopeApp() {
         };
       }),
     };
-  }, [filteredArticles]);
+  }, [data, timePreset, selectedMediumDomain, filteredArticles]);
 
   // Dynamic Authorship Breakdown for Selected Medium & Time Window
   const authorshipStats = useMemo(() => {
@@ -1072,7 +1107,7 @@ export default function PPGscopeApp() {
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 text-right font-mono">
                   <span className="text-[10px] uppercase text-emerald-400 block font-bold">Zbadany wolumen</span>
                   <span className="text-sm font-bold text-white">
-                    {domainBreakdown.totalCount} artykułów
+                    {domainBreakdown.totalCount.toLocaleString("pl-PL")} artykułów
                   </span>
                 </div>
               </div>
@@ -1163,7 +1198,7 @@ export default function PPGscopeApp() {
 
                       <div className="flex items-center gap-3 font-mono text-xs">
                         <span className="text-zinc-400">
-                          Razem w dziedzinie: <strong className="text-white">{d.total} art.</strong>
+                          Razem w dziedzinie: <strong className="text-white">{d.total.toLocaleString("pl-PL")} art.</strong>
                         </span>
                         <span className="text-teal-400 font-bold w-12 text-right">
                           {d.pct}%
@@ -1178,7 +1213,7 @@ export default function PPGscopeApp() {
                           <div
                             style={{ width: `${(d.total / maxTotal) * 100}%` }}
                             className="h-full bg-teal-500 rounded-full transition-all duration-500"
-                            title={`${d.name}: ${d.total} artykułów (${d.pct}%)`}
+                            title={`${d.name}: ${d.total.toLocaleString("pl-PL")} artykułów (${d.pct}%)`}
                           />
                         </div>
                       </div>
@@ -1195,14 +1230,14 @@ export default function PPGscopeApp() {
                               Lokalne (L + CL):
                             </span>
                             <span className="text-white font-bold">
-                              {localTotal} art. <span className="text-teal-400 font-normal">({pctLocalInDomain}%)</span>
+                              {localTotal.toLocaleString("pl-PL")} art. <span className="text-teal-400 font-normal">({pctLocalInDomain}%)</span>
                             </span>
                           </div>
                           <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
                             <div
                               style={{ width: `${(localTotal / maxCentralLocal) * 100}%` }}
                               className="h-full bg-teal-400 rounded-full transition-all duration-500"
-                              title={`Lokalne (L + CL): ${localTotal} artykułów`}
+                              title={`Lokalne (L + CL): ${localTotal.toLocaleString("pl-PL")} artykułów`}
                             />
                           </div>
                         </div>
@@ -1215,14 +1250,14 @@ export default function PPGscopeApp() {
                               Centralne (C):
                             </span>
                             <span className="text-white font-bold">
-                              {d.countC} art. <span className="text-zinc-400 font-normal">({pctCentralInDomain}%)</span>
+                              {d.countC.toLocaleString("pl-PL")} art. <span className="text-zinc-400 font-normal">({pctCentralInDomain}%)</span>
                             </span>
                           </div>
                           <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
                             <div
                               style={{ width: `${(d.countC / maxCentralLocal) * 100}%` }}
                               className="h-full bg-zinc-500 rounded-full transition-all duration-500"
-                              title={`Centralne (C): ${d.countC} artykułów`}
+                              title={`Centralne (C): ${d.countC.toLocaleString("pl-PL")} artykułów`}
                             />
                           </div>
                         </div>
@@ -1240,14 +1275,14 @@ export default function PPGscopeApp() {
                               Lokalne (L):
                             </span>
                             <span className="text-white font-bold">
-                              {d.countL} art. <span className="text-teal-400 font-normal">({pctLInDomain}%)</span>
+                              {d.countL.toLocaleString("pl-PL")} art. <span className="text-teal-400 font-normal">({pctLInDomain}%)</span>
                             </span>
                           </div>
                           <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
                             <div
                               style={{ width: `${(d.countL / maxThreeWay) * 100}%` }}
                               className="h-full bg-teal-500 rounded-full transition-all duration-500"
-                              title={`Lokalne (L): ${d.countL} artykułów`}
+                              title={`Lokalne (L): ${d.countL.toLocaleString("pl-PL")} artykułów`}
                             />
                           </div>
                         </div>
@@ -1260,14 +1295,14 @@ export default function PPGscopeApp() {
                               Centralne z rozwinięciem lokalnym (CL):
                             </span>
                             <span className="text-white font-bold">
-                              {d.countCL} art. <span className="text-teal-300 font-normal">({pctCLInDomain}%)</span>
+                              {d.countCL.toLocaleString("pl-PL")} art. <span className="text-teal-300 font-normal">({pctCLInDomain}%)</span>
                             </span>
                           </div>
                           <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
                             <div
                               style={{ width: `${(d.countCL / maxThreeWay) * 100}%` }}
                               className="h-full bg-teal-300 rounded-full transition-all duration-500"
-                              title={`Rozwinięcie lokalne (CL): ${d.countCL} artykułów`}
+                              title={`Rozwinięcie lokalne (CL): ${d.countCL.toLocaleString("pl-PL")} artykułów`}
                             />
                           </div>
                         </div>
@@ -1280,14 +1315,14 @@ export default function PPGscopeApp() {
                               Centralne (C):
                             </span>
                             <span className="text-white font-bold">
-                              {d.countC} art. <span className="text-zinc-400 font-normal">({pctCInDomain}%)</span>
+                              {d.countC.toLocaleString("pl-PL")} art. <span className="text-zinc-400 font-normal">({pctCInDomain}%)</span>
                             </span>
                           </div>
                           <div className="h-2.5 w-full rounded-full bg-white/[0.04] overflow-hidden">
                             <div
                               style={{ width: `${(d.countC / maxThreeWay) * 100}%` }}
                               className="h-full bg-zinc-500 rounded-full transition-all duration-500"
-                              title={`Centralne (C): ${d.countC} artykułów`}
+                              title={`Centralne (C): ${d.countC.toLocaleString("pl-PL")} artykułów`}
                             />
                           </div>
                         </div>
@@ -1310,7 +1345,7 @@ export default function PPGscopeApp() {
                     {domainBreakdown.localContentShare}%
                   </span>
                   <span className="text-xs font-mono text-zinc-400">
-                    ({domainBreakdown.countL + domainBreakdown.countCL} z {domainBreakdown.totalCount} art.)
+                    ({(domainBreakdown.countL + domainBreakdown.countCL).toLocaleString("pl-PL")} z {domainBreakdown.totalCount.toLocaleString("pl-PL")} art.)
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-500">
@@ -1327,7 +1362,7 @@ export default function PPGscopeApp() {
                     {domainBreakdown.localizationIndex}%
                   </span>
                   <span className="text-xs font-mono text-zinc-400">
-                    ({domainBreakdown.countCL} z {domainBreakdown.countC + domainBreakdown.countCL} spraw centralnych)
+                    ({domainBreakdown.countCL.toLocaleString("pl-PL")} z {(domainBreakdown.countC + domainBreakdown.countCL).toLocaleString("pl-PL")} spraw centralnych)
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-500">
@@ -1476,15 +1511,15 @@ export default function PPGscopeApp() {
                   <div className="grid grid-cols-3 gap-2 text-xs font-mono pt-2">
                     <div className="rounded-lg border border-teal-500/20 bg-teal-500/10 p-2.5">
                       <span className="text-teal-400 font-bold block">{localityStats.lPct}% Lokalne</span>
-                      <span className="text-[11px] text-zinc-400">{localityStats.l} art. (źródło lokalne)</span>
+                      <span className="text-[11px] text-zinc-400">{localityStats.l.toLocaleString("pl-PL")} art. (źródło lokalne)</span>
                     </div>
                     <div className="rounded-lg border border-teal-300/20 bg-teal-300/10 p-2.5">
                       <span className="text-teal-300 font-bold block">{localityStats.clPct}% Rozwinięcie</span>
-                      <span className="text-[11px] text-zinc-400">{localityStats.cl} art. (krajowe z kątem)</span>
+                      <span className="text-[11px] text-zinc-400">{localityStats.cl.toLocaleString("pl-PL")} art. (krajowe z kątem)</span>
                     </div>
                     <div className="rounded-lg border border-zinc-700 bg-zinc-800/40 p-2.5">
                       <span className="text-zinc-300 font-bold block">{localityStats.cPct}% Centralne</span>
-                      <span className="text-[11px] text-zinc-400">{localityStats.c} art. (brak kąta lokalnego)</span>
+                      <span className="text-[11px] text-zinc-400">{localityStats.c.toLocaleString("pl-PL")} art. (brak kąta lokalnego)</span>
                     </div>
                   </div>
                 </div>
@@ -1629,7 +1664,7 @@ export default function PPGscopeApp() {
                   <div className="space-y-1 text-xs font-mono">
                     <div className="flex justify-between text-zinc-400">
                       <span>Publikacje:</span>
-                      <span className="text-white">{v.articles_count} art.</span>
+                      <span className="text-white">{v.articles_count.toLocaleString("pl-PL")} art.</span>
                     </div>
                     <div className="flex justify-between text-zinc-400">
                       <span>Autonomia:</span>
