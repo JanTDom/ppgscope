@@ -1,0 +1,88 @@
+{
+  "version": "1.0.0",
+  "name": "Taksonomia Tematyczna PPGscope",
+  "created_at": "2026-10-17T20:00:00+02:00",
+  "description": "Wersjonowana, stała taksonomia tematyczna poziomu 1 dla analizy zawartości publikacji Polska Press Grupa.",
+  "mandatory_fallback_topic": "INNE/NIEOKREŚLONE",
+  "confidence_threshold": 0.40,
+  "topics": [
+    {
+      "id": "POLITYKA",
+      "name": "Polityka",
+      "description": "Wydarzenia polityczne, wybory, rząd, parlament, partie polityczne, samorząd, relacje międzynarodowe.",
+      "keywords": ["rząd", "sejm", "senat", "premier", "prezydent", "wybory", "partia", "koalicja", "opozycja", "poseł", "minister", "rada ministrów", "ustawa", "głosowanie", "pis", "ko", "lewica", "konfederacja", "psl"]
+    },
+    {
+      "id": "GOSPODARKA",
+      "name": "Gospodarka i finanse",
+      "description": "Gospodarka, biznes, rynek pracy, podatki, inflacja, stopy procentowe, inwestycje, przedsiębiorstwa, energetyka, nieruchomości komercyjne.",
+      "keywords": ["gospodarka", "biznes", "finanse", "inflacja", "nbp", "stopy procentowe", "ceny", "podatek", "zus", "przedsiębiorca", "firma", "inwestycja", "złoty", "giełda", "bezrobocie", "wynagrodzenie", "płaca", "praca", "budżet", "orlen", "kghm"]
+    },
+    {
+      "id": "SPOLECZENSTWO",
+      "name": "Społeczeństwo",
+      "description": "Życie społeczne, demografia, relacje społeczne, pomoc społeczna, strajki, protesty, kościół i religia, inicjatywy obywatelskie.",
+      "keywords": ["społeczeństwo", "mieszkańcy", "rodzina", "dzieci", "emeryci", "seniorzy", "kościół", "parafia", "protest", "strajk", "pomoc", "zbiórka", "wolontariat", "akcja społeczna", "organizacja pozarządowa"]
+    },
+    {
+      "id": "SPORT",
+      "name": "Sport",
+      "description": "Wydarzenia sportowe, mecze, rozgrywki ligowe, relacje z turniejów, igrzyska, transfery i sylwetki sportowców.",
+      "keywords": ["sport", "mecz", "piłka nożna", "ekstraklasa", "liga", "bramka", "gol", "trener", "zawodnik", "siatkówka", "koszykówka", "żużel", "skoki narciarskie", "turniej", "puchar", "cracovia", "legia", "lech", "wisła", "reprezentacja"]
+    },
+    {
+      "id": "KULTURA_ROZRYWKA",
+      "name": "Kultura i rozrywka",
+      "description": "Film, teatr, muzyka, literatura, sztuka, koncerty, festiwale, programy telewizyjne, życie gwiazd.",
+      "keywords": ["kultura", "film", "kino", "teatr", "koncert", "muzyka", "festiwal", "książka", "literatura", "wystawa", "sztuka", "premiera", "aktor", "muzyk", "celebryta", "gwiazdy", "serial", "telewizja"]
+    },
+    {
+      "id": "PRAWO_BEZPIECZENSTWO",
+      "name": "Prawo i bezpieczeństwo",
+      "description": "Wypadki, przestępczość, interwencje policji i straży pożarnej, sądownictwo, prokuratura, służby mundurowe, bezpieczeństwo narodowe.",
+      "keywords": ["policja", "wypadek", "straż pożarna", "zderzenie", "śmierć", "ranny", "sąd", "prokuratura", "areszt", "zarzuty", "wyrok", "kradzież", "pożar", "śledztwo", "przestępstwo", "zatrzymanie", "służby", "wojsko"]
+    },
+    {
+      "id": "ZDROWIE_STYL_ZYCIA",
+      "name": "Zdrowie i styl życia",
+      "description": "Ochrona zdrowia, medycyna, szpitale, leki, profilaktyka, dietetyka, uroda, psychologia, relacje osobiste.",
+      "keywords": ["zdrowie", "szpital", "lekarz", "medycyna", "pacjent", "choroba", "leki", "nfz", "dieta", "odżywianie", "uroda", "pielęgnacja", "psychologia", "terapia", "profilaktyka", "kondycja"]
+    },
+    {
+      "id": "NAUKA_TECHNOLOGIE",
+      "name": "Nauka i technologie",
+      "description": "Odkrycia naukowe, badania, kosmos, innowacje, sztuczna inteligencja, smartfony, komputery, cyberbezpieczeństwo.",
+      "keywords": ["nauka", "technologia", "sztuczna inteligencja", "ai", "badania", "naukowcy", "odkrycie", "kosmos", "smartfon", "internet", "oprogramowanie", "innowacje", "cyberbezpieczeństwo", "dane"]
+    },
+    {
+      "id": "EDUKACJA",
+      "name": "Edukacja i szkolnictwo",
+      "description": "Szkoły, przedszkola, nauczyciele, matury, egzaminy, uniwersytety, szkolnictwo wyższe, reformy oświaty.",
+      "keywords": ["szkoła", "uczniowie", "nauczyciele", "edukacja", "matura", "egzamin", "studia", "uniwersytet", "uczelnia", "przedszkole", "rok szkolny", "ferie", "wakacje", "oświata"]
+    },
+    {
+      "id": "SRODOWISKO_ROLNICTWO",
+      "name": "Środowisko i rolnictwo",
+      "description": "Klimat, ochrona przyrody, pogoda, kataklizmy, ekologia, rolnictwo, uprawy, wieś, hodowla.",
+      "keywords": ["pogoda", "deszcz", "śnieg", "burza", "upał", "ostrzeżenie imgw", "klimat", "ekologia", "rolnictwo", "rolnik", "uprawy", "plony", "las", "przyroda", "zwierzęta", "susza", "powódź"]
+    },
+    {
+      "id": "MOTORYZACJA",
+      "name": "Motoryzacja",
+      "description": "Samochody, motocykle, testy pojazdów, przepisy drogowe, mandaty, rynek motoryzacyjny, elektromobilność.",
+      "keywords": ["samochód", "auto", "motoryzacja", "kierowca", "prawo jazdy", "mandat", "fotoradar", "przepisy drogowe", "autostrada", "droga ekspresowa", "pojazd", "elektromobilność", "paliwo", "stacja benzynowa"]
+    },
+    {
+      "id": "LOKALNE_REGIONALNE",
+      "name": "Lokalne i regionalne",
+      "description": "Wydarzenia samorządowe, remonty dróg, inwestycje miejskie, komunikacja miejska, życie dzielnic i gmin.",
+      "keywords": ["urząd miasta", "gmina", "prezydent miasta", "burmistrz", "wójt", "rada miasta", "inwestycja miejska", "remont drogi", "komunikacja miejska", "mpk", "dzielnica", "osiedle", "mieszkańcy miasta"]
+    },
+    {
+      "id": "INNE/NIEOKREŚLONE",
+      "name": "Inne / Nieokreślone",
+      "description": "Obowiązkowa kategoria zapasowa dla artykułów, które nie osiągają wymaganego progu pewności lub nie pasują do żadnej kategorii stałej.",
+      "keywords": []
+    }
+  ]
+}

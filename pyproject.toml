@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ppgscope"
+version = "1.0.0"
+description = "Bieżące śledzenie obecności i oddziaływania mediów Polska Press Grupa (PPG) w sieci oraz struktury tematycznej ich publikacji"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.0",
+    "trafilatura>=2.0.0",
+    "datasketch>=2.0.0",
+    "pydantic>=2.0.0",
+    "python-dateutil>=2.9.0",
+    "dateparser>=1.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["ppgscope*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

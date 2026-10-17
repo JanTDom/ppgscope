@@ -1,0 +1,107 @@
+import pytest
+from datetime import datetime, timezone
+from ppgscope.models.article import Article
+from ppgscope.models.taxonomy import ClassificationResult
+from ppgscope.models.trend import PeriodType, TrendDirection
+from ppgscope.stats.significance import TwoProportionZTest, BenjaminiHochberg
+from ppgscope.stats.proportions import TrendCalculator
+
+
+def test_two_proportion_z_test_significant():
+    # Period 1: 30 sport articles out of 100 (30%)
+    # Period 2: 10 sport articles out of 100 (10%)
+    z, p_val, is_sig = TwoProportionZTest.test(x1=30, n1=100, x2=10, n2=100, min_sample_size=10)
+    assert z is not None
+    assert z > 3.0  # highly significant difference
+    assert p_val < 0.01
+    assert is_sig is True
+
+
+def test_two_proportion_z_test_insufficient_sample():
+    # Below min sample size (e.g. n=5 < 10)
+    z, p_val, is_sig = TwoProportionZTest.test(x1=2, n1=5, x2=1, n2=5, min_sample_size=10)
+    assert z is None
+    assert p_val is None
+    assert is_sig is False
+
+
+def test_benjamini_hochberg_correction():
+    # 5 tests with varied p-values
+    p_values = [0.001, 0.008, 0.04, 0.15, 0.80]
+    mask = BenjaminiHochberg.adjust(p_values, fdr_q=0.05)
+    assert mask[0] is True   # 0.001 is significant
+    assert mask[1] is True   # 0.008 is significant
+    assert mask[4] is False  # 0.80 is not significant
+
+
+def test_trend_calculator_dual_profiles():
+    calc = TrendCalculator(min_sample_size=2)
+    now = datetime(2026, 10, 17, 12, 0, 0, tzinfo=timezone.utc)
+
+    # 4 articles: 2 own, 2 duplicates (syndicated)
+    art_own_1 = Article(
+        canonical_url="https://gp.pl/1",
+        title="Własny sport",
+        body="treść sport",
+        published_at=now,
+        press_title="Gazeta Pomorska",
+        domain="pomorska.pl",
+        raw_html_hash="h1",
+        is_duplicate=False,
+    )
+    art_own_2 = Article(
+        canonical_url="https://gp.pl/2",
+        title="Własna polityka",
+        body="treść polityka",
+        published_at=now,
+        press_title="Gazeta Pomorska",
+        domain="pomorska.pl",
+        raw_html_hash="h2",
+        is_duplicate=False,
+    )
+    art_syndicate = Article(
+        canonical_url="https://gp.pl/3",
+        title="Przedruk polityka",
+        body="treść polityka",
+        published_at=now,
+        press_title="Gazeta Pomorska",
+        domain="pomorska.pl",
+        raw_html_hash="h3",
+        is_duplicate=True,  # Syndicate!
+    )
+
+    classifications = {
+        "https://gp.pl/1": ClassificationResult(
+            canonical_url="https://gp.pl/1",
+            primary_topic="SPORT",
+            confidence=0.9,
+            model_version="test",
+            taxonomy_version="1.0.0",
+        ),
+        "https://gp.pl/2": ClassificationResult(
+            canonical_url="https://gp.pl/2",
+            primary_topic="POLITYKA",
+            confidence=0.9,
+            model_version="test",
+            taxonomy_version="1.0.0",
+        ),
+        "https://gp.pl/3": ClassificationResult(
+            canonical_url="https://gp.pl/3",
+            primary_topic="POLITYKA",
+            confidence=0.9,
+            model_version="test",
+            taxonomy_version="1.0.0",
+        ),
+    }
+
+    articles = [art_own_1, art_own_2, art_syndicate]
+
+    # In ALL variant: 2 POLITYKA, 1 SPORT
+    dist_all = calc.calculate_topic_distribution(articles, classifications, variant="ALL")
+    assert dist_all["POLITYKA"] == 2
+    assert dist_all["SPORT"] == 1
+
+    # In OWN variant: 1 POLITYKA, 1 SPORT (syndicate filtered out!)
+    dist_own = calc.calculate_topic_distribution(articles, classifications, variant="OWN")
+    assert dist_own["POLITYKA"] == 1
+    assert dist_own["SPORT"] == 1
