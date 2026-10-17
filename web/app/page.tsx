@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
 import {
   Shield,
   Lock,
@@ -637,15 +638,23 @@ export default function PPGscopeApp() {
     return (
       <div className="min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center p-4 selection:bg-teal-500 selection:text-black">
         <div className="w-full max-w-md p-8 rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 backdrop-blur-xl shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-teal-500/20 to-teal-500/0 border border-teal-500/30 flex items-center justify-center">
-              <Shield className="h-5 w-5 text-teal-400" />
+          {/* Project Brand Header */}
+          <div className="flex flex-col items-center text-center mb-6">
+            <div className="relative mb-4 flex items-center justify-center rounded-xl bg-white p-3 shadow-md border border-zinc-200">
+              <Image
+                src="/logo.png"
+                alt="PPGscope Logo"
+                width={180}
+                height={75}
+                className="h-10 w-auto object-contain"
+                priority
+              />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
                 PPGscope <span className="text-[10px] font-mono uppercase bg-teal-500/10 text-teal-300 border border-teal-500/20 px-1.5 py-0.5 rounded">Intelligence</span>
               </h1>
-              <p className="text-xs text-zinc-400">System wywiadu mediowego i taksonomii Polska Press Grupa</p>
+              <p className="text-xs text-zinc-400 mt-1">System wywiadu mediowego i taksonomii Polska Press Grupa</p>
             </div>
           </div>
 
@@ -722,8 +731,15 @@ export default function PPGscopeApp() {
       <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#07080a]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center">
-              <Shield className="h-5 w-5 text-teal-400" />
+            <div className="flex items-center rounded-lg bg-white px-2 py-1 shadow-sm border border-zinc-200">
+              <Image
+                src="/logo.png"
+                alt="PPGscope Logo"
+                width={120}
+                height={35}
+                className="h-7 w-auto object-contain"
+                priority
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">

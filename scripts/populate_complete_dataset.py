@@ -37,6 +37,9 @@ def run():
         tax_data = json.load(f)
     topics = tax_data["topics"]
     topic_map = {t["id"]: t["name"] for t in topics}
+    topic_map["SWIAT"] = "Świat i polityka międzynarodowa"
+    topic_map["ROLNICTWO"] = "Wieś i rolnictwo"
+    topic_map["HISTORIA"] = "Historia i pamięć"
 
     HEADLINES_BANK = {
         "POLITYKA": [
@@ -108,6 +111,9 @@ def run():
             ("Rekrutacja do szkół średnich i techników: które kierunki cieszą się największym wzięciem?", "Ósmoklasiści najchętniej wybierają profile informatyczne i mechatroniczne."),
             ("Modernizacja pracowni zawodowych w zespole szkół technicznych", "Uczniowie zyskali dostęp do obrabiarek CNC i stanowisk robotyki przemysłowej."),
             ("Matury próbne i egzaminy zawodowe: jak przygotować się bez zbędnego stresu?", "Eksperci i pedagodzy radzą, jak efektywnie zaplanować harmonogram powtórek."),
+            ("Nauczyciele z regionu nagrodzeni z okazji Dnia Edukacji Narodowej", "Wyróżniający się pedagodzy i dyrektorzy szkół odebrali nagrody kuratora oświaty."),
+            ("Nowe przedszkole miejskie gotowe na przyjęcie dzieci od nowego roku szkolnego", "Placówka oferuje nowoczesne sale dydaktyczne i bezpieczny plac zabaw."),
+            ("Uniwersytet inauguruje nowy rok akademicki: setki studentów rozpoczyna naukę", "Uroczysta inauguracja zgromadziła władze uczelni, wykładowców i studentów pierwszego roku."),
         ],
         "SRODOWISKO_ROLNICTWO": [
             ("Ostrzeżenie IMGW pierwszego i drugiego stopnia: silny wiatr i intensywne opady", "Synoptycy prognozują porywy wiatru dochodzące do 85 km/h na terenie województwa."),
@@ -128,10 +134,51 @@ def run():
             ("Nowy żłobek miejski otworzy swoje podwoje dla setki maluchów", "Placówka została wyposażona w nowoczesne sale zabaw i ogród sensoryczny."),
             ("Harmonogram wywozu odpadów kompromitujących i zbiórki gabarytów na nadchodzący miesiąc", "Spółka komunalna przypomina o zasadach segregacji i terminach odbioru."),
         ],
+        "SWIAT": [
+            ("Szczyt Unii Europejskiej w Brukseli: Nowy pakiet sankcji i wsparcie dla Kijowa", "Liderzy państw UE debatowali nad kolejnym pakietem pomocy finansowej i zbrojeniowej."),
+            ("Wojna w Ukrainie: Raport ze wschodniego frontu i sytuacja w rejonie Charkowa", "Sztab Generalny Sił Zbrojnych Ukrainy przekazał najnowsze doniesienia z linii walk."),
+            ("Wybory prezydenckie w USA: Najnowsze sondaże z kluczowych stanów wahających się", "Kandydaci walczą o głosy wyborców w Pensylwanii, Michigan i Wisconsin."),
+            ("Watykan: Papież zaapelował o pokój i natychmiastowe zawieszenie broni na świecie", "Podczas niedzielnej modlitwy Anioł Pański padły słowa o cierpieniu ofiar konfliktów zbrojnych."),
+            ("Napięcia na Bliskim Wschodzie: Rada Bezpieczeństwa ONZ zebrała się na nadzwyczajnym posiedzeniu", "Dyplomaci apelują o deeskalację konfliktu i otwarcie korytarzy humanitarnych."),
+            ("Polityka międzynarodowa: Relacje USA, UE i Chin w obliczu nowych taryf celnych", "Eksperci do spraw międzynarodowych oceniają skutki geopolitycznych przetasowań."),
+            ("Bruksela zatwierdziła nowe regulacje dotyczące zielonej transformacji i handlu emisjami", "Decyzja Komisji Europejskiej wpłynie na gospodarki wszystkich krajów członkowskich UE."),
+            ("Papież Franciszek spotkał się z liderami światowych mocarstw", "Rozmowy w Watykanie dotyczyły sytuacji uchodźców i globalnego dialogu pokojowego."),
+        ],
+        "ROLNICTWO": [
+            ("ARiMR rozpoczyna wypłatę zaliczek dopłat bezpośrednich dla rolników", "Agencja Restrukturyzacji i Modernizacji Rolnictwa przelała pierwsze transze na konta gospodarzy."),
+            ("Żniwa i zbiory kukurydzy: rolnicy podsumowują tegoroczne plony i ceny skupu", "Izba rolnicza przedstawiła bilans tegorocznych zbiorów oraz sytuację na rynku zbóż."),
+            ("Koła Gospodyń Wiejskich i tradycje kulinarne: wielki konkurs w regionie", "Działaczki KGW zaprezentowały tradycyjne potrawy regionalne i rękodzieło ludowe."),
+            ("Modernizacja gospodarstw rolnych: dotacje na nowoczesny sprzęt i maszyny rolnicze", "Rolnicy mogą składać wnioski o dofinansowanie zakupu ciągników i kombajnów."),
+            ("Afrykański pomór świń i strefy ASF: nowe wytyczne dla hodowców trzody chlewnej", "Główny Lekarz Weterynarii przypomina o zasadach bioasekuracji w chlewniach."),
+            ("Dożynki gminne i powiatowe: rolnicy dziękowali za tegoroczne plony", "Uroczysty korowód dożynkowy, tradycyjne wieńce i festyn zgromadziły tłumy mieszkańców wsi."),
+        ],
+        "HISTORIA": [
+            ("Niezwykłe archiwalne zdjęcia: jak wyglądało miasto w czasach PRL?", "Unikatowe fotografie z archiwum państwowego pokazują dawne ulice, budynki i mieszkańców."),
+            ("Rocznica ważnych wydarzeń historycznych: mieszkańcy uczcili pamięć bohaterów", "Uroczystości patriotyczne i złożenie kwiatów pod pomnikiem upamiętniły rocznicę."),
+            ("Tajemnice dawnych zamków i pałaców w regionie: odkrycia archeologiczne i historia", "Badacze przeszłości natrafili na nieznane dotąd podziemia i średniowieczne artefakty."),
+            ("Historia lokalnego przemysłu: tak powstawały fabryki, które zmieniły region", "Wystawa fotograficzna i wspomnienia dawnych pracowników w miejskim muzeum."),
+            ("Nostalgia za dawnymi latami: ikoniczne przedmioty i codzienne życie w okresie PRL", "Wystawa retro przyciąga zarówno starszych mieszkańców, jak i młodzież."),
+        ],
     }
 
     # Syndicated Wire Waves (Viral network stories propagated across regions)
     WIRE_STORIES = [
+        {
+            "id": "WIRE-2026-006",
+            "topic": "SWIAT",
+            "canonical_title": "Szczyt Unii Europejskiej w Brukseli: Liderzy przyjęli deklarację o bezpieczeństwie",
+            "lead": "Szefowie państw i rządów UE zakończyli obrady w Brukseli, uzgadniając wspólne stanowisko.",
+            "origin_outlet": "i.pl",
+            "hours_ago": 28,
+            "reach": 40,
+            "duration_hours": 7.0,
+            "mutations": [
+                ("gazetawroclawska.pl", "Bruksela zadecydowała: Szczyt UE przyjął porozumienie o bezpieczeństwie"),
+                ("dziennikzachodni.pl", "Liderzy UE obradowali w Brukseli: Co ustalono w sprawie bezpieczeństwa?"),
+                ("pomorska.pl", "Szczyt unijny w Brukseli zakończony: Nowe deklaracje przywódców"),
+                ("nowiny24.pl", "Ważne decyzje w Brukseli: Premierzy państw UE podpisali porozumienie"),
+            ]
+        },
         {
             "id": "WIRE-2026-001",
             "topic": "POLITYKA",
@@ -348,27 +395,45 @@ def run():
 
             # Topic selection: hyperlocals heavily focus on LOKALNE, SPOLECZENSTWO, PRAWO_BEZPIECZENSTWO, SPORT
             t_type = title.get("type", "").upper()
-            if "NASZEMIASTO" in t_type or "LOKALNY" in t_type:
+            tname = title["name"].lower()
+            tdomain = title.get("domain", "").lower()
+
+            if "i.pl" in tdomain:
                 chosen_topic = rng.choices(
-                    ["LOKALNE_REGIONALNE", "SPOLECZENSTWO", "PRAWO_BEZPIECZENSTWO", "SPORT", "KULTURA_ROZRYWKA", "POLITYKA", "GOSPODARKA", "MOTORYZACJA", "ZDROWIE_STYL_ZYCIA"],
-                    weights=[35, 20, 15, 12, 8, 3, 3, 2, 2],
+                    ["SWIAT", "POLITYKA", "GOSPODARKA", "SPOLECZENSTWO", "SPORT", "KULTURA_ROZRYWKA", "HISTORIA"],
+                    weights=[28, 22, 15, 12, 10, 8, 5],
                     k=1
                 )[0]
+            elif "agro" in tname or "rolnik" in tname:
+                chosen_topic = "ROLNICTWO"
+            elif "historia" in tname:
+                chosen_topic = "HISTORIA"
+            elif "moto" in tname:
+                chosen_topic = "MOTORYZACJA"
+            elif "sport" in tname or "gol" in tname:
+                chosen_topic = "SPORT"
+            elif "biznes" in tname:
+                chosen_topic = "GOSPODARKA"
+            elif "zdrow" in tname:
+                chosen_topic = "ZDROWIE_STYL_ZYCIA"
+            elif "telemagazyn" in tname or "gra" in tname:
+                chosen_topic = "KULTURA_ROZRYWKA"
+            elif "edukacj" in tname:
+                chosen_topic = "EDUKACJA"
             elif "DZIENNIK" in t_type or "REGIONALNY" in t_type:
                 chosen_topic = rng.choices(
-                    ["LOKALNE_REGIONALNE", "POLITYKA", "GOSPODARKA", "SPOLECZENSTWO", "SPORT", "PRAWO_BEZPIECZENSTWO", "KULTURA_ROZRYWKA", "ZDROWIE_STYL_ZYCIA"],
-                    weights=[25, 15, 15, 15, 10, 10, 5, 5],
+                    ["LOKALNE_REGIONALNE", "POLITYKA", "GOSPODARKA", "SPOLECZENSTWO", "SPORT", "PRAWO_BEZPIECZENSTWO", "KULTURA_ROZRYWKA", "ZDROWIE_STYL_ZYCIA", "EDUKACJA", "SWIAT", "HISTORIA", "ROLNICTWO"],
+                    weights=[18, 11, 11, 11, 9, 8, 6, 5, 5, 6, 5, 5],
                     k=1
                 )[0]
-            else: # Tematyczne
-                tname = title["name"].lower()
-                if "moto" in tname: chosen_topic = "MOTORYZACJA"
-                elif "sport" in tname or "gol" in tname: chosen_topic = "SPORT"
-                elif "biznes" in tname or "agro" in tname: chosen_topic = "GOSPODARKA"
-                elif "zdrow" in tname: chosen_topic = "ZDROWIE_STYL_ZYCIA"
-                elif "telemagazyn" in tname or "gra" in tname: chosen_topic = "KULTURA_ROZRYWKA"
-                elif "edukacj" in tname: chosen_topic = "EDUKACJA"
-                else: chosen_topic = "SPOLECZENSTWO"
+            elif "NASZEMIASTO" in t_type or "LOKALNY" in t_type:
+                chosen_topic = rng.choices(
+                    ["LOKALNE_REGIONALNE", "SPOLECZENSTWO", "PRAWO_BEZPIECZENSTWO", "SPORT", "KULTURA_ROZRYWKA", "POLITYKA", "GOSPODARKA", "MOTORYZACJA", "ZDROWIE_STYL_ZYCIA", "EDUKACJA", "HISTORIA", "ROLNICTWO", "SWIAT"],
+                    weights=[28, 16, 13, 10, 7, 3, 3, 2, 2, 5, 4, 3, 4],
+                    k=1
+                )[0]
+            else:
+                chosen_topic = "SPOLECZENSTWO"
 
             h_list = HEADLINES_BANK.get(chosen_topic, HEADLINES_BANK["SPOLECZENSTWO"])
             base_head, base_lead = rng.choice(h_list)
