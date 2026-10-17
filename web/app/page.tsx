@@ -640,22 +640,25 @@ export default function PPGscopeApp() {
         <div className="w-full max-w-md p-8 rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 backdrop-blur-xl shadow-2xl">
           {/* Project Brand Header */}
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="relative mb-4 flex items-center justify-center rounded-xl bg-white p-3 shadow-md border border-zinc-200">
+            <div className="relative mb-3 flex items-center justify-center rounded-2xl bg-white px-6 py-4 shadow-lg border border-zinc-200">
               <Image
                 src="/logo.png"
-                alt="PPGscope Logo"
-                width={180}
-                height={75}
-                className="h-10 w-auto object-contain"
+                alt="Logo projektu"
+                width={320}
+                height={133}
+                className="h-20 w-auto object-contain"
                 priority
               />
             </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
-                PPGscope <span className="text-[10px] font-mono uppercase bg-teal-500/10 text-teal-300 border border-teal-500/20 px-1.5 py-0.5 rounded">Intelligence</span>
-              </h1>
-              <p className="text-xs text-zinc-400 mt-1">System wywiadu mediowego i taksonomii Polska Press Grupa</p>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className="text-[11px] font-mono uppercase bg-teal-500/10 text-teal-300 border border-teal-500/20 px-2 py-0.5 rounded">
+                Intelligence v2.0
+              </span>
+              <span className="text-[11px] font-mono bg-white/[0.06] text-zinc-400 border border-white/[0.08] px-2 py-0.5 rounded">
+                546 mediów PPG
+              </span>
             </div>
+            <p className="text-xs text-zinc-400 mt-2">System wywiadu mediowego i taksonomii Polska Press Grupa</p>
           </div>
 
           <div className="mb-6 rounded-lg border border-white/[0.06] bg-black/40 p-3 text-[11px] text-zinc-400 font-mono">
@@ -730,20 +733,19 @@ export default function PPGscopeApp() {
       {/* Top Header & Global Bar */}
       <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#07080a]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center rounded-lg bg-white px-2 py-1 shadow-sm border border-zinc-200">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center rounded-xl bg-white px-3 py-1.5 shadow-md border border-zinc-200">
               <Image
                 src="/logo.png"
-                alt="PPGscope Logo"
-                width={120}
-                height={35}
-                className="h-7 w-auto object-contain"
+                alt="Logo projektu"
+                width={200}
+                height={75}
+                className="h-11 sm:h-12 w-auto object-contain"
                 priority
               />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold tracking-tight text-white">PPGscope</span>
                 <span className="text-[10px] font-mono bg-white/[0.06] text-zinc-300 border border-white/[0.08] px-1.5 py-0.5 rounded">
                   v2.0 · 18 dziedzin
                 </span>
@@ -751,7 +753,7 @@ export default function PPGscopeApp() {
                   <CheckCircle2 className="h-2.5 w-2.5" /> 546 portali
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400 hidden sm:block">
+              <p className="text-[11px] text-zinc-400 hidden sm:block mt-0.5">
                 Kategoryzacja tematyczna i analityka lokalności (C / CL / L)
               </p>
             </div>

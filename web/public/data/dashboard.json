@@ -146274,5 +146274,833 @@
     },
     "needs_review_count": 1123,
     "total_migrated": 5700
+  },
+  "last_ingest_run": "2026-10-17T23:26:19.908221+00:00",
+  "server_aggregates": {
+    "24h": {
+      "total_articles": 613,
+      "count_c": 504,
+      "count_cl": 40,
+      "count_l": 69,
+      "local_content_share": 17.8,
+      "localization_index": 7.4,
+      "domains": {
+        "wladza": {
+          "count_c": 62,
+          "count_cl": 25,
+          "count_l": 0,
+          "total": 87,
+          "pct": 14.2
+        },
+        "zdarzenia": {
+          "count_c": 76,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 76,
+          "pct": 12.4
+        },
+        "obronnosc": {
+          "count_c": 44,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 44,
+          "pct": 7.2
+        },
+        "gospodarka": {
+          "count_c": 14,
+          "count_cl": 0,
+          "count_l": 14,
+          "total": 28,
+          "pct": 4.6
+        },
+        "infrastruktura": {
+          "count_c": 50,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 50,
+          "pct": 8.2
+        },
+        "przestrzen": {
+          "count_c": 24,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 24,
+          "pct": 3.9
+        },
+        "zdrowie": {
+          "count_c": 9,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 9,
+          "pct": 1.5
+        },
+        "edukacja": {
+          "count_c": 16,
+          "count_cl": 0,
+          "count_l": 6,
+          "total": 22,
+          "pct": 3.6
+        },
+        "srodowisko": {
+          "count_c": 18,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 18,
+          "pct": 2.9
+        },
+        "spolecznosc": {
+          "count_c": 93,
+          "count_cl": 11,
+          "count_l": 22,
+          "total": 126,
+          "pct": 20.6
+        },
+        "kultura": {
+          "count_c": 11,
+          "count_cl": 0,
+          "count_l": 9,
+          "total": 20,
+          "pct": 3.3
+        },
+        "historia": {
+          "count_c": 9,
+          "count_cl": 0,
+          "count_l": 4,
+          "total": 13,
+          "pct": 2.1
+        },
+        "czas_wolny": {
+          "count_c": 6,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 6,
+          "pct": 1.0
+        },
+        "sport": {
+          "count_c": 10,
+          "count_cl": 0,
+          "count_l": 12,
+          "total": 22,
+          "pct": 3.6
+        },
+        "rozrywka": {
+          "count_c": 7,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 7,
+          "pct": 1.1
+        },
+        "styl_zycia": {
+          "count_c": 11,
+          "count_cl": 3,
+          "count_l": 0,
+          "total": 14,
+          "pct": 2.3
+        },
+        "rolnictwo": {
+          "count_c": 6,
+          "count_cl": 0,
+          "count_l": 2,
+          "total": 8,
+          "pct": 1.3
+        },
+        "swiat": {
+          "count_c": 38,
+          "count_cl": 1,
+          "count_l": 0,
+          "total": 39,
+          "pct": 6.4
+        }
+      }
+    },
+    "7d": {
+      "total_articles": 1312,
+      "count_c": 1092,
+      "count_cl": 69,
+      "count_l": 151,
+      "local_content_share": 16.8,
+      "localization_index": 5.9,
+      "domains": {
+        "wladza": {
+          "count_c": 97,
+          "count_cl": 41,
+          "count_l": 0,
+          "total": 138,
+          "pct": 10.5
+        },
+        "zdarzenia": {
+          "count_c": 159,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 159,
+          "pct": 12.1
+        },
+        "obronnosc": {
+          "count_c": 87,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 87,
+          "pct": 6.6
+        },
+        "gospodarka": {
+          "count_c": 67,
+          "count_cl": 0,
+          "count_l": 27,
+          "total": 94,
+          "pct": 7.2
+        },
+        "infrastruktura": {
+          "count_c": 89,
+          "count_cl": 0,
+          "count_l": 3,
+          "total": 92,
+          "pct": 7.0
+        },
+        "przestrzen": {
+          "count_c": 43,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 43,
+          "pct": 3.3
+        },
+        "zdrowie": {
+          "count_c": 35,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 35,
+          "pct": 2.7
+        },
+        "edukacja": {
+          "count_c": 32,
+          "count_cl": 0,
+          "count_l": 14,
+          "total": 46,
+          "pct": 3.5
+        },
+        "srodowisko": {
+          "count_c": 26,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 26,
+          "pct": 2.0
+        },
+        "spolecznosc": {
+          "count_c": 176,
+          "count_cl": 23,
+          "count_l": 50,
+          "total": 249,
+          "pct": 19.0
+        },
+        "kultura": {
+          "count_c": 22,
+          "count_cl": 0,
+          "count_l": 24,
+          "total": 46,
+          "pct": 3.5
+        },
+        "historia": {
+          "count_c": 18,
+          "count_cl": 0,
+          "count_l": 8,
+          "total": 26,
+          "pct": 2.0
+        },
+        "czas_wolny": {
+          "count_c": 12,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 12,
+          "pct": 0.9
+        },
+        "sport": {
+          "count_c": 16,
+          "count_cl": 0,
+          "count_l": 22,
+          "total": 38,
+          "pct": 2.9
+        },
+        "rozrywka": {
+          "count_c": 13,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 13,
+          "pct": 1.0
+        },
+        "styl_zycia": {
+          "count_c": 107,
+          "count_cl": 4,
+          "count_l": 0,
+          "total": 111,
+          "pct": 8.5
+        },
+        "rolnictwo": {
+          "count_c": 16,
+          "count_cl": 0,
+          "count_l": 3,
+          "total": 19,
+          "pct": 1.4
+        },
+        "swiat": {
+          "count_c": 77,
+          "count_cl": 1,
+          "count_l": 0,
+          "total": 78,
+          "pct": 5.9
+        }
+      }
+    },
+    "30d": {
+      "total_articles": 2434,
+      "count_c": 2021,
+      "count_cl": 117,
+      "count_l": 296,
+      "local_content_share": 17.0,
+      "localization_index": 5.5,
+      "domains": {
+        "wladza": {
+          "count_c": 143,
+          "count_cl": 70,
+          "count_l": 0,
+          "total": 213,
+          "pct": 8.8
+        },
+        "zdarzenia": {
+          "count_c": 314,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 314,
+          "pct": 12.9
+        },
+        "obronnosc": {
+          "count_c": 174,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 174,
+          "pct": 7.1
+        },
+        "gospodarka": {
+          "count_c": 92,
+          "count_cl": 0,
+          "count_l": 56,
+          "total": 148,
+          "pct": 6.1
+        },
+        "infrastruktura": {
+          "count_c": 217,
+          "count_cl": 0,
+          "count_l": 9,
+          "total": 226,
+          "pct": 9.3
+        },
+        "przestrzen": {
+          "count_c": 75,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 75,
+          "pct": 3.1
+        },
+        "zdrowie": {
+          "count_c": 76,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 76,
+          "pct": 3.1
+        },
+        "edukacja": {
+          "count_c": 75,
+          "count_cl": 0,
+          "count_l": 23,
+          "total": 98,
+          "pct": 4.0
+        },
+        "srodowisko": {
+          "count_c": 50,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 50,
+          "pct": 2.1
+        },
+        "spolecznosc": {
+          "count_c": 340,
+          "count_cl": 42,
+          "count_l": 98,
+          "total": 480,
+          "pct": 19.7
+        },
+        "kultura": {
+          "count_c": 51,
+          "count_cl": 0,
+          "count_l": 43,
+          "total": 94,
+          "pct": 3.9
+        },
+        "historia": {
+          "count_c": 46,
+          "count_cl": 0,
+          "count_l": 17,
+          "total": 63,
+          "pct": 2.6
+        },
+        "czas_wolny": {
+          "count_c": 26,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 26,
+          "pct": 1.1
+        },
+        "sport": {
+          "count_c": 33,
+          "count_cl": 0,
+          "count_l": 41,
+          "total": 74,
+          "pct": 3.0
+        },
+        "rozrywka": {
+          "count_c": 35,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 35,
+          "pct": 1.4
+        },
+        "styl_zycia": {
+          "count_c": 125,
+          "count_cl": 4,
+          "count_l": 0,
+          "total": 129,
+          "pct": 5.3
+        },
+        "rolnictwo": {
+          "count_c": 29,
+          "count_cl": 0,
+          "count_l": 9,
+          "total": 38,
+          "pct": 1.6
+        },
+        "swiat": {
+          "count_c": 120,
+          "count_cl": 1,
+          "count_l": 0,
+          "total": 121,
+          "pct": 5.0
+        }
+      }
+    },
+    "90d": {
+      "total_articles": 3526,
+      "count_c": 2918,
+      "count_cl": 154,
+      "count_l": 454,
+      "local_content_share": 17.2,
+      "localization_index": 5.0,
+      "domains": {
+        "wladza": {
+          "count_c": 202,
+          "count_cl": 90,
+          "count_l": 0,
+          "total": 292,
+          "pct": 8.3
+        },
+        "zdarzenia": {
+          "count_c": 480,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 480,
+          "pct": 13.6
+        },
+        "obronnosc": {
+          "count_c": 257,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 257,
+          "pct": 7.3
+        },
+        "gospodarka": {
+          "count_c": 114,
+          "count_cl": 0,
+          "count_l": 98,
+          "total": 212,
+          "pct": 6.0
+        },
+        "infrastruktura": {
+          "count_c": 315,
+          "count_cl": 0,
+          "count_l": 13,
+          "total": 328,
+          "pct": 9.3
+        },
+        "przestrzen": {
+          "count_c": 123,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 123,
+          "pct": 3.5
+        },
+        "zdrowie": {
+          "count_c": 121,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 121,
+          "pct": 3.4
+        },
+        "edukacja": {
+          "count_c": 102,
+          "count_cl": 0,
+          "count_l": 33,
+          "total": 135,
+          "pct": 3.8
+        },
+        "srodowisko": {
+          "count_c": 67,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 67,
+          "pct": 1.9
+        },
+        "spolecznosc": {
+          "count_c": 499,
+          "count_cl": 59,
+          "count_l": 145,
+          "total": 703,
+          "pct": 19.9
+        },
+        "kultura": {
+          "count_c": 76,
+          "count_cl": 0,
+          "count_l": 63,
+          "total": 139,
+          "pct": 3.9
+        },
+        "historia": {
+          "count_c": 80,
+          "count_cl": 0,
+          "count_l": 24,
+          "total": 104,
+          "pct": 2.9
+        },
+        "czas_wolny": {
+          "count_c": 35,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 35,
+          "pct": 1.0
+        },
+        "sport": {
+          "count_c": 50,
+          "count_cl": 0,
+          "count_l": 59,
+          "total": 109,
+          "pct": 3.1
+        },
+        "rozrywka": {
+          "count_c": 48,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 48,
+          "pct": 1.4
+        },
+        "styl_zycia": {
+          "count_c": 141,
+          "count_cl": 4,
+          "count_l": 0,
+          "total": 145,
+          "pct": 4.1
+        },
+        "rolnictwo": {
+          "count_c": 50,
+          "count_cl": 0,
+          "count_l": 19,
+          "total": 69,
+          "pct": 2.0
+        },
+        "swiat": {
+          "count_c": 158,
+          "count_cl": 1,
+          "count_l": 0,
+          "total": 159,
+          "pct": 4.5
+        }
+      }
+    },
+    "1y": {
+      "total_articles": 4618,
+      "count_c": 3825,
+      "count_cl": 201,
+      "count_l": 592,
+      "local_content_share": 17.2,
+      "localization_index": 5.0,
+      "domains": {
+        "wladza": {
+          "count_c": 259,
+          "count_cl": 111,
+          "count_l": 0,
+          "total": 370,
+          "pct": 8.0
+        },
+        "zdarzenia": {
+          "count_c": 657,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 657,
+          "pct": 14.2
+        },
+        "obronnosc": {
+          "count_c": 346,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 346,
+          "pct": 7.5
+        },
+        "gospodarka": {
+          "count_c": 136,
+          "count_cl": 0,
+          "count_l": 137,
+          "total": 273,
+          "pct": 5.9
+        },
+        "infrastruktura": {
+          "count_c": 425,
+          "count_cl": 0,
+          "count_l": 20,
+          "total": 445,
+          "pct": 9.6
+        },
+        "przestrzen": {
+          "count_c": 160,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 160,
+          "pct": 3.5
+        },
+        "zdrowie": {
+          "count_c": 163,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 163,
+          "pct": 3.5
+        },
+        "edukacja": {
+          "count_c": 134,
+          "count_cl": 0,
+          "count_l": 37,
+          "total": 171,
+          "pct": 3.7
+        },
+        "srodowisko": {
+          "count_c": 88,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 88,
+          "pct": 1.9
+        },
+        "spolecznosc": {
+          "count_c": 661,
+          "count_cl": 85,
+          "count_l": 179,
+          "total": 925,
+          "pct": 20.0
+        },
+        "kultura": {
+          "count_c": 95,
+          "count_cl": 0,
+          "count_l": 83,
+          "total": 178,
+          "pct": 3.9
+        },
+        "historia": {
+          "count_c": 108,
+          "count_cl": 0,
+          "count_l": 35,
+          "total": 143,
+          "pct": 3.1
+        },
+        "czas_wolny": {
+          "count_c": 44,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 44,
+          "pct": 1.0
+        },
+        "sport": {
+          "count_c": 64,
+          "count_cl": 0,
+          "count_l": 69,
+          "total": 133,
+          "pct": 2.9
+        },
+        "rozrywka": {
+          "count_c": 64,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 64,
+          "pct": 1.4
+        },
+        "styl_zycia": {
+          "count_c": 158,
+          "count_cl": 4,
+          "count_l": 0,
+          "total": 162,
+          "pct": 3.5
+        },
+        "rolnictwo": {
+          "count_c": 72,
+          "count_cl": 0,
+          "count_l": 32,
+          "total": 104,
+          "pct": 2.3
+        },
+        "swiat": {
+          "count_c": 191,
+          "count_cl": 1,
+          "count_l": 0,
+          "total": 192,
+          "pct": 4.2
+        }
+      }
+    },
+    "all": {
+      "total_articles": 5710,
+      "count_c": 4707,
+      "count_cl": 252,
+      "count_l": 751,
+      "local_content_share": 17.6,
+      "localization_index": 5.1,
+      "domains": {
+        "wladza": {
+          "count_c": 321,
+          "count_cl": 141,
+          "count_l": 0,
+          "total": 462,
+          "pct": 8.1
+        },
+        "zdarzenia": {
+          "count_c": 806,
+          "count_cl": 0,
+          "count_l": 1,
+          "total": 807,
+          "pct": 14.1
+        },
+        "obronnosc": {
+          "count_c": 438,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 438,
+          "pct": 7.7
+        },
+        "gospodarka": {
+          "count_c": 162,
+          "count_cl": 0,
+          "count_l": 173,
+          "total": 335,
+          "pct": 5.9
+        },
+        "infrastruktura": {
+          "count_c": 535,
+          "count_cl": 0,
+          "count_l": 24,
+          "total": 559,
+          "pct": 9.8
+        },
+        "przestrzen": {
+          "count_c": 204,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 204,
+          "pct": 3.6
+        },
+        "zdrowie": {
+          "count_c": 203,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 203,
+          "pct": 3.6
+        },
+        "edukacja": {
+          "count_c": 161,
+          "count_cl": 0,
+          "count_l": 44,
+          "total": 205,
+          "pct": 3.6
+        },
+        "srodowisko": {
+          "count_c": 107,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 107,
+          "pct": 1.9
+        },
+        "spolecznosc": {
+          "count_c": 789,
+          "count_cl": 106,
+          "count_l": 228,
+          "total": 1123,
+          "pct": 19.7
+        },
+        "kultura": {
+          "count_c": 121,
+          "count_cl": 0,
+          "count_l": 109,
+          "total": 230,
+          "pct": 4.0
+        },
+        "historia": {
+          "count_c": 139,
+          "count_cl": 0,
+          "count_l": 49,
+          "total": 188,
+          "pct": 3.3
+        },
+        "czas_wolny": {
+          "count_c": 59,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 59,
+          "pct": 1.0
+        },
+        "sport": {
+          "count_c": 79,
+          "count_cl": 0,
+          "count_l": 85,
+          "total": 164,
+          "pct": 2.9
+        },
+        "rozrywka": {
+          "count_c": 79,
+          "count_cl": 0,
+          "count_l": 0,
+          "total": 79,
+          "pct": 1.4
+        },
+        "styl_zycia": {
+          "count_c": 184,
+          "count_cl": 4,
+          "count_l": 0,
+          "total": 188,
+          "pct": 3.3
+        },
+        "rolnictwo": {
+          "count_c": 96,
+          "count_cl": 0,
+          "count_l": 38,
+          "total": 134,
+          "pct": 2.3
+        },
+        "swiat": {
+          "count_c": 224,
+          "count_cl": 1,
+          "count_l": 0,
+          "total": 225,
+          "pct": 3.9
+        }
+      }
+    }
+  },
+  "ingest_summary": {
+    "titles_checked": 3,
+    "articles_discovered": 6,
+    "new_articles_ingested": 5,
+    "domains_distribution": {
+      "styl_zycia": 4,
+      "historia": 1
+    }
   }
 }
