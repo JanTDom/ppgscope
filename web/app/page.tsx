@@ -374,6 +374,124 @@ interface EditorialIntelligenceData {
       volume_index: number;
     }[];
   };
+  homepage_staleness_radar?: {
+    methodology: string;
+    avg_weekday_dwell_network_hours: number;
+    avg_weekend_dwell_network_hours: number;
+    avg_evening_freeze_network_hours: number;
+    status_counts: Record<string, number>;
+    portals: {
+      domain: string;
+      portal_name: string;
+      region: string;
+      current_hero_title: string;
+      current_hero_dwell_hours: number;
+      avg_weekday_dwell_hours: number;
+      avg_weekend_dwell_hours: number;
+      evening_freeze_hours: number;
+      swaps_per_24h: number;
+      median_reaction_minutes: number;
+      staleness_status: "DYNAMICZNA_CZOLOWKA" | "UMIARKOWANA_ROTACJA" | "ZASTYGLA_JEDYNKA";
+      staleness_label: string;
+      diagnosis: string;
+    }[];
+  };
+  syndication_and_canonical_audit?: {
+    methodology: string;
+    network_syndicated_copies_30d: number;
+    proper_canonical_to_origin_pct: number;
+    self_canonical_cannibalizing_copies_30d: number;
+    net_exporter_portals_count: number;
+    balanced_portals_count: number;
+    net_importer_portals_count: number;
+    portals: {
+      domain: string;
+      portal_name: string;
+      region: string;
+      role: "EKSPORTER_TRESCI" | "ZROWNOWAZONY" | "BIORCA_KLONOW";
+      role_label: string;
+      exported_originals_30d: number;
+      generated_network_copies_30d: number;
+      imported_clones_30d: number;
+      export_to_import_ratio: number;
+      cross_domain_canonical_pct: number;
+      self_canonical_clones_30d: number;
+      seo_cannibalization_risk: "NISKIE" | "SREDNIE" | "WYSOKIE";
+      diagnosis: string;
+    }[];
+  };
+  regional_competitor_1to1_benchmarks?: {
+    region: string;
+    city_hub: string;
+    ppg_portal_name: string;
+    ppg_domain: string;
+    competitor_name: string;
+    competitor_domain: string;
+    ppg_local_daily_volume: number;
+    competitor_local_daily_volume: number;
+    ppg_first_on_breaking_pct: number;
+    median_lag_minutes: number;
+    competitor_advantage_topics: string[];
+    ppg_advantage_topics: string[];
+    domain_comparison: {
+      domain_code: string;
+      domain_name: string;
+      ppg_daily_count: number;
+      competitor_daily_count: number;
+      ppg_share_pct: number;
+      competitor_share_pct: number;
+      delta_pp: number;
+    }[];
+    executive_verdict: string;
+  }[];
+  executive_morning_briefing?: {
+    generated_at: string;
+    briefing_edition: string;
+    network_24h_summary: {
+      total_articles_24h: number;
+      unique_articles_24h: number;
+      local_and_localized_share_pct: number;
+      active_unique_portals_count: number;
+      frozen_frontpages_count: number;
+      critical_anomalies_count: number;
+    };
+    top5_locality_dailies: {
+      rank: number;
+      portal: string;
+      domain: string;
+      region: string;
+      local_l_cl_pct: number;
+      pure_local_l_pct: number;
+      hero_dwell_h: number;
+    }[];
+    bottom5_locality_dailies: {
+      rank: number;
+      portal: string;
+      domain: string;
+      region: string;
+      local_l_cl_pct: number;
+      pure_local_l_pct: number;
+      hero_dwell_h: number;
+    }[];
+    active_anomalies: {
+      id: string;
+      severity: "CRITICAL" | "WARNING";
+      category: string;
+      target: string;
+      metric: string;
+      action_required: string;
+    }[];
+    kpi_scorecard: {
+      portal: string;
+      domain: string;
+      region: string;
+      local_l_cl_pct: number;
+      clones_pct: number;
+      hero_dwell_h: number;
+      canonical_ok_pct: number;
+      sla_status: "W_NORMIE" | "OSTRZEZENIE" | "NARUSZENIE_SLA";
+    }[];
+  };
 }
 
 interface LiveVitalityProbeResult {
@@ -592,7 +710,7 @@ export default function PPGscopeApp() {
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "domain_stats" | "compare" | "vitality_audit" | "charts" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology" | "ko_sentiment"
+    "overview" | "domain_stats" | "executive_briefing" | "compare" | "vitality_audit" | "charts" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology" | "ko_sentiment"
   >("domain_stats");
 
   // Portal Vitality & Uniqueness Audit States
@@ -606,8 +724,37 @@ export default function PPGscopeApp() {
 
   // Operational Intelligence Sub-Module Switcher
   const [intelSubTab, setIntelSubTab] = useState<
-    "homepage_radar" | "version_tracker" | "monetization" | "teryt_deserts" | "external_echo" | "newsroom_pulse" | "wire_cascades"
+    | "homepage_radar"
+    | "staleness_radar"
+    | "canonical_syndication"
+    | "competitor_1to1"
+    | "version_tracker"
+    | "monetization"
+    | "teryt_deserts"
+    | "external_echo"
+    | "newsroom_pulse"
+    | "wire_cascades"
   >("homepage_radar");
+
+  // Executive Scorecard SLA Thresholds & Competitor Benchmark Selector
+  const [slaMinLocalPct, setSlaMinLocalPct] = useState<number>(55);
+  const [slaMaxClonesPct, setSlaMaxClonesPct] = useState<number>(48);
+  const [slaMaxHeroDwellHours, setSlaMaxHeroDwellHours] = useState<number>(4.2);
+  const [slaMinCanonicalPct, setSlaMinCanonicalPct] = useState<number>(80);
+  const [selectedCompetitorRegion, setSelectedCompetitorRegion] = useState<string>("Małopolskie");
+
+  // Internal Data Adapter (URL Matcher for GA4 / GSC / Strefa Plus)
+  const [internalCsvInput, setInternalCsvInput] = useState<string>(
+    [
+      "url,pageviews,engaged_time_sec,strefa_plus_conversions",
+      "https://gazetakrakowska.pl/budzet-krakowa-sesja-rady-miasta,48200,142,19",
+      "https://dziennikbaltycki.pl/przetarg-tereny-postoczniowe-gdansk,39400,168,24",
+      "https://dziennikzachodni.pl/kopalnie-slask-rozmowy-pgg-katowice,54100,154,28",
+      "https://gloswielkopolski.pl/przebudowa-centrum-poznania-mpk-objazdy,61800,118,11",
+      "https://pomorska.pl/kiedy-wyplata-14-emerytury-zus-harmonogram,194000,14,1",
+      "https://i.pl/spor-w-koalicji-budzet-skladka-zdrowotna,82500,88,6",
+    ].join("\n")
+  );
 
   // KO Political Sentiment States
   const [selectedKOSentimentFilter, setSelectedKOSentimentFilter] = useState<"all" | "positive" | "neutral" | "negative">("all");
@@ -1704,6 +1851,17 @@ export default function PPGscopeApp() {
             </button>
 
             <button
+              onClick={() => setActiveTab("executive_briefing")}
+              className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
+                activeTab === "executive_briefing"
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+              }`}
+            >
+              <Target className="h-3.5 w-3.5 text-amber-400" /> Przegląd zarządczy i KPI (7:30)
+            </button>
+
+            <button
               onClick={() => setActiveTab("compare")}
               className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
                 activeTab === "compare"
@@ -2491,6 +2649,717 @@ export default function PPGscopeApp() {
             </div>
           </div>
         )}
+
+        {/* ================================================================= */}
+        {/* TAB: PRZEGLĄD ZARZĄDCZY I CELE REDAKCYJNE (BRIEFING 7:30 & KPI) */}
+        {/* ================================================================= */}
+        {activeTab === "executive_briefing" && (() => {
+          const intel = data.editorial_intelligence;
+          const briefing = intel?.executive_morning_briefing;
+          const staleness = intel?.homepage_staleness_radar;
+          const syndAudit = intel?.syndication_and_canonical_audit;
+          const compBench = intel?.regional_competitor_1to1_benchmarks || [];
+          const activeComp =
+            compBench.find((b) => b.region === selectedCompetitorRegion) || compBench[0];
+
+          // Parse Internal CSV Matcher rows and match with PPG domain & locality profile
+          const parsedInternalRows = internalCsvInput
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0 && !line.toLowerCase().startsWith("url,"))
+            .map((line) => {
+              const parts = line.split(",").map((p) => p.trim());
+              const urlStr = parts[0] || "";
+              const pageviews = Math.max(0, parseInt(parts[1] || "0", 10) || 0);
+              const engagedSec = Math.max(0, parseInt(parts[2] || "0", 10) || 0);
+              const conversions = Math.max(0, parseInt(parts[3] || "0", 10) || 0);
+
+              let host = "nieznana-domena";
+              try {
+                host = new URL(urlStr.startsWith("http") ? urlStr : `https://${urlStr}`).hostname.replace(/^www\./, "");
+              } catch {
+                host = urlStr.split("/")[0] || "nieznana-domena";
+              }
+
+              const lowerUrl = urlStr.toLowerCase();
+              const isDiscoverEvergreen =
+                lowerUrl.includes("kiedy-wyplata") ||
+                lowerUrl.includes("emerytur") ||
+                lowerUrl.includes("zus") ||
+                lowerUrl.includes("quiz");
+              const isPureLocal =
+                lowerUrl.includes("krakow") ||
+                lowerUrl.includes("gdansk") ||
+                lowerUrl.includes("poznan") ||
+                lowerUrl.includes("slask") ||
+                lowerUrl.includes("katowice") ||
+                lowerUrl.includes("wroclaw") ||
+                lowerUrl.includes("lodz") ||
+                lowerUrl.includes("przetarg") ||
+                lowerUrl.includes("sesja");
+
+              const localityCode: "L" | "CL" | "C" = isDiscoverEvergreen
+                ? "C"
+                : isPureLocal
+                ? "L"
+                : "CL";
+
+              const topicLabel = lowerUrl.includes("budzet") || lowerUrl.includes("koalicj") || lowerUrl.includes("przetarg")
+                ? "01 Władza i polityka"
+                : lowerUrl.includes("kopalni") || lowerUrl.includes("pgg")
+                ? "04 Gospodarka i praca"
+                : lowerUrl.includes("przebudow") || lowerUrl.includes("mpk") || lowerUrl.includes("obwodnic")
+                ? "05 Infrastruktura i transport"
+                : lowerUrl.includes("emerytur") || lowerUrl.includes("zus")
+                ? "16 Styl życia i poradnictwo"
+                : "10 Społeczność i ludzie";
+
+              const convPer100k = pageviews > 0 ? Math.round((conversions / pageviews) * 100000 * 10) / 10 : 0;
+
+              return {
+                url: urlStr,
+                host,
+                pageviews,
+                engagedSec,
+                conversions,
+                convPer100k,
+                localityCode,
+                topicLabel,
+              };
+            });
+
+          const totalInternalPV = parsedInternalRows.reduce((acc, r) => acc + r.pageviews, 0);
+          const totalInternalConv = parsedInternalRows.reduce((acc, r) => acc + r.conversions, 0);
+
+          return (
+            <div className="space-y-6">
+              {/* Top Banner: Morning Briefing Header + Print PDF Action */}
+              <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/[0.08] via-[#0c0e12] to-teal-500/[0.06] p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-md bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-amber-300 font-bold">
+                        Poranny przegląd doby · 07:30 Europe/Warsaw
+                      </span>
+                      <span className="rounded-md bg-teal-500/15 border border-teal-500/30 px-2.5 py-0.5 text-[10px] font-mono text-teal-300">
+                        Wersja v2.2 OSINT + Adapter GA4 / Piano
+                      </span>
+                    </div>
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Target className="h-5 w-5 text-amber-400" /> Przegląd zarządczy, alerty anomalii i rozliczenie celów redakcyjnych
+                    </h2>
+                    <p className="text-xs text-zinc-300 max-w-4xl">
+                      Jednostronicowy pulpit decyzyjny dla zarządu i redaktorów naczelnych: rozlicza 20 dzienników
+                      regionalnych z lokalności (`L + CL`), wyłapuje zastygłe czołówki i kanibalizację SEO (`rel=&quot;canonical&quot;`),
+                      porównuje produkcję 1:1 z lokalną konkurencją oraz pozwala połączyć zewnętrzny audyt treści z eksportem z GA4 i Strefy Plus.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => window.print()}
+                      className="rounded-xl border border-amber-500/40 bg-amber-500/15 px-3.5 py-2 text-xs font-mono font-semibold text-amber-200 hover:bg-amber-500/25 transition-all flex items-center gap-2"
+                    >
+                      <Download className="h-3.5 w-3.5 text-amber-300" /> Drukuj / Zapisz PDF (Briefing 7:30)
+                    </button>
+                  </div>
+                </div>
+
+                {/* 6 Morning Executive KPI Cards */}
+                {briefing && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-5 font-mono">
+                    <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Produkcja sieci (24h)</span>
+                      <span className="text-xl font-bold text-white">
+                        {briefing.network_24h_summary.total_articles_24h.toLocaleString("pl-PL")}
+                      </span>
+                      <span className="text-[10px] text-teal-400 block mt-0.5">546 monitorowanych domen</span>
+                    </div>
+                    <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Teksty unikalne (24h)</span>
+                      <span className="text-xl font-bold text-emerald-400">
+                        {briefing.network_24h_summary.unique_articles_24h.toLocaleString("pl-PL")}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 block mt-0.5">Oryginały bez klonów MinHash</span>
+                    </div>
+                    <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Lokalność sieci (L + CL)</span>
+                      <span className="text-xl font-bold text-teal-300">
+                        {briefing.network_24h_summary.local_and_localized_share_pct}%
+                      </span>
+                      <span className="text-[10px] text-zinc-400 block mt-0.5">Cel grupy: &gt;= 55,0%</span>
+                    </div>
+                    <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Żywe redakcje</span>
+                      <span className="text-xl font-bold text-white">
+                        {briefing.network_24h_summary.active_unique_portals_count}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 block mt-0.5">Status AKTYWNY_UNIKALNY</span>
+                    </div>
+                    <div className="rounded-xl border border-rose-500/30 bg-rose-500/[0.06] p-3.5">
+                      <span className="text-[10px] uppercase text-rose-300 block">Zastygłe jedynki (&gt;6h)</span>
+                      <span className="text-xl font-bold text-rose-400">
+                        {briefing.network_24h_summary.frozen_frontpages_count} dzienniki
+                      </span>
+                      <span className="text-[10px] text-rose-300/80 block mt-0.5">Wymaga korekty dyżuru</span>
+                    </div>
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.06] p-3.5">
+                      <span className="text-[10px] uppercase text-amber-300 block">Alerty operacyjne 24h</span>
+                      <span className="text-xl font-bold text-amber-300">
+                        {briefing.active_anomalies.length} zgłoszeń
+                      </span>
+                      <span className="text-[10px] text-amber-200/80 block mt-0.5">Do przeglądu naczelnych</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 1: CENTRUM ALERTÓW I ANOMALII NA ŻYWO + TOP 5 / BOTTOM 5 DZIENNIKÓW */}
+              {briefing && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Left 7 cols: Active Anomalies */}
+                  <div className="lg:col-span-7 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4 text-amber-400" /> Centrum alertów i anomalii wydawniczych (ostatnie 24h)
+                        </h3>
+                        <p className="text-[11px] text-zinc-400 mt-0.5">
+                          Automatycznie wykryte odchylenia wymagające decyzji wydawcy lub redaktora naczelnego
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-mono px-2.5 py-1 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                        Priorytet poranny
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {briefing.active_anomalies.map((anom) => (
+                        <div
+                          key={anom.id}
+                          className={`rounded-xl border p-4 space-y-2 ${
+                            anom.severity === "CRITICAL"
+                              ? "border-rose-500/35 bg-rose-500/[0.05]"
+                              : "border-amber-500/30 bg-amber-500/[0.04]"
+                          }`}
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  anom.severity === "CRITICAL"
+                                    ? "bg-rose-500 text-black"
+                                    : "bg-amber-400 text-black"
+                                }`}
+                              >
+                                {anom.severity === "CRITICAL" ? "KRYTYCZNY" : "OSTRZEŻENIE"}
+                              </span>
+                              <span className="font-bold text-white">{anom.category}</span>
+                            </div>
+                            <span className="text-teal-300 font-semibold">{anom.target}</span>
+                          </div>
+                          <div className="text-xs font-mono text-zinc-200">
+                            <strong className="text-zinc-400">Wskaźnik: </strong>
+                            {anom.metric}
+                          </div>
+                          <div className="text-xs text-zinc-300 pt-1 border-t border-white/[0.06]">
+                            <strong className="text-amber-300 font-mono">Rekomendowane działanie: </strong>
+                            {anom.action_required}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right 5 cols: Top 5 & Bottom 5 Regional Dailies by Locality */}
+                  <div className="lg:col-span-5 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-5">
+                    <div>
+                      <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Compass className="h-4 w-4 text-teal-400" /> Liderzy i maruderzy lokalności wśród 20 dzienników
+                      </h3>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        Zestawienie udziału treści lokalnych i zlokalizowanych (`L + CL`) oraz czasu rotacji jedynki
+                      </p>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold block">
+                        Top 5 dzienników — najwyższy udział pracy lokalnej (L + CL)
+                      </span>
+                      {briefing.top5_locality_dailies.map((d) => (
+                        <div
+                          key={d.domain}
+                          onClick={() => {
+                            setSelectedMediumDomain(d.domain);
+                            setActiveTab("domain_stats");
+                          }}
+                          className="cursor-pointer rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] hover:bg-emerald-500/[0.09] p-3 transition-all flex items-center justify-between font-mono text-xs"
+                        >
+                          <div>
+                            <span className="text-white font-bold">
+                              #{d.rank} {d.portal}
+                            </span>
+                            <span className="text-[10px] text-zinc-400 block">
+                              {d.region} · Czyste L: {d.pure_local_l_pct}% · Jedynka co {d.hero_dwell_h}h
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-bold text-emerald-300">{d.local_l_cl_pct}%</span>
+                            <span className="text-[10px] text-zinc-500 block">L + CL</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-2.5 pt-2 border-t border-white/[0.06]">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-rose-400 font-bold block">
+                        Ostatnie 5 dzienników — najwyższy odsetek przedruków centralnych (C)
+                      </span>
+                      {briefing.bottom5_locality_dailies.map((d) => (
+                        <div
+                          key={d.domain}
+                          onClick={() => {
+                            setSelectedMediumDomain(d.domain);
+                            setActiveTab("domain_stats");
+                          }}
+                          className="cursor-pointer rounded-xl border border-rose-500/20 bg-rose-500/[0.04] hover:bg-rose-500/[0.09] p-3 transition-all flex items-center justify-between font-mono text-xs"
+                        >
+                          <div>
+                            <span className="text-white font-bold">
+                              #{d.rank} {d.portal}
+                            </span>
+                            <span className="text-[10px] text-zinc-400 block">
+                              {d.region} · Czyste L: {d.pure_local_l_pct}% · Jedynka co {d.hero_dwell_h}h
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-bold text-rose-300">{d.local_l_cl_pct}%</span>
+                            <span className="text-[10px] text-zinc-500 block">L + CL</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 2: INTERAKTYWNA KARTA CELÓW KWARTALNYCH I SLA REDAKCJI (EXECUTIVE SCORECARD) */}
+              {briefing && (
+                <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-5">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-white flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-teal-400" /> Karta celów kwartalnych i SLA redakcji (Executive Scorecard)
+                      </h3>
+                      <p className="text-xs text-zinc-400 mt-1">
+                        Ustaw progi docelowe dla redakcji naczelnych. Tabela natychmiast przelicza status realizacji
+                        kontraktu jakościowego dla każdego dziennika regionalnego.
+                      </p>
+                    </div>
+
+                    {/* Interactive SLA Sliders */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs bg-black/50 p-3 rounded-xl border border-white/[0.06]">
+                      <div>
+                        <label className="text-[10px] text-zinc-400 block">Min. lokalność (L+CL): {slaMinLocalPct}%</label>
+                        <input
+                          type="range"
+                          min={35}
+                          max={70}
+                          step={1}
+                          value={slaMinLocalPct}
+                          onChange={(e) => setSlaMinLocalPct(Number(e.target.value))}
+                          className="w-full accent-teal-400 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-zinc-400 block">Maks. klony sieciowe: {slaMaxClonesPct}%</label>
+                        <input
+                          type="range"
+                          min={25}
+                          max={65}
+                          step={1}
+                          value={slaMaxClonesPct}
+                          onChange={(e) => setSlaMaxClonesPct(Number(e.target.value))}
+                          className="w-full accent-teal-400 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-zinc-400 block">Maks. czas jedynki: {slaMaxHeroDwellHours}h</label>
+                        <input
+                          type="range"
+                          min={2.0}
+                          max={7.0}
+                          step={0.2}
+                          value={slaMaxHeroDwellHours}
+                          onChange={(e) => setSlaMaxHeroDwellHours(Number(e.target.value))}
+                          className="w-full accent-teal-400 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-zinc-400 block">Min. poprawny canonical: {slaMinCanonicalPct}%</label>
+                        <input
+                          type="range"
+                          min={50}
+                          max={95}
+                          step={1}
+                          value={slaMinCanonicalPct}
+                          onChange={(e) => setSlaMinCanonicalPct(Number(e.target.value))}
+                          className="w-full accent-teal-400 mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left font-mono text-xs">
+                      <thead className="border-b border-white/[0.08] text-[10px] uppercase text-zinc-400">
+                        <tr>
+                          <th className="py-2.5 px-3">Dziennik regionalny</th>
+                          <th className="py-2.5 px-3">Województwo</th>
+                          <th className="py-2.5 px-3 text-right">Udział L + CL</th>
+                          <th className="py-2.5 px-3 text-right">Klony syndykatowe</th>
+                          <th className="py-2.5 px-3 text-right">Śr. czas jedynki (dni rob.)</th>
+                          <th className="py-2.5 px-3 text-right">Higiena rel=canonical</th>
+                          <th className="py-2.5 px-3 text-center">Status realizacji SLA</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.04]">
+                        {briefing.kpi_scorecard.map((row) => {
+                          const passLocal = row.local_l_cl_pct >= slaMinLocalPct;
+                          const passClones = row.clones_pct <= slaMaxClonesPct;
+                          const passDwell = row.hero_dwell_h <= slaMaxHeroDwellHours;
+                          const passCanon = row.canonical_ok_pct >= slaMinCanonicalPct;
+                          const passedCount = [passLocal, passClones, passDwell, passCanon].filter(Boolean).length;
+
+                          const dynamicStatus =
+                            passedCount === 4
+                              ? "W_NORMIE"
+                              : passedCount >= 2
+                              ? "OSTRZEZENIE"
+                              : "NARUSZENIE_SLA";
+
+                          return (
+                            <tr key={row.domain} className="hover:bg-white/[0.02]">
+                              <td className="py-2.5 px-3 font-bold text-white">
+                                {row.portal}{" "}
+                                <span className="text-[10px] text-zinc-500 font-normal">({row.domain})</span>
+                              </td>
+                              <td className="py-2.5 px-3 text-zinc-300">{row.region}</td>
+                              <td className={`py-2.5 px-3 text-right font-bold ${passLocal ? "text-emerald-400" : "text-rose-400"}`}>
+                                {row.local_l_cl_pct}%
+                              </td>
+                              <td className={`py-2.5 px-3 text-right font-bold ${passClones ? "text-emerald-400" : "text-rose-400"}`}>
+                                {row.clones_pct}%
+                              </td>
+                              <td className={`py-2.5 px-3 text-right font-bold ${passDwell ? "text-emerald-400" : "text-amber-400"}`}>
+                                {row.hero_dwell_h}h
+                              </td>
+                              <td className={`py-2.5 px-3 text-right font-bold ${passCanon ? "text-emerald-400" : "text-rose-400"}`}>
+                                {row.canonical_ok_pct}%
+                              </td>
+                              <td className="py-2.5 px-3 text-center">
+                                <span
+                                  className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
+                                    dynamicStatus === "W_NORMIE"
+                                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                      : dynamicStatus === "OSTRZEZENIE"
+                                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                      : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                                  }`}
+                                >
+                                  {dynamicStatus === "W_NORMIE"
+                                    ? "W NORMIE (4/4)"
+                                    : dynamicStatus === "OSTRZEZENIE"
+                                    ? `OSTRZEŻENIE (${passedCount}/4)`
+                                    : `NARUSZENIE SLA (${passedCount}/4)`}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 3: RADAR STARZENIA JEDYNEK + BILANS KASKAD CANONICAL SEO (PUNKT 1.1 & 1.2) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 1.1 Staleness Radar */}
+                {staleness && (
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-teal-400" /> Radar starzenia się jedynek i luk weekendowych
+                        </h3>
+                        <p className="text-[11px] text-zinc-400 mt-0.5">
+                          Średni czas ekspozycji głównego artykułu: dni robocze ({staleness.avg_weekday_dwell_network_hours}h) kontra weekend ({staleness.avg_weekend_dwell_network_hours}h)
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setActiveTab("intelligence");
+                          setIntelSubTab("staleness_radar");
+                        }}
+                        className="text-[11px] font-mono text-teal-300 hover:text-white underline"
+                      >
+                        Pełna tabela (21)
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5 font-mono text-xs max-h-96 overflow-y-auto pr-1">
+                      {staleness.portals.slice(0, 10).map((p) => (
+                        <div key={p.domain} className="rounded-xl border border-white/[0.06] bg-black/40 p-3.5 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-white">
+                              {p.portal_name} <span className="text-zinc-500">({p.domain})</span>
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                p.staleness_status === "DYNAMICZNA_CZOLOWKA"
+                                  ? "bg-emerald-500/20 text-emerald-300"
+                                  : p.staleness_status === "UMIARKOWANA_ROTACJA"
+                                  ? "bg-amber-500/20 text-amber-300"
+                                  : "bg-rose-500/20 text-rose-300"
+                              }`}
+                            >
+                              {p.staleness_status}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-3 text-[11px] text-zinc-300">
+                            <span>Dzień roboczy: <strong className="text-teal-300">{p.avg_weekday_dwell_hours}h</strong></span>
+                            <span>Weekend: <strong className="text-amber-300">{p.avg_weekend_dwell_hours}h</strong></span>
+                            <span>Luka nocna po 17:00: <strong className="text-rose-300">{p.evening_freeze_hours}h</strong></span>
+                            <span>Reakcja: <strong className="text-white">{p.median_reaction_minutes} min</strong></span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 font-sans">{p.diagnosis}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 1.2 Syndication & Canonical SEO Audit */}
+                {syndAudit && (
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                          <GitBranch className="h-4 w-4 text-purple-400" /> Kto żywi sieć, a kto bierze gotowce + audyt `rel=&quot;canonical&quot;`
+                        </h3>
+                        <p className="text-[11px] text-zinc-400 mt-0.5">
+                          Wykryto {syndAudit.self_canonical_cannibalizing_copies_30d.toLocaleString("pl-PL")} kopii (30d) bez kanonicznego wskazania na dziennik pierwotny
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setActiveTab("intelligence");
+                          setIntelSubTab("canonical_syndication");
+                        }}
+                        className="text-[11px] font-mono text-teal-300 hover:text-white underline"
+                      >
+                        Pełny bilans
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5 font-mono text-xs max-h-96 overflow-y-auto pr-1">
+                      {syndAudit.portals.slice(0, 10).map((s) => (
+                        <div key={s.domain} className="rounded-xl border border-white/[0.06] bg-black/40 p-3.5 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-white">{s.portal_name}</span>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                s.role === "EKSPORTER_TRESCI"
+                                  ? "bg-teal-500/20 text-teal-300"
+                                  : s.role === "ZROWNOWAZONY"
+                                  ? "bg-sky-500/20 text-sky-300"
+                                  : "bg-amber-500/20 text-amber-300"
+                              }`}
+                            >
+                              {s.role_label} ({s.export_to_import_ratio}x)
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-3 text-[11px] text-zinc-300">
+                            <span>Eksport oryginałów: <strong className="text-emerald-400">{s.exported_originals_30d}</strong></span>
+                            <span>Import klonów: <strong className="text-amber-300">{s.imported_clones_30d}</strong></span>
+                            <span>Canonical do źródła: <strong className="text-white">{s.cross_domain_canonical_pct}%</strong></span>
+                            <span className={s.seo_cannibalization_risk === "WYSOKIE" ? "text-rose-400 font-bold" : "text-zinc-400"}>
+                              Ryzyko SEO: {s.seo_cannibalization_risk}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 4: BENCHMARKING MIEJSKI 1:1 Z NIEZALEŻNYM KONKURENTEM W REGIONIE (PUNKT 1.3) */}
+              {activeComp && (
+                <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-white flex items-center gap-2">
+                        <Scale className="h-5 w-5 text-teal-400" /> Zestawienie 1:1 z głównym niezależnym konkurentem w regionie
+                      </h3>
+                      <p className="text-xs text-zinc-400 mt-0.5">
+                        Porównanie dziennego strumienia RSS/Sitemap naszego dziennika i lidera niezależnego w tym samym mieście (identyczna klasyfikacja taksonomii v2.0)
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 font-mono text-xs">
+                      <span className="text-zinc-400">Wybierz aglomerację:</span>
+                      <select
+                        value={selectedCompetitorRegion}
+                        onChange={(e) => setSelectedCompetitorRegion(e.target.value)}
+                        className="rounded-xl border border-white/[0.12] bg-black px-3 py-1.5 text-white font-mono text-xs"
+                      >
+                        {compBench.map((b) => (
+                          <option key={b.region} value={b.region}>
+                            {b.region} — {b.ppg_portal_name} vs {b.competitor_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
+                    <div className="rounded-xl border border-teal-500/25 bg-teal-500/[0.05] p-4 space-y-1">
+                      <span className="text-[10px] uppercase text-teal-300 font-bold block">Nasza redakcja PPG</span>
+                      <span className="text-base font-bold text-white block">{activeComp.ppg_portal_name} ({activeComp.ppg_domain})</span>
+                      <span className="text-zinc-300 block">Lokalny wolumen dobowy: <strong>{activeComp.ppg_local_daily_volume} art.</strong></span>
+                      <span className="text-emerald-300 block pt-1">Przewaga PPG: {activeComp.ppg_advantage_topics.join(", ") || "Wyrównany profil"}</span>
+                    </div>
+                    <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.05] p-4 space-y-1">
+                      <span className="text-[10px] uppercase text-amber-300 font-bold block">Niezależny konkurent miejski</span>
+                      <span className="text-base font-bold text-white block">{activeComp.competitor_name} ({activeComp.competitor_domain})</span>
+                      <span className="text-zinc-300 block">Lokalny wolumen dobowy: <strong>{activeComp.competitor_local_daily_volume} art.</strong></span>
+                      <span className="text-rose-300 block pt-1">Przewaga konkurenta: {activeComp.competitor_advantage_topics.join(", ") || "Brak wyraźnej przewagi"}</span>
+                    </div>
+                    <div className="rounded-xl border border-white/[0.08] bg-black/50 p-4 space-y-1">
+                      <span className="text-[10px] uppercase text-zinc-400 font-bold block">Szybkość na gorących tematach</span>
+                      <span className="text-base font-bold text-teal-400 block">PPG pierwsze w {activeComp.ppg_first_on_breaking_pct}% zdarzeń</span>
+                      <span className="text-zinc-300 block">Mediana różnicy czasu: <strong>{activeComp.median_lag_minutes} min</strong></span>
+                      <p className="text-[11px] text-zinc-400 font-sans pt-1">{activeComp.executive_verdict}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 font-mono text-xs">
+                    {activeComp.domain_comparison.map((dc) => (
+                      <div key={dc.domain_code} className="rounded-xl border border-white/[0.06] bg-black/40 p-3 space-y-1.5">
+                        <div className="text-[11px] font-bold text-white truncate" title={dc.domain_name}>
+                          {dc.domain_code} · {dc.domain_name}
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-teal-300">PPG: {dc.ppg_share_pct}% ({dc.ppg_daily_count})</span>
+                          <span className="text-amber-300">Konk.: {dc.competitor_share_pct}% ({dc.competitor_daily_count})</span>
+                        </div>
+                        <div className="text-right">
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                              dc.delta_pp >= 2.0
+                                ? "bg-emerald-500/20 text-emerald-300"
+                                : dc.delta_pp <= -2.0
+                                ? "bg-rose-500/20 text-rose-300"
+                                : "bg-white/[0.06] text-zinc-400"
+                            }`}
+                          >
+                            {dc.delta_pp > 0 ? `+${dc.delta_pp}` : dc.delta_pp} pkt proc.
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 5: ADAPTER DANYCH WEWNĘTRZNYCH (URL MATCHER POD GA4 / GSC / PIANO STREFA PLUS) */}
+              <div className="rounded-2xl border border-teal-500/30 bg-teal-500/[0.03] p-6 space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.08] pb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                      <Database className="h-5 w-5 text-teal-400" /> Adapter danych wewnętrznych (URL Matcher: GA4 / GSC / Piano Strefa Plus)
+                    </h3>
+                    <p className="text-xs text-zinc-300 mt-1">
+                      Gotowy pomost do natychmiastowego łączenia danych wewnętrznych z klasyfikacją PPGscope. Wklej wiersze CSV
+                      (`url,pageviews,engaged_time_sec,strefa_plus_conversions`), a system przypisze im domenę, lokalność `L / CL / C`
+                      oraz wyliczy zwrot subskrypcyjny na 100 tys. odsłon.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-lg shrink-0">
+                    Złączono {parsedInternalRows.length} adresów URL · {totalInternalPV.toLocaleString("pl-PL")} odsłon · {totalInternalConv} subskrypcji
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  <div className="lg:col-span-5 space-y-2">
+                    <label className="text-xs font-mono text-zinc-300 block">
+                      Wejściowy zrzut z GA4 / Piano (CSV: `url,pageviews,engaged_time_sec,strefa_plus_conversions`):
+                    </label>
+                    <textarea
+                      rows={8}
+                      value={internalCsvInput}
+                      onChange={(e) => setInternalCsvInput(e.target.value)}
+                      className="w-full rounded-xl border border-white/[0.12] bg-black/80 p-3 font-mono text-xs text-teal-200 focus:border-teal-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="lg:col-span-7 overflow-x-auto">
+                    <table className="w-full text-left font-mono text-xs">
+                      <thead className="border-b border-white/[0.08] text-[10px] uppercase text-zinc-400">
+                        <tr>
+                          <th className="py-2 px-2.5">Domena i dziedzina</th>
+                          <th className="py-2 px-2.5 text-center">Lokalność</th>
+                          <th className="py-2 px-2.5 text-right">Odsłony (GA4)</th>
+                          <th className="py-2 px-2.5 text-right">Czas czytania</th>
+                          <th className="py-2 px-2.5 text-right">Konwersje Plus</th>
+                          <th className="py-2 px-2.5 text-right">Konw. / 100k PV</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.05]">
+                        {parsedInternalRows.map((r, idx) => (
+                          <tr key={idx} className="hover:bg-white/[0.03]">
+                            <td className="py-2.5 px-2.5">
+                              <div className="font-bold text-white">{r.host}</div>
+                              <div className="text-[10px] text-zinc-400 truncate max-w-xs" title={r.url}>
+                                {r.topicLabel}
+                              </div>
+                            </td>
+                            <td className="py-2.5 px-2.5 text-center">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  r.localityCode === "L"
+                                    ? "bg-emerald-500/20 text-emerald-300"
+                                    : r.localityCode === "CL"
+                                    ? "bg-sky-500/20 text-sky-300"
+                                    : "bg-zinc-500/20 text-zinc-300"
+                                }`}
+                              >
+                                {r.localityCode}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-2.5 text-right text-white">
+                              {r.pageviews.toLocaleString("pl-PL")}
+                            </td>
+                            <td className={`py-2.5 px-2.5 text-right font-bold ${r.engagedSec >= 90 ? "text-emerald-400" : "text-rose-400"}`}>
+                              {r.engagedSec} s
+                            </td>
+                            <td className="py-2.5 px-2.5 text-right font-bold text-amber-300">
+                              {r.conversions}
+                            </td>
+                            <td className="py-2.5 px-2.5 text-right font-bold text-teal-300">
+                              {r.convPer100k}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ================================================================= */}
         {/* TAB: PORÓWNYWARKA MEDIÓW 360° (MEDIUM A VS MEDIUM B) */}
@@ -4353,6 +5222,9 @@ export default function PPGscopeApp() {
           const ter = intel?.teryt_deserts;
           const echo = intel?.external_echo;
           const pulse = intel?.newsroom_pulse;
+          const staleness = intel?.homepage_staleness_radar;
+          const syndAudit = intel?.syndication_and_canonical_audit;
+          const compBench = intel?.regional_competitor_1to1_benchmarks || [];
 
           return (
             <div className="space-y-6">
@@ -4364,8 +5236,8 @@ export default function PPGscopeApp() {
                       <Zap className="h-5 w-5 text-teal-400" /> Zaawansowane moduły wywiadu redakcyjnego PPGscope
                     </h2>
                     <p className="text-xs text-zinc-400 mt-1">
-                      Siedem modułów operacyjnych badających realną politykę wydawniczą: od ekspozycji na czołówkach i cichych
-                      edycji po paywall Strefa Plus, pustynie powiatowe TERYT i rytm pracy newsroomów.
+                      Dziesięć modułów operacyjnych badających realną politykę wydawniczą: od ekspozycji i starzenia się czołówek,
+                      przez bilans kaskad i higienę `rel=&quot;canonical&quot;`, po benchmarking 1:1 z konkurencją miejską.
                     </p>
                   </div>
                   <span className="text-[11px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-3 py-1 rounded-lg shrink-0">
@@ -4377,12 +5249,15 @@ export default function PPGscopeApp() {
                 <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/[0.06] text-xs font-mono">
                   {[
                     { id: "homepage_radar", label: "1. Radar czołówek (Jedynki vs Sitemap)" },
-                    { id: "version_tracker", label: "2. Ciche edycje i usunięcia (Tombstone)" },
-                    { id: "monetization", label: "3. Paywall Plus, sponsorowane i Discover" },
-                    { id: "teryt_deserts", label: "4. Pustynie informacyjne w powiatach (TERYT)" },
-                    { id: "external_echo", label: "5. Czas reakcji i konektory (Darmowe/Płatne)" },
-                    { id: "newsroom_pulse", label: "6. Kadry i rytm pracy redakcji" },
-                    { id: "wire_cascades", label: "7. Kaskady depeszowe (Headline Drift)" },
+                    { id: "staleness_radar", label: "2. Starzenie jedynek i luki weekendowe" },
+                    { id: "canonical_syndication", label: "3. Kto żywi sieć i audyt rel=canonical" },
+                    { id: "competitor_1to1", label: "4. Benchmarking 1:1 z konkurentem" },
+                    { id: "version_tracker", label: "5. Ciche edycje i usunięcia (Tombstone)" },
+                    { id: "monetization", label: "6. Paywall Plus, sponsorowane i Discover" },
+                    { id: "teryt_deserts", label: "7. Pustynie informacyjne w powiatach (TERYT)" },
+                    { id: "external_echo", label: "8. Czas reakcji i konektory (Darmowe/Płatne)" },
+                    { id: "newsroom_pulse", label: "9. Kadry i rytm pracy redakcji" },
+                    { id: "wire_cascades", label: "10. Kaskady depeszowe (Headline Drift)" },
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -4862,6 +5737,224 @@ export default function PPGscopeApp() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* MODULE 2 (NEW): STALENESS RADAR & REACTION SPEED */}
+              {intelSubTab === "staleness_radar" && staleness && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 font-mono">
+                    <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-emerald-300 font-bold block">Dynamiczne czołówki</span>
+                      <span className="text-2xl font-bold text-white">{staleness.status_counts["DYNAMICZNA_CZOLOWKA"] || 0} dzienników</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Rotacja jedynki &lt;= 3,6h w dni robocze</span>
+                    </div>
+                    <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-amber-300 font-bold block">Umiarkowana rotacja</span>
+                      <span className="text-2xl font-bold text-white">{staleness.status_counts["UMIARKOWANA_ROTACJA"] || 0} dzienników</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Spowolnienie dyżurów w weekendy</span>
+                    </div>
+                    <div className="rounded-2xl border border-rose-500/25 bg-rose-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-rose-300 font-bold block">Zastygłe jedynki</span>
+                      <span className="text-2xl font-bold text-white">{staleness.status_counts["ZASTYGLA_JEDYNKA"] || 0} dzienniki</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Przestoje weekendowe i nocne &gt; 8,5h</span>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-teal-300 font-bold block">Średnia luka nocna (po 17:00)</span>
+                      <span className="text-2xl font-bold text-white">{staleness.avg_evening_freeze_network_hours}h</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Średnia dla 20 dzienników + i.pl</span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <h3 className="text-sm font-bold text-white">
+                      Pełny audyt rotacji „jedynek” (Hero Slot) i szybkości reakcji we wszystkich 20 dziennikach regionalnych oraz i.pl
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left font-mono text-xs">
+                        <thead className="border-b border-white/[0.08] text-[10px] uppercase text-zinc-400">
+                          <tr>
+                            <th className="py-2.5 px-3">Portal</th>
+                            <th className="py-2.5 px-3">Aktualny temat na jedynce (Hero)</th>
+                            <th className="py-2.5 px-3 text-right">Wisi teraz</th>
+                            <th className="py-2.5 px-3 text-right">Śr. dzień rob.</th>
+                            <th className="py-2.5 px-3 text-right">Śr. weekend</th>
+                            <th className="py-2.5 px-3 text-right">Luka nocna</th>
+                            <th className="py-2.5 px-3 text-right">Wymian/24h</th>
+                            <th className="py-2.5 px-3 text-right">Reakcja</th>
+                            <th className="py-2.5 px-3 text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.04]">
+                          {staleness.portals.map((p) => (
+                            <tr key={p.domain} className="hover:bg-white/[0.02]">
+                              <td className="py-2.5 px-3 font-bold text-white">
+                                {p.portal_name}
+                                <span className="block text-[10px] text-zinc-500 font-normal">{p.domain}</span>
+                              </td>
+                              <td className="py-2.5 px-3 text-zinc-200 font-sans max-w-xs truncate" title={p.current_hero_title}>
+                                {p.current_hero_title}
+                              </td>
+                              <td className="py-2.5 px-3 text-right text-white">{p.current_hero_dwell_hours}h</td>
+                              <td className="py-2.5 px-3 text-right text-teal-300 font-bold">{p.avg_weekday_dwell_hours}h</td>
+                              <td className="py-2.5 px-3 text-right text-amber-300 font-bold">{p.avg_weekend_dwell_hours}h</td>
+                              <td className="py-2.5 px-3 text-right text-rose-300">{p.evening_freeze_hours}h</td>
+                              <td className="py-2.5 px-3 text-right text-zinc-300">{p.swaps_per_24h}</td>
+                              <td className="py-2.5 px-3 text-right text-white">{p.median_reaction_minutes} min</td>
+                              <td className="py-2.5 px-3 text-center">
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    p.staleness_status === "DYNAMICZNA_CZOLOWKA"
+                                      ? "bg-emerald-500/20 text-emerald-300"
+                                      : p.staleness_status === "UMIARKOWANA_ROTACJA"
+                                      ? "bg-amber-500/20 text-amber-300"
+                                      : "bg-rose-500/20 text-rose-300"
+                                  }`}
+                                >
+                                  {p.staleness_status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 3 (NEW): SYNDICATION BALANCE & CANONICAL SEO AUDIT */}
+              {intelSubTab === "canonical_syndication" && syndAudit && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 font-mono">
+                    <div className="rounded-2xl border border-teal-500/25 bg-teal-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-teal-300 font-bold block">Eksporterzy treści netto</span>
+                      <span className="text-2xl font-bold text-white">{syndAudit.net_exporter_portals_count} portali</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Główne dzienniki i huby tematyczne</span>
+                    </div>
+                    <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-amber-300 font-bold block">Biorcy gotowców (importerzy)</span>
+                      <span className="text-2xl font-bold text-white">{syndAudit.net_importer_portals_count} portale</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Serwisy zasilane głównie kopiami</span>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-emerald-300 font-bold block">Poprawny tag rel=canonical</span>
+                      <span className="text-2xl font-bold text-white">{syndAudit.proper_canonical_to_origin_pct}%</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Wskazuje na oryginalny dziennik</span>
+                    </div>
+                    <div className="rounded-2xl border border-rose-500/25 bg-rose-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-rose-300 font-bold block">Kopie kanibalizujące SEO (30d)</span>
+                      <span className="text-2xl font-bold text-white">
+                        {syndAudit.self_canonical_cannibalizing_copies_30d.toLocaleString("pl-PL")}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Self-canonical rozbijający pozycję w Google</span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <h3 className="text-sm font-bold text-white">
+                      Bilans „Kto żywi sieć, a kto bierze” oraz higiena tagów `&lt;link rel=&quot;canonical&quot;&gt;` (ostatnie 30 dni)
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left font-mono text-xs">
+                        <thead className="border-b border-white/[0.08] text-[10px] uppercase text-zinc-400">
+                          <tr>
+                            <th className="py-2.5 px-3">Portal</th>
+                            <th className="py-2.5 px-3">Rola w sieci</th>
+                            <th className="py-2.5 px-3 text-right">Eksport oryginałów</th>
+                            <th className="py-2.5 px-3 text-right">Kopie w sieci</th>
+                            <th className="py-2.5 px-3 text-right">Import klonów</th>
+                            <th className="py-2.5 px-3 text-right">Stosunek E/I</th>
+                            <th className="py-2.5 px-3 text-right">Canonical do źródła</th>
+                            <th className="py-2.5 px-3 text-right">Kanibalizacja (szt.)</th>
+                            <th className="py-2.5 px-3 text-center">Ryzyko SEO</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.04]">
+                          {syndAudit.portals.map((s) => (
+                            <tr key={s.domain} className="hover:bg-white/[0.02]">
+                              <td className="py-2.5 px-3 font-bold text-white">
+                                {s.portal_name}
+                                <span className="block text-[10px] text-zinc-500 font-normal">{s.domain}</span>
+                              </td>
+                              <td className="py-2.5 px-3 text-teal-300">{s.role_label}</td>
+                              <td className="py-2.5 px-3 text-right text-emerald-400 font-bold">{s.exported_originals_30d}</td>
+                              <td className="py-2.5 px-3 text-right text-zinc-300">
+                                {s.generated_network_copies_30d.toLocaleString("pl-PL")}
+                              </td>
+                              <td className="py-2.5 px-3 text-right text-amber-300">{s.imported_clones_30d}</td>
+                              <td className="py-2.5 px-3 text-right text-white font-bold">{s.export_to_import_ratio}x</td>
+                              <td className="py-2.5 px-3 text-right text-white">{s.cross_domain_canonical_pct}%</td>
+                              <td className="py-2.5 px-3 text-right text-rose-300">{s.self_canonical_clones_30d}</td>
+                              <td className="py-2.5 px-3 text-center">
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    s.seo_cannibalization_risk === "NISKIE"
+                                      ? "bg-emerald-500/20 text-emerald-300"
+                                      : s.seo_cannibalization_risk === "SREDNIE"
+                                      ? "bg-amber-500/20 text-amber-300"
+                                      : "bg-rose-500/20 text-rose-300"
+                                  }`}
+                                >
+                                  {s.seo_cannibalization_risk}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 4 (NEW): COMPETITOR 1:1 REGIONAL BENCHMARKING */}
+              {intelSubTab === "competitor_1to1" && compBench.length > 0 && (
+                <div className="space-y-6">
+                  {compBench.map((cb) => (
+                    <div key={cb.region} className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+                        <div>
+                          <h3 className="text-sm font-bold text-white">
+                            {cb.region} ({cb.city_hub}): <span className="text-teal-400">{cb.ppg_portal_name}</span> vs{" "}
+                            <span className="text-amber-400">{cb.competitor_name}</span>
+                          </h3>
+                          <p className="text-xs text-zinc-400 mt-0.5">{cb.executive_verdict}</p>
+                        </div>
+                        <div className="text-right font-mono text-xs shrink-0">
+                          <span className="text-teal-300 font-bold block">PPG pierwsze: {cb.ppg_first_on_breaking_pct}%</span>
+                          <span className="text-zinc-400 text-[10px]">Mediana różnicy: {cb.median_lag_minutes} min</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 font-mono text-xs">
+                        {cb.domain_comparison.map((dc) => (
+                          <div key={dc.domain_code} className="rounded-xl border border-white/[0.05] bg-black/40 p-2.5 space-y-1">
+                            <div className="text-[10px] font-bold text-white truncate" title={dc.domain_name}>
+                              {dc.domain_code} · {dc.domain_name}
+                            </div>
+                            <div className="flex justify-between text-[10px]">
+                              <span className="text-teal-300">PPG: {dc.ppg_share_pct}%</span>
+                              <span className="text-amber-300">Konk.: {dc.competitor_share_pct}%</span>
+                            </div>
+                            <div className="text-right">
+                              <span
+                                className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                                  dc.delta_pp >= 2.0
+                                    ? "bg-emerald-500/20 text-emerald-300"
+                                    : dc.delta_pp <= -2.0
+                                    ? "bg-rose-500/20 text-rose-300"
+                                    : "text-zinc-400"
+                                }`}
+                              >
+                                {dc.delta_pp > 0 ? `+${dc.delta_pp}` : dc.delta_pp} pp
+                              </span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}

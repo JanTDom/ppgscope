@@ -6,6 +6,11 @@ from ppgscope.ingest.intelligence import (
     HomepageRadarExtractor,
     ArticleVersionTracker,
     NewsroomPulseAnalyzer,
+    HomepageStalenessAnalyzer,
+    HomepageStalenessStatus,
+    SyndicationCanonicalAuditor,
+    SyndicationRole,
+    RegionalCompetitorBenchmarkAnalyzer,
 )
 
 
@@ -195,3 +200,104 @@ def test_newsroom_pulse_analyzer():
     assert pulse["named_authors_count"] == 1
     assert pulse["cron_scheduled_pct"] == 100.0
     assert len(pulse["hub_authors"]) == 1
+
+
+def test_homepage_staleness_analyzer():
+    rep_dyn = HomepageStalenessAnalyzer.evaluate_staleness(
+        domain="gazetakrakowska.pl",
+        portal_name="Gazeta Krakowska",
+        region="Małopolskie",
+        current_hero_title="PILNE: Obwodnica Krakowa zablokowana",
+        current_hero_dwell_hours=2.1,
+        avg_weekday_dwell_hours=2.8,
+        avg_weekend_dwell_hours=4.2,
+        evening_freeze_hours=5.1,
+        swaps_per_24h=9,
+        median_reaction_minutes=11,
+    )
+    assert rep_dyn.staleness_status == HomepageStalenessStatus.DYNAMICZNA_CZOLOWKA
+    assert rep_dyn.proof.value == "DYNAMICZNA_CZOLOWKA"
+
+    rep_frozen = HomepageStalenessAnalyzer.evaluate_staleness(
+        domain="nto.pl",
+        portal_name="Nowa Trybuna Opolska",
+        region="Opolskie",
+        current_hero_title="Weekendowy festyn w Opolu",
+        current_hero_dwell_hours=8.4,
+        avg_weekday_dwell_hours=4.9,
+        avg_weekend_dwell_hours=9.8,
+        evening_freeze_hours=10.5,
+        swaps_per_24h=3,
+        median_reaction_minutes=29,
+    )
+    assert rep_frozen.staleness_status == HomepageStalenessStatus.ZASTYGLA_JEDYNKA
+
+
+def test_syndication_canonical_auditor():
+    hygiene_ok = SyndicationCanonicalAuditor.check_canonical_hygiene(
+        page_url="https://bochnia.naszemiasto.pl/wypadek-na-a4/ar/c1-100",
+        canonical_url="https://gazetakrakowska.pl/wypadek-na-a4/ar/c1-100",
+        origin_url="https://gazetakrakowska.pl/wypadek-na-a4/ar/c1-100",
+    )
+    assert hygiene_ok["is_syndicated_copy"] is True
+    assert hygiene_ok["points_to_origin"] is True
+    assert hygiene_ok["seo_safe"] is True
+
+    hygiene_bad = SyndicationCanonicalAuditor.check_canonical_hygiene(
+        page_url="https://bochnia.naszemiasto.pl/wypadek-na-a4/ar/c1-100",
+        canonical_url="https://bochnia.naszemiasto.pl/wypadek-na-a4/ar/c1-100",
+        origin_url="https://gazetakrakowska.pl/wypadek-na-a4/ar/c1-100",
+    )
+    assert hygiene_bad["is_self_canonical_clone"] is True
+    assert hygiene_bad["seo_safe"] is False
+
+    rep_exporter = SyndicationCanonicalAuditor.evaluate_portal_syndication(
+        domain="dziennikbaltycki.pl",
+        portal_name="Dziennik Bałtycki",
+        region="Pomorskie",
+        exported_originals_30d=410,
+        generated_network_copies_30d=3280,
+        imported_clones_30d=190,
+        cross_domain_canonical_pct=91.5,
+    )
+    assert rep_exporter.role == SyndicationRole.EKSPORTER_TRESCI
+    assert rep_exporter.seo_cannibalization_risk == "NISKIE"
+
+    rep_importer = SyndicationCanonicalAuditor.evaluate_portal_syndication(
+        domain="puck.naszemiasto.pl",
+        portal_name="Puck NaszeMiasto",
+        region="Pomorskie",
+        exported_originals_30d=12,
+        generated_network_copies_30d=18,
+        imported_clones_30d=380,
+        cross_domain_canonical_pct=34.0,
+    )
+    assert rep_importer.role == SyndicationRole.BIORCA_KLONOW
+    assert rep_importer.seo_cannibalization_risk == "WYSOKIE"
+
+
+def test_regional_competitor_benchmark_1to1():
+    labels = {
+        "01": "Władza i polityka",
+        "02": "Bezpieczeństwo i zdarzenia",
+        "05": "Infrastruktura i transport",
+    }
+    rep = RegionalCompetitorBenchmarkAnalyzer.compare_1to1(
+        region="Pomorskie",
+        city_hub="Trójmiasto (Gdańsk / Gdynia / Sopot)",
+        ppg_portal_name="Dziennik Bałtycki",
+        ppg_domain="dziennikbaltycki.pl",
+        competitor_name="Trojmiasto.pl",
+        competitor_domain="trojmiasto.pl",
+        ppg_domain_counts={"01": 14, "02": 18, "05": 6},
+        competitor_domain_counts={"01": 8, "02": 14, "05": 16},
+        domain_labels=labels,
+        ppg_first_on_breaking_pct=44.0,
+        median_lag_minutes=14,
+    )
+    assert rep.ppg_local_daily_volume == 38
+    assert rep.competitor_local_daily_volume == 38
+    assert len(rep.domain_comparison) == 3
+    assert any("Infrastruktura i transport" in t for t in rep.competitor_advantage_topics)
+    assert any("Władza i polityka" in t for t in rep.ppg_advantage_topics)
+

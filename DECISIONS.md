@@ -102,3 +102,20 @@ Dokument zawiera spis kluczowych decyzji podjętych w projekcie **PPGscope**, zg
      - **Zewnętrzny Rezonans i Indeks Pierwotności (Original Scoops vs Echo):** pomiar cytowań w Google News / Wikipedia Current Events / GDELT 2.0.
      - **Puls Redakcji i Struktura Autorstwa:** profilowanie byline (`named`, `anonymous`, `wire`, `partner`) i rozkładu godzinowego (zmiana dzienna vs nocny automat cron).
 
+---
+
+## ADR-008: Przegląd zarządczy 7:30, radar starzenia się jedynek, audyt `rel="canonical"`, benchmarking miejski 1:1 i adapter danych wewnętrznych
+
+* **Data:** 2026-10-18
+* **Status:** PRZYJĘTE I WDROŻONE
+* **Kontekst:** Użytkownik zlecił wdrożenie pakietu zarządczego opartego na danych zewnętrznych z gotowym pomostem pod dane wewnętrzne (`Wdróż i wypchnij 1`):
+  1. Radar szybkości reakcji i starzenia się „jedynek” (`HomepageStalenessAnalyzer`),
+  2. Śledzenie kaskady syndykacji („Kto żywi sieć, a kto bierze”) oraz wewnętrznej kanibalizacji SEO w Google (`SyndicationCanonicalAuditor`),
+  3. Zestawienie 1:1 z lokalnym konkurentem w regionie w rozbiciu na dziedziny taksonomii v2.0 (`RegionalCompetitorBenchmarkAnalyzer`),
+  4. Automatyczny przegląd poranny 7:30 dla zarządu i naczelnych wraz z interaktywną Kartą Celów Kwartalnych i SLA (`Executive Scorecard`) oraz Adapterem Danych Wewnętrznych (`URL Matcher` pod GA4 / GSC / Piano *Strefa Plus*).
+* **Decyzja:**
+  - Rozbudowano moduł `ppgscope/ingest/intelligence.py` o klasy `HomepageStalenessAnalyzer`, `SyndicationCanonicalAuditor` i `RegionalCompetitorBenchmarkAnalyzer` z pełnymi dowodami `MetricProof` (`v2.2.0`).
+  - W generatorze `scripts/editorial_intelligence_builder.py` oraz `scripts/generate_full_scale_aggregates.py` wyliczono kompletne zestawy danych dla 20 dzienników regionalnych, portalu `i.pl`, 8 kluczowych pojedynków konkurencyjnych oraz 546 domen sieci.
+  - W aplikacji `web/app/page.tsx` dodano dedykowaną zakładkę główną **„Przegląd zarządczy i KPI (7:30)”** (`activeTab === "executive_briefing"`) oraz 3 nowe podmoduły w zakładce **„Wskaźniki Wywiadu”** (`staleness_radar`, `canonical_syndication`, `competitor_1to1`).
+
+
