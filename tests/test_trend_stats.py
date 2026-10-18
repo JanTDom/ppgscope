@@ -145,3 +145,32 @@ def test_ko_sentiment_aggregates_vary_across_periods_and_sum_to_100():
     assert len(ko_shares) == len(presets)
     assert len(tusk_pos_pcts) == len(presets)
 
+
+def test_per_medium_politicians_and_thematic_distributions_vary():
+    from scripts.generate_full_scale_aggregates import build_breakdown
+
+    krakow = build_breakdown(2250, is_hyperlocal=False, is_national=False, preset="30d", medium_domain="gazetakrakowska.pl", region="Małopolskie")
+    gdansk = build_breakdown(2250, is_hyperlocal=False, is_national=False, preset="30d", medium_domain="dziennikbaltycki.pl", region="Pomorskie")
+    biznes = build_breakdown(1350, is_hyperlocal=False, is_national=False, preset="30d", medium_domain="strefabiznesu.pl", region="Ogólnopolski")
+    sport = build_breakdown(1350, is_hyperlocal=False, is_national=False, preset="30d", medium_domain="sportowy24.pl", region="Ogólnopolski")
+
+    krakow_pols = {p["name"] for p in krakow["ko_sentiment"]["top_politicians"]}
+    gdansk_pols = {p["name"] for p in gdansk["ko_sentiment"]["top_politicians"]}
+    biznes_pols = {p["name"] for p in biznes["ko_sentiment"]["top_politicians"]}
+
+    # Regional and thematic politician rosters must differ
+    assert "Aleksander Miszalski" in krakow_pols
+    assert "Aleksandra Dulkiewicz" in gdansk_pols
+    assert "Andrzej Domański" in biznes_pols
+    assert krakow_pols != gdansk_pols
+    assert krakow_pols != biznes_pols
+
+    # 18-domain thematic profiles must differ substantially across portals
+    sport_pct_in_sportowy = next(d["pct"] for d in sport["domains"] if d["slug"] == "sport")
+    sport_pct_in_krakow = next(d["pct"] for d in krakow["domains"] if d["slug"] == "sport")
+    gosp_pct_in_biznes = next(d["pct"] for d in biznes["domains"] if d["slug"] == "gospodarka")
+    gosp_pct_in_krakow = next(d["pct"] for d in krakow["domains"] if d["slug"] == "gospodarka")
+
+    assert sport_pct_in_sportowy > sport_pct_in_krakow + 25.0
+    assert gosp_pct_in_biznes > gosp_pct_in_krakow + 15.0
+
