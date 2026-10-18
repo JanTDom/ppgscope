@@ -18,15 +18,27 @@ export async function GET(req: NextRequest) {
     const rawData = fs.readFileSync(dataPath, "utf-8");
     const dashboard = JSON.parse(rawData);
 
-    // If pre-computed server aggregates exist for this preset and global scope
-    if (domainFilter === "ALL" && dashboard.server_aggregates && dashboard.server_aggregates[preset]) {
-      return NextResponse.json({
-        ok: true,
-        source: "server_preaggregated_cube",
-        preset,
-        domain: domainFilter,
-        aggregates: dashboard.server_aggregates[preset],
-      });
+    // If pre-computed server aggregates exist for this preset
+    if (dashboard.server_aggregates && dashboard.server_aggregates[preset]) {
+      const presetCube = dashboard.server_aggregates[preset];
+      if (domainFilter === "ALL" && presetCube.global) {
+        return NextResponse.json({
+          ok: true,
+          source: "server_preaggregated_cube",
+          preset,
+          domain: domainFilter,
+          aggregates: presetCube.global,
+        });
+      }
+      if (domainFilter !== "ALL" && presetCube.per_medium?.[domainFilter]) {
+        return NextResponse.json({
+          ok: true,
+          source: "server_preaggregated_cube",
+          preset,
+          domain: domainFilter,
+          aggregates: presetCube.per_medium[domainFilter],
+        });
+      }
     }
 
     // Dynamic server-side aggregation for specific media domain or custom filter
