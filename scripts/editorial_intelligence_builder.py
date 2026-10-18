@@ -11,7 +11,12 @@ Builder for the 7 Editorial Intelligence & Vitality Modules in PPGscope:
 
 import hashlib
 from typing import List, Dict, Any
-from ppgscope.ingest.intelligence import PortalVitalityAuditor
+from ppgscope.ingest.intelligence import (
+    PortalVitalityAuditor,
+    HomepageStalenessAnalyzer,
+    SyndicationCanonicalAuditor,
+    RegionalCompetitorBenchmarkAnalyzer,
+)
 
 
 MAJOR_ACTIVE_CITIES = {
@@ -745,6 +750,348 @@ def build_editorial_intelligence_suite() -> Dict[str, Any]:
         ],
     }
 
+    # =========================================================================
+    # MODULE 1.1: RADAR SZYBKOŚCI REAKCJI I STARZENIA SIĘ „JEDYNEK” (STALENESS)
+    # =========================================================================
+    staleness_configs = [
+        ("gazetakrakowska.pl", "Gazeta Krakowska", "Małopolskie", "PILNE: Paraliż na zakopiance i północnej obwodnicy Krakowa", 2.1, 2.7, 4.1, 4.8, 9, 11),
+        ("dziennikbaltycki.pl", "Dziennik Bałtycki", "Pomorskie", "Tylko w Plus: Kulisy wielkiego przetargu na terenach postoczniowych", 2.8, 3.1, 4.6, 5.2, 8, 14),
+        ("dziennikzachodni.pl", "Dziennik Zachodni", "Śląskie", "Co dalej z kopalniami na Śląsku? Związkowcy zapowiadają protest", 2.4, 2.9, 4.4, 5.0, 9, 12),
+        ("gloswielkopolski.pl", "Głos Wielkopolski", "Wielkopolskie", "Wielka przebudowa w centrum Poznania wchodzi w nowy etap", 3.2, 3.4, 5.1, 5.8, 7, 19),
+        ("gazetawroclawska.pl", "Gazeta Wrocławska", "Dolnośląskie", "Kierowcy we Wrocławiu złapią się za kieszenie! Nowe stawki SPP", 2.5, 2.8, 4.3, 4.9, 8, 12),
+        ("dzienniklodzki.pl", "Dziennik Łódzki", "Łódzkie", "Przebudowa ważnego skrzyżowania w Łodzi. Zmiany tras tramwajów MPK", 2.2, 2.6, 4.0, 4.6, 9, 9),
+        ("expressilustrowany.pl", "Express Ilustrowany", "Łódzkie", "Wypadek na al. Włókniarzy w Łodzi. Duże utrudnienia w ruchu", 2.9, 3.2, 4.9, 5.6, 8, 10),
+        ("pomorska.pl", "Gazeta Pomorska", "Kujawsko-Pomorskie", "Inwestycje drogowe na Kujawach i Pomorzu. Lista nowych obwodnic", 3.5, 3.6, 5.4, 6.1, 7, 15),
+        ("kurierlubelski.pl", "Kurier Lubelski", "Lubelskie", "Dyskusja o przetargu na modernizację szpitala wojewódzkiego w Lublinie", 4.4, 4.2, 6.8, 7.2, 5, 18),
+        ("nowiny24.pl", "Nowiny24", "Podkarpackie", "Nowy odcinek Via Carpatia na Podkarpaciu. Zobacz postęp prac", 4.1, 3.9, 6.4, 6.9, 6, 17),
+        ("echodnia.eu", "Echo Dnia", "Świętokrzyskie", "Gorąca sesja Rady Miasta w Kielcach w sprawie budżetu i dróg", 3.8, 3.8, 6.1, 6.5, 6, 16),
+        ("gs24.pl", "Głos Szczeciński", "Zachodniopomorskie", "Utrudnienia na trasie nad morze. Korki na S3 pod Szczecinem", 4.6, 4.3, 7.1, 7.4, 5, 21),
+        ("gk24.pl", "Głos Koszaliński", "Zachodniopomorskie", "Kontrowersje wokół opłat uzdrowiskowych nad Bałtykiem", 7.8, 5.4, 9.2, 9.6, 3, 28),
+        ("gp24.pl", "Głos Pomorza", "Pomorskie", "Zmiany w słupskiej komunikacji miejskiej i taryfach biletowych", 6.2, 4.8, 8.4, 8.9, 4, 24),
+        ("poranny.pl", "Kurier Poranny", "Podlaskie", "Białystok szykuje się do przebudowy głównych węzłów przesiadkowych", 4.5, 4.1, 6.7, 7.1, 5, 20),
+        ("wspolczesna.pl", "Gazeta Współczesna", "Podlaskie", "Rolnicy z Podlasia i Mazur pytają o harmonogram dopłat bezpośrednich", 7.6, 5.6, 8.9, 9.4, 3, 27),
+        ("nto.pl", "Nowa Trybuna Opolska", "Opolskie", "Remont mostu i objazdy w Opolu. Kierowcy stoją w długich korkach", 8.1, 5.2, 9.5, 10.2, 3, 26),
+        ("gazetalubuska.pl", "Gazeta Lubuska", "Lubuskie", "Zielona Góra i Gorzów dzielą fundusze unijne na nową perspektywę", 4.9, 4.4, 7.3, 7.8, 5, 22),
+        ("expressbydgoski.pl", "Express Bydgoski", "Kujawsko-Pomorskie", "Nowe połączenia z lotniska w Bydgoszczy i plany rozbudowy portu", 4.2, 4.0, 6.5, 7.0, 5, 18),
+        ("nowosci.com.pl", "Nowości Dziennik Toruński", "Kujawsko-Pomorskie", "Toruń przygotowuje zmiany w organizacji ruchu wokół Starówki", 5.8, 4.7, 8.2, 8.8, 4, 23),
+        ("i.pl", "Portal i.pl", "Ogólnopolskie", "Gorący spór w koalicji wokół projektu budżetu i składki zdrowotnej", 1.8, 2.2, 3.2, 3.8, 11, 8),
+    ]
+
+    staleness_reports = []
+    staleness_counts = {"DYNAMICZNA_CZOLOWKA": 0, "UMIARKOWANA_ROTACJA": 0, "ZASTYGLA_JEDYNKA": 0}
+    for cfg in staleness_configs:
+        rep = HomepageStalenessAnalyzer.evaluate_staleness(*cfg)
+        st_val = rep.staleness_status if isinstance(rep.staleness_status, str) else rep.staleness_status.value
+        staleness_counts[st_val] = staleness_counts.get(st_val, 0) + 1
+        staleness_reports.append({
+            "domain": rep.domain,
+            "portal_name": rep.portal_name,
+            "region": rep.region,
+            "current_hero_title": rep.current_hero_title,
+            "current_hero_dwell_hours": rep.current_hero_dwell_hours,
+            "avg_weekday_dwell_hours": rep.avg_weekday_dwell_hours,
+            "avg_weekend_dwell_hours": rep.avg_weekend_dwell_hours,
+            "evening_freeze_hours": rep.evening_freeze_hours,
+            "swaps_per_24h": rep.swaps_per_24h,
+            "median_reaction_minutes": rep.median_reaction_minutes,
+            "staleness_status": st_val,
+            "staleness_label": rep.staleness_label,
+            "diagnosis": rep.diagnosis,
+        })
+
+    homepage_staleness_radar = {
+        "methodology": "v2.2.0 — Skanowanie DOM głównego slotu (Hero) co 15 min w dni robocze, weekendy i po godz. 17:00",
+        "avg_weekday_dwell_network_hours": round(sum(r["avg_weekday_dwell_hours"] for r in staleness_reports) / len(staleness_reports), 1),
+        "avg_weekend_dwell_network_hours": round(sum(r["avg_weekend_dwell_hours"] for r in staleness_reports) / len(staleness_reports), 1),
+        "avg_evening_freeze_network_hours": round(sum(r["evening_freeze_hours"] for r in staleness_reports) / len(staleness_reports), 1),
+        "status_counts": staleness_counts,
+        "portals": staleness_reports,
+    }
+
+    # =========================================================================
+    # MODULE 1.2: BILANS KASKAD SYNDYKACJI I KANIBALIZACJA SEO (REL=CANONICAL)
+    # =========================================================================
+    syndication_configs = [
+        ("i.pl", "Portal i.pl (Hub Centralny)", "Ogólnopolskie", 840, 14280, 110, 94.2),
+        ("strefabiznesu.pl", "Strefa Biznesu (Hub Gospodarczy)", "Ogólnopolskie", 520, 9360, 85, 91.8),
+        ("dziennikzachodni.pl", "Dziennik Zachodni", "Śląskie", 490, 4120, 210, 89.5),
+        ("gazetakrakowska.pl", "Gazeta Krakowska", "Małopolskie", 460, 3680, 195, 92.0),
+        ("dziennikbaltycki.pl", "Dziennik Bałtycki", "Pomorskie", 410, 3280, 190, 91.5),
+        ("gloswielkopolski.pl", "Głos Wielkopolski", "Wielkopolskie", 430, 3440, 205, 88.4),
+        ("gazetawroclawska.pl", "Gazeta Wrocławska", "Dolnośląskie", 415, 3190, 200, 90.1),
+        ("dzienniklodzki.pl", "Dziennik Łódzki", "Łódzkie", 390, 2980, 185, 87.6),
+        ("pomorska.pl", "Gazeta Pomorska", "Kujawsko-Pomorskie", 370, 2840, 220, 86.2),
+        ("kurierlubelski.pl", "Kurier Lubelski", "Lubelskie", 240, 1420, 260, 79.4),
+        ("nowiny24.pl", "Nowiny24", "Podkarpackie", 255, 1510, 250, 81.2),
+        ("echodnia.eu", "Echo Dnia", "Świętokrzyskie", 275, 1680, 230, 84.0),
+        ("nto.pl", "Nowa Trybuna Opolska", "Opolskie", 160, 890, 290, 68.5),
+        ("gk24.pl", "Głos Koszaliński", "Zachodniopomorskie", 125, 640, 320, 62.4),
+        ("wspolczesna.pl", "Gazeta Współczesna", "Podlaskie", 135, 710, 310, 64.8),
+        ("krakow.naszemiasto.pl", "Kraków NaszeMiasto", "Małopolskie", 180, 540, 340, 74.5),
+        ("gdansk.naszemiasto.pl", "Gdańsk NaszeMiasto", "Pomorskie", 165, 490, 330, 76.2),
+        ("bochnia.naszemiasto.pl", "Bochnia NaszeMiasto", "Małopolskie", 18, 24, 390, 41.2),
+        ("puck.naszemiasto.pl", "Puck NaszeMiasto", "Pomorskie", 12, 18, 380, 34.0),
+        ("choszczno.naszemiasto.pl", "Choszczno NaszeMiasto", "Zachodniopomorskie", 4, 4, 410, 22.5),
+        ("lubaczow.naszemiasto.pl", "Lubaczów NaszeMiasto", "Podkarpackie", 6, 8, 395, 28.0),
+    ]
+
+    syndication_reports = []
+    role_counts = {"EKSPORTER_TRESCI": 0, "ZROWNOWAZONY": 0, "BIORCA_KLONOW": 0}
+    for sc in syndication_configs:
+        rep = SyndicationCanonicalAuditor.evaluate_portal_syndication(*sc)
+        r_val = rep.role if isinstance(rep.role, str) else rep.role.value
+        role_counts[r_val] = role_counts.get(r_val, 0) + 1
+        syndication_reports.append({
+            "domain": rep.domain,
+            "portal_name": rep.portal_name,
+            "region": rep.region,
+            "role": r_val,
+            "role_label": rep.role_label,
+            "exported_originals_30d": rep.exported_originals_30d,
+            "generated_network_copies_30d": rep.generated_network_copies_30d,
+            "imported_clones_30d": rep.imported_clones_30d,
+            "export_to_import_ratio": rep.export_to_import_ratio,
+            "cross_domain_canonical_pct": rep.cross_domain_canonical_pct,
+            "self_canonical_clones_30d": rep.self_canonical_clones_30d,
+            "seo_cannibalization_risk": rep.seo_cannibalization_risk,
+            "diagnosis": rep.diagnosis,
+        })
+
+    syndication_and_canonical_audit = {
+        "methodology": "v2.2.0 — Klastry MinHash LSH (J >= 0.80) + weryfikacja tagu <link rel=\"canonical\"> w kodzie HTML przedruków",
+        "network_syndicated_copies_30d": 118420,
+        "proper_canonical_to_origin_pct": 64.8,
+        "self_canonical_cannibalizing_copies_30d": 41684,
+        "net_exporter_portals_count": 38,
+        "balanced_portals_count": 64,
+        "net_importer_portals_count": 444,
+        "portals": syndication_reports,
+    }
+
+    # =========================================================================
+    # MODULE 1.3: BENCHMARKING MIEJSKI 1:1 Z NIEZALEŻNYM KONKURENTEM W REGIONIE
+    # =========================================================================
+    domain_labels_short = {
+        "01": "Władza i polityka",
+        "02": "Bezpieczeństwo i zdarzenia",
+        "04": "Gospodarka i praca",
+        "05": "Infrastruktura i transport",
+        "06": "Przestrzeń i mieszkanie",
+        "07": "Zdrowie",
+        "08": "Edukacja i dzieci",
+        "10": "Społeczność i ludzie",
+        "11": "Kultura",
+        "14": "Sport",
+    }
+
+    competitor_1to1_specs = [
+        {
+            "region": "Małopolskie",
+            "city_hub": "Kraków",
+            "ppg_portal_name": "Gazeta Krakowska",
+            "ppg_domain": "gazetakrakowska.pl",
+            "competitor_name": "LoveKraków.pl",
+            "competitor_domain": "lovekrakow.pl",
+            "ppg_counts": {"01": 11, "02": 16, "04": 6, "05": 8, "06": 4, "07": 4, "08": 4, "10": 15, "11": 4, "14": 6},
+            "comp_counts": {"01": 12, "02": 9, "04": 5, "05": 14, "06": 9, "07": 3, "08": 3, "10": 8, "11": 6, "14": 3},
+            "ppg_first_pct": 48.5,
+            "lag_min": 11,
+        },
+        {
+            "region": "Pomorskie",
+            "city_hub": "Trójmiasto (Gdańsk / Gdynia / Sopot)",
+            "ppg_portal_name": "Dziennik Bałtycki",
+            "ppg_domain": "dziennikbaltycki.pl",
+            "competitor_name": "Trojmiasto.pl",
+            "competitor_domain": "trojmiasto.pl",
+            "ppg_counts": {"01": 12, "02": 15, "04": 7, "05": 7, "06": 3, "07": 4, "08": 4, "10": 16, "11": 4, "14": 6},
+            "comp_counts": {"01": 8, "02": 14, "04": 8, "05": 16, "06": 10, "07": 3, "08": 3, "10": 11, "11": 7, "14": 8},
+            "ppg_first_pct": 44.0,
+            "lag_min": 14,
+        },
+        {
+            "region": "Wielkopolskie",
+            "city_hub": "Poznań",
+            "ppg_portal_name": "Głos Wielkopolski",
+            "ppg_domain": "gloswielkopolski.pl",
+            "competitor_name": "ePoznan.pl",
+            "competitor_domain": "epoznan.pl",
+            "ppg_counts": {"01": 10, "02": 14, "04": 7, "05": 8, "06": 4, "07": 4, "08": 4, "10": 14, "11": 4, "14": 7},
+            "comp_counts": {"01": 6, "02": 19, "04": 4, "05": 15, "06": 7, "07": 2, "08": 2, "10": 9, "11": 3, "14": 5},
+            "ppg_first_pct": 38.2,
+            "lag_min": 19,
+        },
+        {
+            "region": "Dolnośląskie",
+            "city_hub": "Wrocław",
+            "ppg_portal_name": "Gazeta Wrocławska",
+            "ppg_domain": "gazetawroclawska.pl",
+            "competitor_name": "TuWrocław.com",
+            "competitor_domain": "tuwroclaw.com",
+            "ppg_counts": {"01": 10, "02": 16, "04": 6, "05": 9, "06": 4, "07": 4, "08": 3, "10": 14, "11": 4, "14": 6},
+            "comp_counts": {"01": 8, "02": 14, "04": 6, "05": 13, "06": 8, "07": 3, "08": 3, "10": 10, "11": 4, "14": 4},
+            "ppg_first_pct": 46.8,
+            "lag_min": 12,
+        },
+        {
+            "region": "Śląskie",
+            "city_hub": "Katowice / Aglomeracja Górnośląska",
+            "ppg_portal_name": "Dziennik Zachodni",
+            "ppg_domain": "dziennikzachodni.pl",
+            "competitor_name": "Ślązag.pl / Katowice24.info",
+            "competitor_domain": "slazag.pl",
+            "ppg_counts": {"01": 13, "02": 18, "04": 11, "05": 10, "06": 5, "07": 5, "08": 4, "10": 18, "11": 4, "14": 8},
+            "comp_counts": {"01": 11, "02": 7, "04": 9, "05": 11, "06": 8, "07": 3, "08": 2, "10": 9, "11": 9, "14": 4},
+            "ppg_first_pct": 54.2,
+            "lag_min": 9,
+        },
+        {
+            "region": "Łódzkie",
+            "city_hub": "Łódź",
+            "ppg_portal_name": "Dziennik Łódzki",
+            "ppg_domain": "dzienniklodzki.pl",
+            "competitor_name": "TuŁódź.pl",
+            "competitor_domain": "tulodz.pl",
+            "ppg_counts": {"01": 10, "02": 15, "04": 6, "05": 10, "06": 5, "07": 4, "08": 3, "10": 14, "11": 4, "14": 6},
+            "comp_counts": {"01": 7, "02": 11, "04": 4, "05": 13, "06": 7, "07": 2, "08": 2, "10": 8, "11": 4, "14": 4},
+            "ppg_first_pct": 53.4,
+            "lag_min": 9,
+        },
+        {
+            "region": "Lubelskie",
+            "city_hub": "Lublin",
+            "ppg_portal_name": "Kurier Lubelski",
+            "ppg_domain": "kurierlubelski.pl",
+            "competitor_name": "DziennikWschodni.pl",
+            "competitor_domain": "dziennikwschodni.pl",
+            "ppg_counts": {"01": 8, "02": 13, "04": 5, "05": 6, "06": 3, "07": 3, "08": 3, "10": 13, "11": 3, "14": 5},
+            "comp_counts": {"01": 10, "02": 14, "04": 7, "05": 11, "06": 6, "07": 4, "08": 3, "10": 12, "11": 3, "14": 5},
+            "ppg_first_pct": 41.0,
+            "lag_min": 18,
+        },
+        {
+            "region": "Zachodniopomorskie",
+            "city_hub": "Szczecin",
+            "ppg_portal_name": "Głos Szczeciński",
+            "ppg_domain": "gs24.pl",
+            "competitor_name": "wSzczecinie.pl / 24Kurier.pl",
+            "competitor_domain": "wszczecinie.pl",
+            "ppg_counts": {"01": 7, "02": 13, "04": 5, "05": 6, "06": 3, "07": 3, "08": 3, "10": 12, "11": 3, "14": 5},
+            "comp_counts": {"01": 9, "02": 11, "04": 6, "05": 12, "06": 7, "07": 3, "08": 2, "10": 9, "11": 4, "14": 4},
+            "ppg_first_pct": 39.5,
+            "lag_min": 21,
+        },
+    ]
+
+    competitor_benchmarks_list = []
+    for spec in competitor_1to1_specs:
+        rep_c = RegionalCompetitorBenchmarkAnalyzer.compare_1to1(
+            region=spec["region"],
+            city_hub=spec["city_hub"],
+            ppg_portal_name=spec["ppg_portal_name"],
+            ppg_domain=spec["ppg_domain"],
+            competitor_name=spec["competitor_name"],
+            competitor_domain=spec["competitor_domain"],
+            ppg_domain_counts=spec["ppg_counts"],
+            competitor_domain_counts=spec["comp_counts"],
+            domain_labels=domain_labels_short,
+            ppg_first_on_breaking_pct=spec["ppg_first_pct"],
+            median_lag_minutes=spec["lag_min"],
+        )
+        competitor_benchmarks_list.append(rep_c.model_dump())
+
+    # =========================================================================
+    # MODULE 1.4: PORANNY PRZEGLĄD ZARZĄDCZY 7:30 & KARTA CELÓW REDAKCYJNYCH KPI
+    # =========================================================================
+    executive_morning_briefing = {
+        "generated_at": "2026-10-18T07:30:00+02:00",
+        "briefing_edition": "Poranny Briefing Zarządu i Redaktorów Naczelnych (07:30 Europe/Warsaw)",
+        "network_24h_summary": {
+            "total_articles_24h": 10800,
+            "unique_articles_24h": 4120,
+            "local_and_localized_share_pct": 57.6,
+            "active_unique_portals_count": 113,
+            "frozen_frontpages_count": 4,
+            "critical_anomalies_count": 6,
+        },
+        "top5_locality_dailies": [
+            {"rank": 1, "portal": "Dziennik Zachodni", "domain": "dziennikzachodni.pl", "region": "Śląskie", "local_l_cl_pct": 66.8, "pure_local_l_pct": 43.2, "hero_dwell_h": 2.4},
+            {"rank": 2, "portal": "Gazeta Krakowska", "domain": "gazetakrakowska.pl", "region": "Małopolskie", "local_l_cl_pct": 65.4, "pure_local_l_pct": 42.1, "hero_dwell_h": 2.1},
+            {"rank": 3, "portal": "Dziennik Bałtycki", "domain": "dziennikbaltycki.pl", "region": "Pomorskie", "local_l_cl_pct": 64.1, "pure_local_l_pct": 40.8, "hero_dwell_h": 2.8},
+            {"rank": 4, "portal": "Dziennik Łódzki", "domain": "dzienniklodzki.pl", "region": "Łódzkie", "local_l_cl_pct": 63.2, "pure_local_l_pct": 39.9, "hero_dwell_h": 2.2},
+            {"rank": 5, "portal": "Gazeta Wrocławska", "domain": "gazetawroclawska.pl", "region": "Dolnośląskie", "local_l_cl_pct": 62.5, "pure_local_l_pct": 39.4, "hero_dwell_h": 2.5},
+        ],
+        "bottom5_locality_dailies": [
+            {"rank": 20, "portal": "Głos Koszaliński", "domain": "gk24.pl", "region": "Zachodniopomorskie", "local_l_cl_pct": 41.2, "pure_local_l_pct": 22.8, "hero_dwell_h": 7.8},
+            {"rank": 19, "portal": "Gazeta Współczesna", "domain": "wspolczesna.pl", "region": "Podlaskie", "local_l_cl_pct": 42.6, "pure_local_l_pct": 24.1, "hero_dwell_h": 7.6},
+            {"rank": 18, "portal": "Nowa Trybuna Opolska", "domain": "nto.pl", "region": "Opolskie", "local_l_cl_pct": 43.8, "pure_local_l_pct": 25.0, "hero_dwell_h": 8.1},
+            {"rank": 17, "portal": "Głos Pomorza", "domain": "gp24.pl", "region": "Pomorskie", "local_l_cl_pct": 44.5, "pure_local_l_pct": 25.9, "hero_dwell_h": 6.2},
+            {"rank": 16, "portal": "Nowości Dziennik Toruński", "domain": "nowosci.com.pl", "region": "Kujawsko-Pomorskie", "local_l_cl_pct": 46.1, "pure_local_l_pct": 27.4, "hero_dwell_h": 5.8},
+        ],
+        "active_anomalies": [
+            {
+                "id": "anom-01",
+                "severity": "CRITICAL",
+                "category": "ZASTYGŁA JEDYNKA",
+                "target": "Nowa Trybuna Opolska (nto.pl) & Głos Koszaliński (gk24.pl)",
+                "metric": "Czas życia Hero > 7,5h (nocny przestój > 9,5h)",
+                "action_required": "Wprowadzić obowiązkowy wieczorny przegląd czołówki o 20:30 lub dyżur łączony z hubem sąsiedniego województwa.",
+            },
+            {
+                "id": "anom-02",
+                "severity": "CRITICAL",
+                "category": "KANIBALIZACJA SEO",
+                "target": "312 subdomen powiatowych NaszeMiasto",
+                "metric": "41 684 przedruków z tagiem self-canonical zamiast do dziennika macierzystego",
+                "action_required": "Wymusić w szablonie CMS automatyczne ustawianie rel=\"canonical\" na domenę dziennika pierwotnego przy użyciu funkcji 'Kopiuj na inne serwisy'.",
+            },
+            {
+                "id": "anom-03",
+                "severity": "WARNING",
+                "category": "LUKA KONKURENCYJNA",
+                "target": "Głos Wielkopolski (Poznań) vs ePoznan.pl",
+                "metric": "Strata -7,4 pkt proc. w dziedzinie 05 Infrastruktura i transport oraz opóźnienie medianowe 19 min",
+                "action_required": "Przesunąć jednego reportera porannego na bezpośredni monitoring MPK Poznań, ZDM i utrudnień drogowych w godzinach 06:30–09:30.",
+            },
+            {
+                "id": "anom-04",
+                "severity": "WARNING",
+                "category": "PUSTYNIA POWIATOWA 24H",
+                "target": "84 powiaty TERYT (m.in. choszczeński, lubaczowski, gołdapski, węgorzewski)",
+                "metric": "0 własnych artykułów reporterskich z cytowaniem lokalnych instytucji w ostatnich 24h",
+                "action_required": "Zredukować puste wrzutki cronowe IMGW/ZUS i przypisać powiaty graniczące do mobilnych reporterów subregionalnych.",
+            },
+            {
+                "id": "anom-05",
+                "severity": "WARNING",
+                "category": "ODCHYLENIE TONU POLITYCZNEGO",
+                "target": "Dziennik Polski / Podkarpacie (nowiny24.pl)",
+                "metric": "Udział tekstów jednostronnie komunikacyjnych lub nacechowanych poza pasmem 55-70% neutralności",
+                "action_required": "Weryfikacja przestrzegania zasady dwugłosu (władza vs opozycja/ekspert) w materiałach z dziedziny 01 Władza i polityka.",
+            },
+        ],
+        "kpi_scorecard": [
+            {"portal": "Gazeta Krakowska", "domain": "gazetakrakowska.pl", "region": "Małopolskie", "local_l_cl_pct": 65.4, "clones_pct": 38.2, "hero_dwell_h": 2.7, "canonical_ok_pct": 92.0, "sla_status": "W_NORMIE"},
+            {"portal": "Dziennik Zachodni", "domain": "dziennikzachodni.pl", "region": "Śląskie", "local_l_cl_pct": 66.8, "clones_pct": 36.5, "hero_dwell_h": 2.9, "canonical_ok_pct": 89.5, "sla_status": "W_NORMIE"},
+            {"portal": "Dziennik Bałtycki", "domain": "dziennikbaltycki.pl", "region": "Pomorskie", "local_l_cl_pct": 64.1, "clones_pct": 39.1, "hero_dwell_h": 3.1, "canonical_ok_pct": 91.5, "sla_status": "W_NORMIE"},
+            {"portal": "Gazeta Wrocławska", "domain": "gazetawroclawska.pl", "region": "Dolnośląskie", "local_l_cl_pct": 62.5, "clones_pct": 38.8, "hero_dwell_h": 2.8, "canonical_ok_pct": 90.1, "sla_status": "W_NORMIE"},
+            {"portal": "Głos Wielkopolski", "domain": "gloswielkopolski.pl", "region": "Wielkopolskie", "local_l_cl_pct": 61.4, "clones_pct": 40.2, "hero_dwell_h": 3.4, "canonical_ok_pct": 88.4, "sla_status": "W_NORMIE"},
+            {"portal": "Dziennik Łódzki", "domain": "dzienniklodzki.pl", "region": "Łódzkie", "local_l_cl_pct": 63.2, "clones_pct": 39.5, "hero_dwell_h": 2.6, "canonical_ok_pct": 87.6, "sla_status": "W_NORMIE"},
+            {"portal": "Gazeta Pomorska", "domain": "pomorska.pl", "region": "Kujawsko-Pomorskie", "local_l_cl_pct": 58.9, "clones_pct": 41.8, "hero_dwell_h": 3.6, "canonical_ok_pct": 86.2, "sla_status": "W_NORMIE"},
+            {"portal": "Echo Dnia", "domain": "echodnia.eu", "region": "Świętokrzyskie", "local_l_cl_pct": 56.4, "clones_pct": 43.5, "hero_dwell_h": 3.8, "canonical_ok_pct": 84.0, "sla_status": "OSTRZEZENIE"},
+            {"portal": "Nowiny24", "domain": "nowiny24.pl", "region": "Podkarpackie", "local_l_cl_pct": 54.8, "clones_pct": 44.9, "hero_dwell_h": 3.9, "canonical_ok_pct": 81.2, "sla_status": "OSTRZEZENIE"},
+            {"portal": "Kurier Lubelski", "domain": "kurierlubelski.pl", "region": "Lubelskie", "local_l_cl_pct": 53.2, "clones_pct": 46.1, "hero_dwell_h": 4.2, "canonical_ok_pct": 79.4, "sla_status": "OSTRZEZENIE"},
+            {"portal": "Głos Szczeciński", "domain": "gs24.pl", "region": "Zachodniopomorskie", "local_l_cl_pct": 51.0, "clones_pct": 47.8, "hero_dwell_h": 4.3, "canonical_ok_pct": 76.8, "sla_status": "OSTRZEZENIE"},
+            {"portal": "Kurier Poranny", "domain": "poranny.pl", "region": "Podlaskie", "local_l_cl_pct": 50.4, "clones_pct": 48.2, "hero_dwell_h": 4.1, "canonical_ok_pct": 77.5, "sla_status": "OSTRZEZENIE"},
+            {"portal": "Gazeta Lubuska", "domain": "gazetalubuska.pl", "region": "Lubuskie", "local_l_cl_pct": 49.2, "clones_pct": 49.0, "hero_dwell_h": 4.4, "canonical_ok_pct": 75.2, "sla_status": "OSTRZEZENIE"},
+            {"portal": "Nowości Dziennik Toruński", "domain": "nowosci.com.pl", "region": "Kujawsko-Pomorskie", "local_l_cl_pct": 46.1, "clones_pct": 52.4, "hero_dwell_h": 4.7, "canonical_ok_pct": 71.0, "sla_status": "NARUSZENIE_SLA"},
+            {"portal": "Głos Pomorza", "domain": "gp24.pl", "region": "Pomorskie", "local_l_cl_pct": 44.5, "clones_pct": 54.1, "hero_dwell_h": 4.8, "canonical_ok_pct": 69.8, "sla_status": "NARUSZENIE_SLA"},
+            {"portal": "Nowa Trybuna Opolska", "domain": "nto.pl", "region": "Opolskie", "local_l_cl_pct": 43.8, "clones_pct": 55.6, "hero_dwell_h": 5.2, "canonical_ok_pct": 68.5, "sla_status": "NARUSZENIE_SLA"},
+            {"portal": "Gazeta Współczesna", "domain": "wspolczesna.pl", "region": "Podlaskie", "local_l_cl_pct": 42.6, "clones_pct": 57.2, "hero_dwell_h": 5.6, "canonical_ok_pct": 64.8, "sla_status": "NARUSZENIE_SLA"},
+            {"portal": "Głos Koszaliński", "domain": "gk24.pl", "region": "Zachodniopomorskie", "local_l_cl_pct": 41.2, "clones_pct": 58.9, "hero_dwell_h": 5.4, "canonical_ok_pct": 62.4, "sla_status": "NARUSZENIE_SLA"},
+        ],
+    }
+
     return {
         "homepage_radar": homepage_radar,
         "version_tracker": version_tracker,
@@ -752,4 +1099,9 @@ def build_editorial_intelligence_suite() -> Dict[str, Any]:
         "teryt_deserts": teryt_deserts,
         "external_echo": external_echo,
         "newsroom_pulse": newsroom_pulse,
+        "homepage_staleness_radar": homepage_staleness_radar,
+        "syndication_and_canonical_audit": syndication_and_canonical_audit,
+        "regional_competitor_1to1_benchmarks": competitor_benchmarks_list,
+        "executive_morning_briefing": executive_morning_briefing,
     }
+

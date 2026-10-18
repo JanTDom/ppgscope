@@ -1131715,6 +1131715,1901 @@
           "volume_index": 24
         }
       ]
+    },
+    "homepage_staleness_radar": {
+      "methodology": "v2.2.0 — Skanowanie DOM głównego slotu (Hero) co 15 min w dni robocze, weekendy i po godz. 17:00",
+      "avg_weekday_dwell_network_hours": 3.9,
+      "avg_weekend_dwell_network_hours": 6.2,
+      "avg_evening_freeze_network_hours": 6.8,
+      "status_counts": {
+        "DYNAMICZNA_CZOLOWKA": 9,
+        "UMIARKOWANA_ROTACJA": 7,
+        "ZASTYGLA_JEDYNKA": 5
+      },
+      "portals": [
+        {
+          "domain": "gazetakrakowska.pl",
+          "portal_name": "Gazeta Krakowska",
+          "region": "Małopolskie",
+          "current_hero_title": "PILNE: Paraliż na zakopiance i północnej obwodnicy Krakowa",
+          "current_hero_dwell_hours": 2.1,
+          "avg_weekday_dwell_hours": 2.7,
+          "avg_weekend_dwell_hours": 4.1,
+          "evening_freeze_hours": 4.8,
+          "swaps_per_24h": 9,
+          "median_reaction_minutes": 11,
+          "staleness_status": "DYNAMICZNA_CZOLOWKA",
+          "staleness_label": "Dynamiczna czołówka (częsta rotacja)",
+          "diagnosis": "Aktywny dyżur wydawniczy: 9 wymian jedynki na dobę, średni czas ekspozycji w dni robocze 2.7h i szybka reakcja (11 min)."
+        },
+        {
+          "domain": "dziennikbaltycki.pl",
+          "portal_name": "Dziennik Bałtycki",
+          "region": "Pomorskie",
+          "current_hero_title": "Tylko w Plus: Kulisy wielkiego przetargu na terenach postoczniowych",
+          "current_hero_dwell_hours": 2.8,
+          "avg_weekday_dwell_hours": 3.1,
+          "avg_weekend_dwell_hours": 4.6,
+          "evening_freeze_hours": 5.2,
+          "swaps_per_24h": 8,
+          "median_reaction_minutes": 14,
+          "staleness_status": "DYNAMICZNA_CZOLOWKA",
+          "staleness_label": "Dynamiczna czołówka (częsta rotacja)",
+          "diagnosis": "Aktywny dyżur wydawniczy: 8 wymian jedynki na dobę, średni czas ekspozycji w dni robocze 3.1h i szybka reakcja (14 min)."
+        },
+        {
+          "domain": "dziennikzachodni.pl",
+          "portal_name": "Dziennik Zachodni",
+          "region": "Śląskie",
+          "current_hero_title": "Co dalej z kopalniami na Śląsku? Związkowcy zapowiadają protest",
+          "current_hero_dwell_hours": 2.4,
+          "avg_weekday_dwell_hours": 2.9,
+          "avg_weekend_dwell_hours": 4.4,
+          "evening_freeze_hours": 5.0,
+          "swaps_per_24h": 9,
+          "median_reaction_minutes": 12,
+          "staleness_status": "DYNAMICZNA_CZOLOWKA",
+          "staleness_label": "Dynamiczna czołówka (częsta rotacja)",
+          "diagnosis": "Aktywny dyżur wydawniczy: 9 wymian jedynki na dobę, średni czas ekspozycji w dni robocze 2.9h i szybka reakcja (12 min)."
+        },
+        {
+          "domain": "gloswielkopolski.pl",
+          "portal_name": "Głos Wielkopolski",
+          "region": "Wielkopolskie",
+          "current_hero_title": "Wielka przebudowa w centrum Poznania wchodzi w nowy etap",
+          "current_hero_dwell_hours": 3.2,
+          "avg_weekday_dwell_hours": 3.4,
+          "avg_weekend_dwell_hours": 5.1,
+          "evening_freeze_hours": 5.8,
+          "swaps_per_24h": 7,
+          "median_reaction_minutes": 19,
+          "staleness_status": "DYNAMICZNA_CZOLOWKA",
+          "staleness_label": "Dynamiczna czołówka (częsta rotacja)",
+          "diagnosis": "Aktywny dyżur wydawniczy: 7 wymian jedynki na dobę, średni czas ekspozycji w dni robocze 3.4h i szybka reakcja (19 min)."
+        },
+        {
+          "domain": "gazetawroclawska.pl",
+          "portal_name": "Gazeta Wrocławska",
+          "region": "Dolnośląskie",
+          "current_hero_title": "Kierowcy we Wrocławiu złapią się za kieszenie! Nowe stawki SPP",
+          "current_hero_dwell_hours": 2.5,
+          "avg_weekday_dwell_hours": 2.8,
+          "avg_weekend_dwell_hours": 4.3,
+          "evening_freeze_hours": 4.9,
+          "swaps_per_24h": 8,
+          "median_reaction_minutes": 12,
+          "staleness_status": "DYNAMICZNA_CZOLOWKA",
+          "staleness_label": "Dynamiczna czołówka (częsta rotacja)",
+          "diagnosis": "Aktywny dyżur wydawniczy: 8 wymian jedynki na dobę, średni czas ekspozycji w dni robocze 2.8h i szybka reakcja (12 min)."
+        },
+        {
+          "domain": "dzienniklodzki.pl",
+          "portal_name": "Dziennik Łódzki",
+          "region": "Łódzkie",
+          "current_hero_title": "Przebudowa ważnego skrzyżowania w Łodzi. Zmiany tras tramwajów MPK",
+          "current_hero_dwell_hours": 2.2,
+          "avg_weekday_dwell_hours": 2.6,
+          "avg_weekend_dwell_hours": 4.0,
+          "evening_freeze_hours": 4.6,
+          "swaps_per_24h": 9,
+          "median_reaction_minutes": 9,
+          "staleness_status": "DYNAMICZNA_CZOLOWKA",
+          "staleness_label": "Dynamiczna czołówka (częsta rotacja)",
+          "diagnosis": "Aktywny dyżur wydawniczy: 9 wymian jedynki na dobę, średni czas ekspozycji w dni robocze 2.6h i szybka reakcja (9 min)."
+        },
+        {
+          "domain": "expressilustrowany.pl",
+          "portal_name": "Express Ilustrowany",
+          "region": "Łódzkie",
+          "current_hero_title": "Wypadek na al. Włókniarzy w Łodzi. Duże utrudnienia w ruchu",
+          "current_hero_dwell_hours": 2.9,
+          "avg_weekday_dwell_hours": 3.2,
+          "avg_weekend_dwell_hours": 4.9,
+          "evening_freeze_hours": 5.6,
+          "swaps_per_24h": 8,
+          "median_reaction_minutes": 10,
+          "staleness_status": "DYNAMICZNA_CZOLOWKA",
+          "staleness_label": "Dynamiczna czołówka (częsta rotacja)",
+          "diagnosis": "Aktywny dyżur wydawniczy: 8 wymian jedynki na dobę, średni czas ekspozycji w dni robocze 3.2h i szybka reakcja (10 min)."
+        },
+        {
+          "domain": "pomorska.pl",
+          "portal_name": "Gazeta Pomorska",
+          "region": "Kujawsko-Pomorskie",
+          "current_hero_title": "Inwestycje drogowe na Kujawach i Pomorzu. Lista nowych obwodnic",
+          "current_hero_dwell_hours": 3.5,
+          "avg_weekday_dwell_hours": 3.6,
+          "avg_weekend_dwell_hours": 5.4,
+          "evening_freeze_hours": 6.1,
+          "swaps_per_24h": 7,
+          "median_reaction_minutes": 15,
+          "staleness_status": "DYNAMICZNA_CZOLOWKA",
+          "staleness_label": "Dynamiczna czołówka (częsta rotacja)",
+          "diagnosis": "Aktywny dyżur wydawniczy: 7 wymian jedynki na dobę, średni czas ekspozycji w dni robocze 3.6h i szybka reakcja (15 min)."
+        },
+        {
+          "domain": "kurierlubelski.pl",
+          "portal_name": "Kurier Lubelski",
+          "region": "Lubelskie",
+          "current_hero_title": "Dyskusja o przetargu na modernizację szpitala wojewódzkiego w Lublinie",
+          "current_hero_dwell_hours": 4.4,
+          "avg_weekday_dwell_hours": 4.2,
+          "avg_weekend_dwell_hours": 6.8,
+          "evening_freeze_hours": 7.2,
+          "swaps_per_24h": 5,
+          "median_reaction_minutes": 18,
+          "staleness_status": "UMIARKOWANA_ROTACJA",
+          "staleness_label": "Umiarkowana rotacja (widoczne luki wieczorne)",
+          "diagnosis": "Płynna praca w dzień (4.2h na jedynce), ale zauważalne spowolnienie w weekendy (6.8h) oraz wieczorny przestój (7.2h)."
+        },
+        {
+          "domain": "nowiny24.pl",
+          "portal_name": "Nowiny24",
+          "region": "Podkarpackie",
+          "current_hero_title": "Nowy odcinek Via Carpatia na Podkarpaciu. Zobacz postęp prac",
+          "current_hero_dwell_hours": 4.1,
+          "avg_weekday_dwell_hours": 3.9,
+          "avg_weekend_dwell_hours": 6.4,
+          "evening_freeze_hours": 6.9,
+          "swaps_per_24h": 6,
+          "median_reaction_minutes": 17,
+          "staleness_status": "UMIARKOWANA_ROTACJA",
+          "staleness_label": "Umiarkowana rotacja (widoczne luki wieczorne)",
+          "diagnosis": "Płynna praca w dzień (3.9h na jedynce), ale zauważalne spowolnienie w weekendy (6.4h) oraz wieczorny przestój (6.9h)."
+        },
+        {
+          "domain": "echodnia.eu",
+          "portal_name": "Echo Dnia",
+          "region": "Świętokrzyskie",
+          "current_hero_title": "Gorąca sesja Rady Miasta w Kielcach w sprawie budżetu i dróg",
+          "current_hero_dwell_hours": 3.8,
+          "avg_weekday_dwell_hours": 3.8,
+          "avg_weekend_dwell_hours": 6.1,
+          "evening_freeze_hours": 6.5,
+          "swaps_per_24h": 6,
+          "median_reaction_minutes": 16,
+          "staleness_status": "UMIARKOWANA_ROTACJA",
+          "staleness_label": "Umiarkowana rotacja (widoczne luki wieczorne)",
+          "diagnosis": "Płynna praca w dzień (3.8h na jedynce), ale zauważalne spowolnienie w weekendy (6.1h) oraz wieczorny przestój (6.5h)."
+        },
+        {
+          "domain": "gs24.pl",
+          "portal_name": "Głos Szczeciński",
+          "region": "Zachodniopomorskie",
+          "current_hero_title": "Utrudnienia na trasie nad morze. Korki na S3 pod Szczecinem",
+          "current_hero_dwell_hours": 4.6,
+          "avg_weekday_dwell_hours": 4.3,
+          "avg_weekend_dwell_hours": 7.1,
+          "evening_freeze_hours": 7.4,
+          "swaps_per_24h": 5,
+          "median_reaction_minutes": 21,
+          "staleness_status": "UMIARKOWANA_ROTACJA",
+          "staleness_label": "Umiarkowana rotacja (widoczne luki wieczorne)",
+          "diagnosis": "Płynna praca w dzień (4.3h na jedynce), ale zauważalne spowolnienie w weekendy (7.1h) oraz wieczorny przestój (7.4h)."
+        },
+        {
+          "domain": "gk24.pl",
+          "portal_name": "Głos Koszaliński",
+          "region": "Zachodniopomorskie",
+          "current_hero_title": "Kontrowersje wokół opłat uzdrowiskowych nad Bałtykiem",
+          "current_hero_dwell_hours": 7.8,
+          "avg_weekday_dwell_hours": 5.4,
+          "avg_weekend_dwell_hours": 9.2,
+          "evening_freeze_hours": 9.6,
+          "swaps_per_24h": 3,
+          "median_reaction_minutes": 28,
+          "staleness_status": "ZASTYGLA_JEDYNKA",
+          "staleness_label": "Zastygła jedynka (długi przestój wydawniczy)",
+          "diagnosis": "Zastygła czołówka: główny materiał wisi 7.8h, a w weekendy jedynka nie zmienia się średnio przez 9.2h (nocna luka po 17:00 wynosi 9.6h)."
+        },
+        {
+          "domain": "gp24.pl",
+          "portal_name": "Głos Pomorza",
+          "region": "Pomorskie",
+          "current_hero_title": "Zmiany w słupskiej komunikacji miejskiej i taryfach biletowych",
+          "current_hero_dwell_hours": 6.2,
+          "avg_weekday_dwell_hours": 4.8,
+          "avg_weekend_dwell_hours": 8.4,
+          "evening_freeze_hours": 8.9,
+          "swaps_per_24h": 4,
+          "median_reaction_minutes": 24,
+          "staleness_status": "ZASTYGLA_JEDYNKA",
+          "staleness_label": "Zastygła jedynka (długi przestój wydawniczy)",
+          "diagnosis": "Zastygła czołówka: główny materiał wisi 6.2h, a w weekendy jedynka nie zmienia się średnio przez 8.4h (nocna luka po 17:00 wynosi 8.9h)."
+        },
+        {
+          "domain": "poranny.pl",
+          "portal_name": "Kurier Poranny",
+          "region": "Podlaskie",
+          "current_hero_title": "Białystok szykuje się do przebudowy głównych węzłów przesiadkowych",
+          "current_hero_dwell_hours": 4.5,
+          "avg_weekday_dwell_hours": 4.1,
+          "avg_weekend_dwell_hours": 6.7,
+          "evening_freeze_hours": 7.1,
+          "swaps_per_24h": 5,
+          "median_reaction_minutes": 20,
+          "staleness_status": "UMIARKOWANA_ROTACJA",
+          "staleness_label": "Umiarkowana rotacja (widoczne luki wieczorne)",
+          "diagnosis": "Płynna praca w dzień (4.1h na jedynce), ale zauważalne spowolnienie w weekendy (6.7h) oraz wieczorny przestój (7.1h)."
+        },
+        {
+          "domain": "wspolczesna.pl",
+          "portal_name": "Gazeta Współczesna",
+          "region": "Podlaskie",
+          "current_hero_title": "Rolnicy z Podlasia i Mazur pytają o harmonogram dopłat bezpośrednich",
+          "current_hero_dwell_hours": 7.6,
+          "avg_weekday_dwell_hours": 5.6,
+          "avg_weekend_dwell_hours": 8.9,
+          "evening_freeze_hours": 9.4,
+          "swaps_per_24h": 3,
+          "median_reaction_minutes": 27,
+          "staleness_status": "ZASTYGLA_JEDYNKA",
+          "staleness_label": "Zastygła jedynka (długi przestój wydawniczy)",
+          "diagnosis": "Zastygła czołówka: główny materiał wisi 7.6h, a w weekendy jedynka nie zmienia się średnio przez 8.9h (nocna luka po 17:00 wynosi 9.4h)."
+        },
+        {
+          "domain": "nto.pl",
+          "portal_name": "Nowa Trybuna Opolska",
+          "region": "Opolskie",
+          "current_hero_title": "Remont mostu i objazdy w Opolu. Kierowcy stoją w długich korkach",
+          "current_hero_dwell_hours": 8.1,
+          "avg_weekday_dwell_hours": 5.2,
+          "avg_weekend_dwell_hours": 9.5,
+          "evening_freeze_hours": 10.2,
+          "swaps_per_24h": 3,
+          "median_reaction_minutes": 26,
+          "staleness_status": "ZASTYGLA_JEDYNKA",
+          "staleness_label": "Zastygła jedynka (długi przestój wydawniczy)",
+          "diagnosis": "Zastygła czołówka: główny materiał wisi 8.1h, a w weekendy jedynka nie zmienia się średnio przez 9.5h (nocna luka po 17:00 wynosi 10.2h)."
+        },
+        {
+          "domain": "gazetalubuska.pl",
+          "portal_name": "Gazeta Lubuska",
+          "region": "Lubuskie",
+          "current_hero_title": "Zielona Góra i Gorzów dzielą fundusze unijne na nową perspektywę",
+          "current_hero_dwell_hours": 4.9,
+          "avg_weekday_dwell_hours": 4.4,
+          "avg_weekend_dwell_hours": 7.3,
+          "evening_freeze_hours": 7.8,
+          "swaps_per_24h": 5,
+          "median_reaction_minutes": 22,
+          "staleness_status": "UMIARKOWANA_ROTACJA",
+          "staleness_label": "Umiarkowana rotacja (widoczne luki wieczorne)",
+          "diagnosis": "Płynna praca w dzień (4.4h na jedynce), ale zauważalne spowolnienie w weekendy (7.3h) oraz wieczorny przestój (7.8h)."
+        },
+        {
+          "domain": "expressbydgoski.pl",
+          "portal_name": "Express Bydgoski",
+          "region": "Kujawsko-Pomorskie",
+          "current_hero_title": "Nowe połączenia z lotniska w Bydgoszczy i plany rozbudowy portu",
+          "current_hero_dwell_hours": 4.2,
+          "avg_weekday_dwell_hours": 4.0,
+          "avg_weekend_dwell_hours": 6.5,
+          "evening_freeze_hours": 7.0,
+          "swaps_per_24h": 5,
+          "median_reaction_minutes": 18,
+          "staleness_status": "UMIARKOWANA_ROTACJA",
+          "staleness_label": "Umiarkowana rotacja (widoczne luki wieczorne)",
+          "diagnosis": "Płynna praca w dzień (4.0h na jedynce), ale zauważalne spowolnienie w weekendy (6.5h) oraz wieczorny przestój (7.0h)."
+        },
+        {
+          "domain": "nowosci.com.pl",
+          "portal_name": "Nowości Dziennik Toruński",
+          "region": "Kujawsko-Pomorskie",
+          "current_hero_title": "Toruń przygotowuje zmiany w organizacji ruchu wokół Starówki",
+          "current_hero_dwell_hours": 5.8,
+          "avg_weekday_dwell_hours": 4.7,
+          "avg_weekend_dwell_hours": 8.2,
+          "evening_freeze_hours": 8.8,
+          "swaps_per_24h": 4,
+          "median_reaction_minutes": 23,
+          "staleness_status": "ZASTYGLA_JEDYNKA",
+          "staleness_label": "Zastygła jedynka (długi przestój wydawniczy)",
+          "diagnosis": "Zastygła czołówka: główny materiał wisi 5.8h, a w weekendy jedynka nie zmienia się średnio przez 8.2h (nocna luka po 17:00 wynosi 8.8h)."
+        },
+        {
+          "domain": "i.pl",
+          "portal_name": "Portal i.pl",
+          "region": "Ogólnopolskie",
+          "current_hero_title": "Gorący spór w koalicji wokół projektu budżetu i składki zdrowotnej",
+          "current_hero_dwell_hours": 1.8,
+          "avg_weekday_dwell_hours": 2.2,
+          "avg_weekend_dwell_hours": 3.2,
+          "evening_freeze_hours": 3.8,
+          "swaps_per_24h": 11,
+          "median_reaction_minutes": 8,
+          "staleness_status": "DYNAMICZNA_CZOLOWKA",
+          "staleness_label": "Dynamiczna czołówka (częsta rotacja)",
+          "diagnosis": "Aktywny dyżur wydawniczy: 11 wymian jedynki na dobę, średni czas ekspozycji w dni robocze 2.2h i szybka reakcja (8 min)."
+        }
+      ]
+    },
+    "syndication_and_canonical_audit": {
+      "methodology": "v2.2.0 — Klastry MinHash LSH (J >= 0.80) + weryfikacja tagu <link rel=\"canonical\"> w kodzie HTML przedruków",
+      "network_syndicated_copies_30d": 118420,
+      "proper_canonical_to_origin_pct": 64.8,
+      "self_canonical_cannibalizing_copies_30d": 41684,
+      "net_exporter_portals_count": 38,
+      "balanced_portals_count": 64,
+      "net_importer_portals_count": 444,
+      "portals": [
+        {
+          "domain": "i.pl",
+          "portal_name": "Portal i.pl (Hub Centralny)",
+          "region": "Ogólnopolskie",
+          "role": "EKSPORTER_TRESCI",
+          "role_label": "Żywiciel sieci (eksporter netto)",
+          "exported_originals_30d": 840,
+          "generated_network_copies_30d": 14280,
+          "imported_clones_30d": 110,
+          "export_to_import_ratio": 7.64,
+          "cross_domain_canonical_pct": 94.2,
+          "self_canonical_clones_30d": 6,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 840 oryginałów (powielonych 14280 razy w sieci) przy imporcie 110 tekstów wspólnych. Poprawny canonical do źródła posiada 94.2% przedruków (6 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "strefabiznesu.pl",
+          "portal_name": "Strefa Biznesu (Hub Gospodarczy)",
+          "region": "Ogólnopolskie",
+          "role": "EKSPORTER_TRESCI",
+          "role_label": "Żywiciel sieci (eksporter netto)",
+          "exported_originals_30d": 520,
+          "generated_network_copies_30d": 9360,
+          "imported_clones_30d": 85,
+          "export_to_import_ratio": 6.12,
+          "cross_domain_canonical_pct": 91.8,
+          "self_canonical_clones_30d": 7,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 520 oryginałów (powielonych 9360 razy w sieci) przy imporcie 85 tekstów wspólnych. Poprawny canonical do źródła posiada 91.8% przedruków (7 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "dziennikzachodni.pl",
+          "portal_name": "Dziennik Zachodni",
+          "region": "Śląskie",
+          "role": "EKSPORTER_TRESCI",
+          "role_label": "Żywiciel sieci (eksporter netto)",
+          "exported_originals_30d": 490,
+          "generated_network_copies_30d": 4120,
+          "imported_clones_30d": 210,
+          "export_to_import_ratio": 2.33,
+          "cross_domain_canonical_pct": 89.5,
+          "self_canonical_clones_30d": 22,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 490 oryginałów (powielonych 4120 razy w sieci) przy imporcie 210 tekstów wspólnych. Poprawny canonical do źródła posiada 89.5% przedruków (22 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "gazetakrakowska.pl",
+          "portal_name": "Gazeta Krakowska",
+          "region": "Małopolskie",
+          "role": "EKSPORTER_TRESCI",
+          "role_label": "Żywiciel sieci (eksporter netto)",
+          "exported_originals_30d": 460,
+          "generated_network_copies_30d": 3680,
+          "imported_clones_30d": 195,
+          "export_to_import_ratio": 2.36,
+          "cross_domain_canonical_pct": 92.0,
+          "self_canonical_clones_30d": 16,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 460 oryginałów (powielonych 3680 razy w sieci) przy imporcie 195 tekstów wspólnych. Poprawny canonical do źródła posiada 92.0% przedruków (16 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "dziennikbaltycki.pl",
+          "portal_name": "Dziennik Bałtycki",
+          "region": "Pomorskie",
+          "role": "EKSPORTER_TRESCI",
+          "role_label": "Żywiciel sieci (eksporter netto)",
+          "exported_originals_30d": 410,
+          "generated_network_copies_30d": 3280,
+          "imported_clones_30d": 190,
+          "export_to_import_ratio": 2.16,
+          "cross_domain_canonical_pct": 91.5,
+          "self_canonical_clones_30d": 16,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 410 oryginałów (powielonych 3280 razy w sieci) przy imporcie 190 tekstów wspólnych. Poprawny canonical do źródła posiada 91.5% przedruków (16 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "gloswielkopolski.pl",
+          "portal_name": "Głos Wielkopolski",
+          "region": "Wielkopolskie",
+          "role": "EKSPORTER_TRESCI",
+          "role_label": "Żywiciel sieci (eksporter netto)",
+          "exported_originals_30d": 430,
+          "generated_network_copies_30d": 3440,
+          "imported_clones_30d": 205,
+          "export_to_import_ratio": 2.1,
+          "cross_domain_canonical_pct": 88.4,
+          "self_canonical_clones_30d": 24,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 430 oryginałów (powielonych 3440 razy w sieci) przy imporcie 205 tekstów wspólnych. Poprawny canonical do źródła posiada 88.4% przedruków (24 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "gazetawroclawska.pl",
+          "portal_name": "Gazeta Wrocławska",
+          "region": "Dolnośląskie",
+          "role": "EKSPORTER_TRESCI",
+          "role_label": "Żywiciel sieci (eksporter netto)",
+          "exported_originals_30d": 415,
+          "generated_network_copies_30d": 3190,
+          "imported_clones_30d": 200,
+          "export_to_import_ratio": 2.08,
+          "cross_domain_canonical_pct": 90.1,
+          "self_canonical_clones_30d": 20,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 415 oryginałów (powielonych 3190 razy w sieci) przy imporcie 200 tekstów wspólnych. Poprawny canonical do źródła posiada 90.1% przedruków (20 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "dzienniklodzki.pl",
+          "portal_name": "Dziennik Łódzki",
+          "region": "Łódzkie",
+          "role": "EKSPORTER_TRESCI",
+          "role_label": "Żywiciel sieci (eksporter netto)",
+          "exported_originals_30d": 390,
+          "generated_network_copies_30d": 2980,
+          "imported_clones_30d": 185,
+          "export_to_import_ratio": 2.11,
+          "cross_domain_canonical_pct": 87.6,
+          "self_canonical_clones_30d": 23,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 390 oryginałów (powielonych 2980 razy w sieci) przy imporcie 185 tekstów wspólnych. Poprawny canonical do źródła posiada 87.6% przedruków (23 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "pomorska.pl",
+          "portal_name": "Gazeta Pomorska",
+          "region": "Kujawsko-Pomorskie",
+          "role": "EKSPORTER_TRESCI",
+          "role_label": "Żywiciel sieci (eksporter netto)",
+          "exported_originals_30d": 370,
+          "generated_network_copies_30d": 2840,
+          "imported_clones_30d": 220,
+          "export_to_import_ratio": 1.68,
+          "cross_domain_canonical_pct": 86.2,
+          "self_canonical_clones_30d": 30,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 370 oryginałów (powielonych 2840 razy w sieci) przy imporcie 220 tekstów wspólnych. Poprawny canonical do źródła posiada 86.2% przedruków (30 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "kurierlubelski.pl",
+          "portal_name": "Kurier Lubelski",
+          "region": "Lubelskie",
+          "role": "ZROWNOWAZONY",
+          "role_label": "Wymiana zrównoważona",
+          "exported_originals_30d": 240,
+          "generated_network_copies_30d": 1420,
+          "imported_clones_30d": 260,
+          "export_to_import_ratio": 0.92,
+          "cross_domain_canonical_pct": 79.4,
+          "self_canonical_clones_30d": 54,
+          "seo_cannibalization_risk": "SREDNIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 240 oryginałów (powielonych 1420 razy w sieci) przy imporcie 260 tekstów wspólnych. Poprawny canonical do źródła posiada 79.4% przedruków (54 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "nowiny24.pl",
+          "portal_name": "Nowiny24",
+          "region": "Podkarpackie",
+          "role": "ZROWNOWAZONY",
+          "role_label": "Wymiana zrównoważona",
+          "exported_originals_30d": 255,
+          "generated_network_copies_30d": 1510,
+          "imported_clones_30d": 250,
+          "export_to_import_ratio": 1.02,
+          "cross_domain_canonical_pct": 81.2,
+          "self_canonical_clones_30d": 47,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 255 oryginałów (powielonych 1510 razy w sieci) przy imporcie 250 tekstów wspólnych. Poprawny canonical do źródła posiada 81.2% przedruków (47 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "echodnia.eu",
+          "portal_name": "Echo Dnia",
+          "region": "Świętokrzyskie",
+          "role": "ZROWNOWAZONY",
+          "role_label": "Wymiana zrównoważona",
+          "exported_originals_30d": 275,
+          "generated_network_copies_30d": 1680,
+          "imported_clones_30d": 230,
+          "export_to_import_ratio": 1.2,
+          "cross_domain_canonical_pct": 84.0,
+          "self_canonical_clones_30d": 37,
+          "seo_cannibalization_risk": "NISKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 275 oryginałów (powielonych 1680 razy w sieci) przy imporcie 230 tekstów wspólnych. Poprawny canonical do źródła posiada 84.0% przedruków (37 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "nto.pl",
+          "portal_name": "Nowa Trybuna Opolska",
+          "region": "Opolskie",
+          "role": "BIORCA_KLONOW",
+          "role_label": "Biorca gotowców (importer klonów)",
+          "exported_originals_30d": 160,
+          "generated_network_copies_30d": 890,
+          "imported_clones_30d": 290,
+          "export_to_import_ratio": 0.55,
+          "cross_domain_canonical_pct": 68.5,
+          "self_canonical_clones_30d": 91,
+          "seo_cannibalization_risk": "SREDNIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 160 oryginałów (powielonych 890 razy w sieci) przy imporcie 290 tekstów wspólnych. Poprawny canonical do źródła posiada 68.5% przedruków (91 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "gk24.pl",
+          "portal_name": "Głos Koszaliński",
+          "region": "Zachodniopomorskie",
+          "role": "BIORCA_KLONOW",
+          "role_label": "Biorca gotowców (importer klonów)",
+          "exported_originals_30d": 125,
+          "generated_network_copies_30d": 640,
+          "imported_clones_30d": 320,
+          "export_to_import_ratio": 0.39,
+          "cross_domain_canonical_pct": 62.4,
+          "self_canonical_clones_30d": 120,
+          "seo_cannibalization_risk": "SREDNIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 125 oryginałów (powielonych 640 razy w sieci) przy imporcie 320 tekstów wspólnych. Poprawny canonical do źródła posiada 62.4% przedruków (120 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "wspolczesna.pl",
+          "portal_name": "Gazeta Współczesna",
+          "region": "Podlaskie",
+          "role": "BIORCA_KLONOW",
+          "role_label": "Biorca gotowców (importer klonów)",
+          "exported_originals_30d": 135,
+          "generated_network_copies_30d": 710,
+          "imported_clones_30d": 310,
+          "export_to_import_ratio": 0.44,
+          "cross_domain_canonical_pct": 64.8,
+          "self_canonical_clones_30d": 109,
+          "seo_cannibalization_risk": "SREDNIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 135 oryginałów (powielonych 710 razy w sieci) przy imporcie 310 tekstów wspólnych. Poprawny canonical do źródła posiada 64.8% przedruków (109 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "krakow.naszemiasto.pl",
+          "portal_name": "Kraków NaszeMiasto",
+          "region": "Małopolskie",
+          "role": "BIORCA_KLONOW",
+          "role_label": "Biorca gotowców (importer klonów)",
+          "exported_originals_30d": 180,
+          "generated_network_copies_30d": 540,
+          "imported_clones_30d": 340,
+          "export_to_import_ratio": 0.53,
+          "cross_domain_canonical_pct": 74.5,
+          "self_canonical_clones_30d": 87,
+          "seo_cannibalization_risk": "SREDNIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 180 oryginałów (powielonych 540 razy w sieci) przy imporcie 340 tekstów wspólnych. Poprawny canonical do źródła posiada 74.5% przedruków (87 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "gdansk.naszemiasto.pl",
+          "portal_name": "Gdańsk NaszeMiasto",
+          "region": "Pomorskie",
+          "role": "BIORCA_KLONOW",
+          "role_label": "Biorca gotowców (importer klonów)",
+          "exported_originals_30d": 165,
+          "generated_network_copies_30d": 490,
+          "imported_clones_30d": 330,
+          "export_to_import_ratio": 0.5,
+          "cross_domain_canonical_pct": 76.2,
+          "self_canonical_clones_30d": 79,
+          "seo_cannibalization_risk": "SREDNIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 165 oryginałów (powielonych 490 razy w sieci) przy imporcie 330 tekstów wspólnych. Poprawny canonical do źródła posiada 76.2% przedruków (79 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "bochnia.naszemiasto.pl",
+          "portal_name": "Bochnia NaszeMiasto",
+          "region": "Małopolskie",
+          "role": "BIORCA_KLONOW",
+          "role_label": "Biorca gotowców (importer klonów)",
+          "exported_originals_30d": 18,
+          "generated_network_copies_30d": 24,
+          "imported_clones_30d": 390,
+          "export_to_import_ratio": 0.05,
+          "cross_domain_canonical_pct": 41.2,
+          "self_canonical_clones_30d": 229,
+          "seo_cannibalization_risk": "WYSOKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 18 oryginałów (powielonych 24 razy w sieci) przy imporcie 390 tekstów wspólnych. Poprawny canonical do źródła posiada 41.2% przedruków (229 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "puck.naszemiasto.pl",
+          "portal_name": "Puck NaszeMiasto",
+          "region": "Pomorskie",
+          "role": "BIORCA_KLONOW",
+          "role_label": "Biorca gotowców (importer klonów)",
+          "exported_originals_30d": 12,
+          "generated_network_copies_30d": 18,
+          "imported_clones_30d": 380,
+          "export_to_import_ratio": 0.03,
+          "cross_domain_canonical_pct": 34.0,
+          "self_canonical_clones_30d": 251,
+          "seo_cannibalization_risk": "WYSOKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 12 oryginałów (powielonych 18 razy w sieci) przy imporcie 380 tekstów wspólnych. Poprawny canonical do źródła posiada 34.0% przedruków (251 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "choszczno.naszemiasto.pl",
+          "portal_name": "Choszczno NaszeMiasto",
+          "region": "Zachodniopomorskie",
+          "role": "BIORCA_KLONOW",
+          "role_label": "Biorca gotowców (importer klonów)",
+          "exported_originals_30d": 4,
+          "generated_network_copies_30d": 4,
+          "imported_clones_30d": 410,
+          "export_to_import_ratio": 0.01,
+          "cross_domain_canonical_pct": 22.5,
+          "self_canonical_clones_30d": 318,
+          "seo_cannibalization_risk": "WYSOKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 4 oryginałów (powielonych 4 razy w sieci) przy imporcie 410 tekstów wspólnych. Poprawny canonical do źródła posiada 22.5% przedruków (318 kopii kanibalizuje oryginał w Google)."
+        },
+        {
+          "domain": "lubaczow.naszemiasto.pl",
+          "portal_name": "Lubaczów NaszeMiasto",
+          "region": "Podkarpackie",
+          "role": "BIORCA_KLONOW",
+          "role_label": "Biorca gotowców (importer klonów)",
+          "exported_originals_30d": 6,
+          "generated_network_copies_30d": 8,
+          "imported_clones_30d": 395,
+          "export_to_import_ratio": 0.02,
+          "cross_domain_canonical_pct": 28.0,
+          "self_canonical_clones_30d": 284,
+          "seo_cannibalization_risk": "WYSOKIE",
+          "diagnosis": "Bilans 30d: wyeksportowano 6 oryginałów (powielonych 8 razy w sieci) przy imporcie 395 tekstów wspólnych. Poprawny canonical do źródła posiada 28.0% przedruków (284 kopii kanibalizuje oryginał w Google)."
+        }
+      ]
+    },
+    "regional_competitor_1to1_benchmarks": [
+      {
+        "region": "Małopolskie",
+        "city_hub": "Kraków",
+        "ppg_portal_name": "Gazeta Krakowska",
+        "ppg_domain": "gazetakrakowska.pl",
+        "competitor_name": "LoveKraków.pl",
+        "competitor_domain": "lovekrakow.pl",
+        "ppg_local_daily_volume": 78,
+        "competitor_local_daily_volume": 72,
+        "ppg_first_on_breaking_pct": 48.5,
+        "median_lag_minutes": 11,
+        "competitor_advantage_topics": [
+          "Władza i polityka (-2.6 pkt proc.)",
+          "Infrastruktura i transport (-9.1 pkt proc.)",
+          "Przestrzeń i mieszkanie (-7.4 pkt proc.)"
+        ],
+        "ppg_advantage_topics": [
+          "Bezpieczeństwo i zdarzenia (+8.0 pkt proc.)",
+          "Społeczność i ludzie (+8.1 pkt proc.)",
+          "Sport (+3.5 pkt proc.)"
+        ],
+        "domain_comparison": [
+          {
+            "domain_code": "01",
+            "domain_name": "Władza i polityka",
+            "ppg_daily_count": 11,
+            "competitor_daily_count": 12,
+            "ppg_share_pct": 14.1,
+            "competitor_share_pct": 16.7,
+            "delta_pp": -2.6
+          },
+          {
+            "domain_code": "02",
+            "domain_name": "Bezpieczeństwo i zdarzenia",
+            "ppg_daily_count": 16,
+            "competitor_daily_count": 9,
+            "ppg_share_pct": 20.5,
+            "competitor_share_pct": 12.5,
+            "delta_pp": 8.0
+          },
+          {
+            "domain_code": "04",
+            "domain_name": "Gospodarka i praca",
+            "ppg_daily_count": 6,
+            "competitor_daily_count": 5,
+            "ppg_share_pct": 7.7,
+            "competitor_share_pct": 6.9,
+            "delta_pp": 0.8
+          },
+          {
+            "domain_code": "05",
+            "domain_name": "Infrastruktura i transport",
+            "ppg_daily_count": 8,
+            "competitor_daily_count": 14,
+            "ppg_share_pct": 10.3,
+            "competitor_share_pct": 19.4,
+            "delta_pp": -9.1
+          },
+          {
+            "domain_code": "06",
+            "domain_name": "Przestrzeń i mieszkanie",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 9,
+            "ppg_share_pct": 5.1,
+            "competitor_share_pct": 12.5,
+            "delta_pp": -7.4
+          },
+          {
+            "domain_code": "07",
+            "domain_name": "Zdrowie",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 5.1,
+            "competitor_share_pct": 4.2,
+            "delta_pp": 0.9
+          },
+          {
+            "domain_code": "08",
+            "domain_name": "Edukacja i dzieci",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 5.1,
+            "competitor_share_pct": 4.2,
+            "delta_pp": 0.9
+          },
+          {
+            "domain_code": "10",
+            "domain_name": "Społeczność i ludzie",
+            "ppg_daily_count": 15,
+            "competitor_daily_count": 8,
+            "ppg_share_pct": 19.2,
+            "competitor_share_pct": 11.1,
+            "delta_pp": 8.1
+          },
+          {
+            "domain_code": "11",
+            "domain_name": "Kultura",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 6,
+            "ppg_share_pct": 5.1,
+            "competitor_share_pct": 8.3,
+            "delta_pp": -3.2
+          },
+          {
+            "domain_code": "14",
+            "domain_name": "Sport",
+            "ppg_daily_count": 6,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 7.7,
+            "competitor_share_pct": 4.2,
+            "delta_pp": 3.5
+          }
+        ],
+        "executive_verdict": "W aglomeracji Kraków Gazeta Krakowska publikuje 78 tekstów lokalnych dziennie wobec 72 u konkurenta (LoveKraków.pl). PPG podaje informację jako pierwsze w 48.5% zdarzeń (mediana różnicy: 11 min)."
+      },
+      {
+        "region": "Pomorskie",
+        "city_hub": "Trójmiasto (Gdańsk / Gdynia / Sopot)",
+        "ppg_portal_name": "Dziennik Bałtycki",
+        "ppg_domain": "dziennikbaltycki.pl",
+        "competitor_name": "Trojmiasto.pl",
+        "competitor_domain": "trojmiasto.pl",
+        "ppg_local_daily_volume": 78,
+        "competitor_local_daily_volume": 88,
+        "ppg_first_on_breaking_pct": 44.0,
+        "median_lag_minutes": 14,
+        "competitor_advantage_topics": [
+          "Infrastruktura i transport (-9.2 pkt proc.)",
+          "Przestrzeń i mieszkanie (-7.6 pkt proc.)",
+          "Kultura (-2.9 pkt proc.)"
+        ],
+        "ppg_advantage_topics": [
+          "Władza i polityka (+6.3 pkt proc.)",
+          "Bezpieczeństwo i zdarzenia (+3.3 pkt proc.)",
+          "Społeczność i ludzie (+8.0 pkt proc.)"
+        ],
+        "domain_comparison": [
+          {
+            "domain_code": "01",
+            "domain_name": "Władza i polityka",
+            "ppg_daily_count": 12,
+            "competitor_daily_count": 8,
+            "ppg_share_pct": 15.4,
+            "competitor_share_pct": 9.1,
+            "delta_pp": 6.3
+          },
+          {
+            "domain_code": "02",
+            "domain_name": "Bezpieczeństwo i zdarzenia",
+            "ppg_daily_count": 15,
+            "competitor_daily_count": 14,
+            "ppg_share_pct": 19.2,
+            "competitor_share_pct": 15.9,
+            "delta_pp": 3.3
+          },
+          {
+            "domain_code": "04",
+            "domain_name": "Gospodarka i praca",
+            "ppg_daily_count": 7,
+            "competitor_daily_count": 8,
+            "ppg_share_pct": 9.0,
+            "competitor_share_pct": 9.1,
+            "delta_pp": -0.1
+          },
+          {
+            "domain_code": "05",
+            "domain_name": "Infrastruktura i transport",
+            "ppg_daily_count": 7,
+            "competitor_daily_count": 16,
+            "ppg_share_pct": 9.0,
+            "competitor_share_pct": 18.2,
+            "delta_pp": -9.2
+          },
+          {
+            "domain_code": "06",
+            "domain_name": "Przestrzeń i mieszkanie",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 10,
+            "ppg_share_pct": 3.8,
+            "competitor_share_pct": 11.4,
+            "delta_pp": -7.6
+          },
+          {
+            "domain_code": "07",
+            "domain_name": "Zdrowie",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 5.1,
+            "competitor_share_pct": 3.4,
+            "delta_pp": 1.7
+          },
+          {
+            "domain_code": "08",
+            "domain_name": "Edukacja i dzieci",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 5.1,
+            "competitor_share_pct": 3.4,
+            "delta_pp": 1.7
+          },
+          {
+            "domain_code": "10",
+            "domain_name": "Społeczność i ludzie",
+            "ppg_daily_count": 16,
+            "competitor_daily_count": 11,
+            "ppg_share_pct": 20.5,
+            "competitor_share_pct": 12.5,
+            "delta_pp": 8.0
+          },
+          {
+            "domain_code": "11",
+            "domain_name": "Kultura",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 7,
+            "ppg_share_pct": 5.1,
+            "competitor_share_pct": 8.0,
+            "delta_pp": -2.9
+          },
+          {
+            "domain_code": "14",
+            "domain_name": "Sport",
+            "ppg_daily_count": 6,
+            "competitor_daily_count": 8,
+            "ppg_share_pct": 7.7,
+            "competitor_share_pct": 9.1,
+            "delta_pp": -1.4
+          }
+        ],
+        "executive_verdict": "W aglomeracji Trójmiasto (Gdańsk / Gdynia / Sopot) Dziennik Bałtycki publikuje 78 tekstów lokalnych dziennie wobec 88 u konkurenta (Trojmiasto.pl). PPG podaje informację jako pierwsze w 44.0% zdarzeń (mediana różnicy: 14 min)."
+      },
+      {
+        "region": "Wielkopolskie",
+        "city_hub": "Poznań",
+        "ppg_portal_name": "Głos Wielkopolski",
+        "ppg_domain": "gloswielkopolski.pl",
+        "competitor_name": "ePoznan.pl",
+        "competitor_domain": "epoznan.pl",
+        "ppg_local_daily_volume": 76,
+        "competitor_local_daily_volume": 72,
+        "ppg_first_on_breaking_pct": 38.2,
+        "median_lag_minutes": 19,
+        "competitor_advantage_topics": [
+          "Bezpieczeństwo i zdarzenia (-8.0 pkt proc.)",
+          "Infrastruktura i transport (-10.3 pkt proc.)",
+          "Przestrzeń i mieszkanie (-4.4 pkt proc.)"
+        ],
+        "ppg_advantage_topics": [
+          "Władza i polityka (+4.9 pkt proc.)",
+          "Gospodarka i praca (+3.6 pkt proc.)",
+          "Zdrowie (+2.5 pkt proc.)"
+        ],
+        "domain_comparison": [
+          {
+            "domain_code": "01",
+            "domain_name": "Władza i polityka",
+            "ppg_daily_count": 10,
+            "competitor_daily_count": 6,
+            "ppg_share_pct": 13.2,
+            "competitor_share_pct": 8.3,
+            "delta_pp": 4.9
+          },
+          {
+            "domain_code": "02",
+            "domain_name": "Bezpieczeństwo i zdarzenia",
+            "ppg_daily_count": 14,
+            "competitor_daily_count": 19,
+            "ppg_share_pct": 18.4,
+            "competitor_share_pct": 26.4,
+            "delta_pp": -8.0
+          },
+          {
+            "domain_code": "04",
+            "domain_name": "Gospodarka i praca",
+            "ppg_daily_count": 7,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 9.2,
+            "competitor_share_pct": 5.6,
+            "delta_pp": 3.6
+          },
+          {
+            "domain_code": "05",
+            "domain_name": "Infrastruktura i transport",
+            "ppg_daily_count": 8,
+            "competitor_daily_count": 15,
+            "ppg_share_pct": 10.5,
+            "competitor_share_pct": 20.8,
+            "delta_pp": -10.3
+          },
+          {
+            "domain_code": "06",
+            "domain_name": "Przestrzeń i mieszkanie",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 7,
+            "ppg_share_pct": 5.3,
+            "competitor_share_pct": 9.7,
+            "delta_pp": -4.4
+          },
+          {
+            "domain_code": "07",
+            "domain_name": "Zdrowie",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 2,
+            "ppg_share_pct": 5.3,
+            "competitor_share_pct": 2.8,
+            "delta_pp": 2.5
+          },
+          {
+            "domain_code": "08",
+            "domain_name": "Edukacja i dzieci",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 2,
+            "ppg_share_pct": 5.3,
+            "competitor_share_pct": 2.8,
+            "delta_pp": 2.5
+          },
+          {
+            "domain_code": "10",
+            "domain_name": "Społeczność i ludzie",
+            "ppg_daily_count": 14,
+            "competitor_daily_count": 9,
+            "ppg_share_pct": 18.4,
+            "competitor_share_pct": 12.5,
+            "delta_pp": 5.9
+          },
+          {
+            "domain_code": "11",
+            "domain_name": "Kultura",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 5.3,
+            "competitor_share_pct": 4.2,
+            "delta_pp": 1.1
+          },
+          {
+            "domain_code": "14",
+            "domain_name": "Sport",
+            "ppg_daily_count": 7,
+            "competitor_daily_count": 5,
+            "ppg_share_pct": 9.2,
+            "competitor_share_pct": 6.9,
+            "delta_pp": 2.3
+          }
+        ],
+        "executive_verdict": "W aglomeracji Poznań Głos Wielkopolski publikuje 76 tekstów lokalnych dziennie wobec 72 u konkurenta (ePoznan.pl). PPG podaje informację jako pierwsze w 38.2% zdarzeń (mediana różnicy: 19 min)."
+      },
+      {
+        "region": "Dolnośląskie",
+        "city_hub": "Wrocław",
+        "ppg_portal_name": "Gazeta Wrocławska",
+        "ppg_domain": "gazetawroclawska.pl",
+        "competitor_name": "TuWrocław.com",
+        "competitor_domain": "tuwroclaw.com",
+        "ppg_local_daily_volume": 76,
+        "competitor_local_daily_volume": 73,
+        "ppg_first_on_breaking_pct": 46.8,
+        "median_lag_minutes": 12,
+        "competitor_advantage_topics": [
+          "Infrastruktura i transport (-6.0 pkt proc.)",
+          "Przestrzeń i mieszkanie (-5.7 pkt proc.)"
+        ],
+        "ppg_advantage_topics": [
+          "Społeczność i ludzie (+4.7 pkt proc.)"
+        ],
+        "domain_comparison": [
+          {
+            "domain_code": "01",
+            "domain_name": "Władza i polityka",
+            "ppg_daily_count": 10,
+            "competitor_daily_count": 8,
+            "ppg_share_pct": 13.2,
+            "competitor_share_pct": 11.0,
+            "delta_pp": 2.2
+          },
+          {
+            "domain_code": "02",
+            "domain_name": "Bezpieczeństwo i zdarzenia",
+            "ppg_daily_count": 16,
+            "competitor_daily_count": 14,
+            "ppg_share_pct": 21.1,
+            "competitor_share_pct": 19.2,
+            "delta_pp": 1.9
+          },
+          {
+            "domain_code": "04",
+            "domain_name": "Gospodarka i praca",
+            "ppg_daily_count": 6,
+            "competitor_daily_count": 6,
+            "ppg_share_pct": 7.9,
+            "competitor_share_pct": 8.2,
+            "delta_pp": -0.3
+          },
+          {
+            "domain_code": "05",
+            "domain_name": "Infrastruktura i transport",
+            "ppg_daily_count": 9,
+            "competitor_daily_count": 13,
+            "ppg_share_pct": 11.8,
+            "competitor_share_pct": 17.8,
+            "delta_pp": -6.0
+          },
+          {
+            "domain_code": "06",
+            "domain_name": "Przestrzeń i mieszkanie",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 8,
+            "ppg_share_pct": 5.3,
+            "competitor_share_pct": 11.0,
+            "delta_pp": -5.7
+          },
+          {
+            "domain_code": "07",
+            "domain_name": "Zdrowie",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 5.3,
+            "competitor_share_pct": 4.1,
+            "delta_pp": 1.2
+          },
+          {
+            "domain_code": "08",
+            "domain_name": "Edukacja i dzieci",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 3.9,
+            "competitor_share_pct": 4.1,
+            "delta_pp": -0.2
+          },
+          {
+            "domain_code": "10",
+            "domain_name": "Społeczność i ludzie",
+            "ppg_daily_count": 14,
+            "competitor_daily_count": 10,
+            "ppg_share_pct": 18.4,
+            "competitor_share_pct": 13.7,
+            "delta_pp": 4.7
+          },
+          {
+            "domain_code": "11",
+            "domain_name": "Kultura",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 5.3,
+            "competitor_share_pct": 5.5,
+            "delta_pp": -0.2
+          },
+          {
+            "domain_code": "14",
+            "domain_name": "Sport",
+            "ppg_daily_count": 6,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 7.9,
+            "competitor_share_pct": 5.5,
+            "delta_pp": 2.4
+          }
+        ],
+        "executive_verdict": "W aglomeracji Wrocław Gazeta Wrocławska publikuje 76 tekstów lokalnych dziennie wobec 73 u konkurenta (TuWrocław.com). PPG podaje informację jako pierwsze w 46.8% zdarzeń (mediana różnicy: 12 min)."
+      },
+      {
+        "region": "Śląskie",
+        "city_hub": "Katowice / Aglomeracja Górnośląska",
+        "ppg_portal_name": "Dziennik Zachodni",
+        "ppg_domain": "dziennikzachodni.pl",
+        "competitor_name": "Ślązag.pl / Katowice24.info",
+        "competitor_domain": "slazag.pl",
+        "ppg_local_daily_volume": 96,
+        "competitor_local_daily_volume": 73,
+        "ppg_first_on_breaking_pct": 54.2,
+        "median_lag_minutes": 9,
+        "competitor_advantage_topics": [
+          "Infrastruktura i transport (-4.7 pkt proc.)",
+          "Przestrzeń i mieszkanie (-5.8 pkt proc.)",
+          "Kultura (-8.1 pkt proc.)"
+        ],
+        "ppg_advantage_topics": [
+          "Bezpieczeństwo i zdarzenia (+9.2 pkt proc.)",
+          "Społeczność i ludzie (+6.5 pkt proc.)",
+          "Sport (+2.8 pkt proc.)"
+        ],
+        "domain_comparison": [
+          {
+            "domain_code": "01",
+            "domain_name": "Władza i polityka",
+            "ppg_daily_count": 13,
+            "competitor_daily_count": 11,
+            "ppg_share_pct": 13.5,
+            "competitor_share_pct": 15.1,
+            "delta_pp": -1.6
+          },
+          {
+            "domain_code": "02",
+            "domain_name": "Bezpieczeństwo i zdarzenia",
+            "ppg_daily_count": 18,
+            "competitor_daily_count": 7,
+            "ppg_share_pct": 18.8,
+            "competitor_share_pct": 9.6,
+            "delta_pp": 9.2
+          },
+          {
+            "domain_code": "04",
+            "domain_name": "Gospodarka i praca",
+            "ppg_daily_count": 11,
+            "competitor_daily_count": 9,
+            "ppg_share_pct": 11.5,
+            "competitor_share_pct": 12.3,
+            "delta_pp": -0.8
+          },
+          {
+            "domain_code": "05",
+            "domain_name": "Infrastruktura i transport",
+            "ppg_daily_count": 10,
+            "competitor_daily_count": 11,
+            "ppg_share_pct": 10.4,
+            "competitor_share_pct": 15.1,
+            "delta_pp": -4.7
+          },
+          {
+            "domain_code": "06",
+            "domain_name": "Przestrzeń i mieszkanie",
+            "ppg_daily_count": 5,
+            "competitor_daily_count": 8,
+            "ppg_share_pct": 5.2,
+            "competitor_share_pct": 11.0,
+            "delta_pp": -5.8
+          },
+          {
+            "domain_code": "07",
+            "domain_name": "Zdrowie",
+            "ppg_daily_count": 5,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 5.2,
+            "competitor_share_pct": 4.1,
+            "delta_pp": 1.1
+          },
+          {
+            "domain_code": "08",
+            "domain_name": "Edukacja i dzieci",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 2,
+            "ppg_share_pct": 4.2,
+            "competitor_share_pct": 2.7,
+            "delta_pp": 1.5
+          },
+          {
+            "domain_code": "10",
+            "domain_name": "Społeczność i ludzie",
+            "ppg_daily_count": 18,
+            "competitor_daily_count": 9,
+            "ppg_share_pct": 18.8,
+            "competitor_share_pct": 12.3,
+            "delta_pp": 6.5
+          },
+          {
+            "domain_code": "11",
+            "domain_name": "Kultura",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 9,
+            "ppg_share_pct": 4.2,
+            "competitor_share_pct": 12.3,
+            "delta_pp": -8.1
+          },
+          {
+            "domain_code": "14",
+            "domain_name": "Sport",
+            "ppg_daily_count": 8,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 8.3,
+            "competitor_share_pct": 5.5,
+            "delta_pp": 2.8
+          }
+        ],
+        "executive_verdict": "W aglomeracji Katowice / Aglomeracja Górnośląska Dziennik Zachodni publikuje 96 tekstów lokalnych dziennie wobec 73 u konkurenta (Ślązag.pl / Katowice24.info). PPG podaje informację jako pierwsze w 54.2% zdarzeń (mediana różnicy: 9 min)."
+      },
+      {
+        "region": "Łódzkie",
+        "city_hub": "Łódź",
+        "ppg_portal_name": "Dziennik Łódzki",
+        "ppg_domain": "dzienniklodzki.pl",
+        "competitor_name": "TuŁódź.pl",
+        "competitor_domain": "tulodz.pl",
+        "ppg_local_daily_volume": 77,
+        "competitor_local_daily_volume": 62,
+        "ppg_first_on_breaking_pct": 53.4,
+        "median_lag_minutes": 9,
+        "competitor_advantage_topics": [
+          "Infrastruktura i transport (-8.0 pkt proc.)",
+          "Przestrzeń i mieszkanie (-4.8 pkt proc.)"
+        ],
+        "ppg_advantage_topics": [
+          "Społeczność i ludzie (+5.3 pkt proc.)"
+        ],
+        "domain_comparison": [
+          {
+            "domain_code": "01",
+            "domain_name": "Władza i polityka",
+            "ppg_daily_count": 10,
+            "competitor_daily_count": 7,
+            "ppg_share_pct": 13.0,
+            "competitor_share_pct": 11.3,
+            "delta_pp": 1.7
+          },
+          {
+            "domain_code": "02",
+            "domain_name": "Bezpieczeństwo i zdarzenia",
+            "ppg_daily_count": 15,
+            "competitor_daily_count": 11,
+            "ppg_share_pct": 19.5,
+            "competitor_share_pct": 17.7,
+            "delta_pp": 1.8
+          },
+          {
+            "domain_code": "04",
+            "domain_name": "Gospodarka i praca",
+            "ppg_daily_count": 6,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 7.8,
+            "competitor_share_pct": 6.5,
+            "delta_pp": 1.3
+          },
+          {
+            "domain_code": "05",
+            "domain_name": "Infrastruktura i transport",
+            "ppg_daily_count": 10,
+            "competitor_daily_count": 13,
+            "ppg_share_pct": 13.0,
+            "competitor_share_pct": 21.0,
+            "delta_pp": -8.0
+          },
+          {
+            "domain_code": "06",
+            "domain_name": "Przestrzeń i mieszkanie",
+            "ppg_daily_count": 5,
+            "competitor_daily_count": 7,
+            "ppg_share_pct": 6.5,
+            "competitor_share_pct": 11.3,
+            "delta_pp": -4.8
+          },
+          {
+            "domain_code": "07",
+            "domain_name": "Zdrowie",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 2,
+            "ppg_share_pct": 5.2,
+            "competitor_share_pct": 3.2,
+            "delta_pp": 2.0
+          },
+          {
+            "domain_code": "08",
+            "domain_name": "Edukacja i dzieci",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 2,
+            "ppg_share_pct": 3.9,
+            "competitor_share_pct": 3.2,
+            "delta_pp": 0.7
+          },
+          {
+            "domain_code": "10",
+            "domain_name": "Społeczność i ludzie",
+            "ppg_daily_count": 14,
+            "competitor_daily_count": 8,
+            "ppg_share_pct": 18.2,
+            "competitor_share_pct": 12.9,
+            "delta_pp": 5.3
+          },
+          {
+            "domain_code": "11",
+            "domain_name": "Kultura",
+            "ppg_daily_count": 4,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 5.2,
+            "competitor_share_pct": 6.5,
+            "delta_pp": -1.3
+          },
+          {
+            "domain_code": "14",
+            "domain_name": "Sport",
+            "ppg_daily_count": 6,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 7.8,
+            "competitor_share_pct": 6.5,
+            "delta_pp": 1.3
+          }
+        ],
+        "executive_verdict": "W aglomeracji Łódź Dziennik Łódzki publikuje 77 tekstów lokalnych dziennie wobec 62 u konkurenta (TuŁódź.pl). PPG podaje informację jako pierwsze w 53.4% zdarzeń (mediana różnicy: 9 min)."
+      },
+      {
+        "region": "Lubelskie",
+        "city_hub": "Lublin",
+        "ppg_portal_name": "Kurier Lubelski",
+        "ppg_domain": "kurierlubelski.pl",
+        "competitor_name": "DziennikWschodni.pl",
+        "competitor_domain": "dziennikwschodni.pl",
+        "ppg_local_daily_volume": 62,
+        "competitor_local_daily_volume": 75,
+        "ppg_first_on_breaking_pct": 41.0,
+        "median_lag_minutes": 18,
+        "competitor_advantage_topics": [
+          "Infrastruktura i transport (-5.0 pkt proc.)",
+          "Przestrzeń i mieszkanie (-3.2 pkt proc.)"
+        ],
+        "ppg_advantage_topics": [
+          "Społeczność i ludzie (+5.0 pkt proc.)"
+        ],
+        "domain_comparison": [
+          {
+            "domain_code": "01",
+            "domain_name": "Władza i polityka",
+            "ppg_daily_count": 8,
+            "competitor_daily_count": 10,
+            "ppg_share_pct": 12.9,
+            "competitor_share_pct": 13.3,
+            "delta_pp": -0.4
+          },
+          {
+            "domain_code": "02",
+            "domain_name": "Bezpieczeństwo i zdarzenia",
+            "ppg_daily_count": 13,
+            "competitor_daily_count": 14,
+            "ppg_share_pct": 21.0,
+            "competitor_share_pct": 18.7,
+            "delta_pp": 2.3
+          },
+          {
+            "domain_code": "04",
+            "domain_name": "Gospodarka i praca",
+            "ppg_daily_count": 5,
+            "competitor_daily_count": 7,
+            "ppg_share_pct": 8.1,
+            "competitor_share_pct": 9.3,
+            "delta_pp": -1.2
+          },
+          {
+            "domain_code": "05",
+            "domain_name": "Infrastruktura i transport",
+            "ppg_daily_count": 6,
+            "competitor_daily_count": 11,
+            "ppg_share_pct": 9.7,
+            "competitor_share_pct": 14.7,
+            "delta_pp": -5.0
+          },
+          {
+            "domain_code": "06",
+            "domain_name": "Przestrzeń i mieszkanie",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 6,
+            "ppg_share_pct": 4.8,
+            "competitor_share_pct": 8.0,
+            "delta_pp": -3.2
+          },
+          {
+            "domain_code": "07",
+            "domain_name": "Zdrowie",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 4.8,
+            "competitor_share_pct": 5.3,
+            "delta_pp": -0.5
+          },
+          {
+            "domain_code": "08",
+            "domain_name": "Edukacja i dzieci",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 4.8,
+            "competitor_share_pct": 4.0,
+            "delta_pp": 0.8
+          },
+          {
+            "domain_code": "10",
+            "domain_name": "Społeczność i ludzie",
+            "ppg_daily_count": 13,
+            "competitor_daily_count": 12,
+            "ppg_share_pct": 21.0,
+            "competitor_share_pct": 16.0,
+            "delta_pp": 5.0
+          },
+          {
+            "domain_code": "11",
+            "domain_name": "Kultura",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 4.8,
+            "competitor_share_pct": 4.0,
+            "delta_pp": 0.8
+          },
+          {
+            "domain_code": "14",
+            "domain_name": "Sport",
+            "ppg_daily_count": 5,
+            "competitor_daily_count": 5,
+            "ppg_share_pct": 8.1,
+            "competitor_share_pct": 6.7,
+            "delta_pp": 1.4
+          }
+        ],
+        "executive_verdict": "W aglomeracji Lublin Kurier Lubelski publikuje 62 tekstów lokalnych dziennie wobec 75 u konkurenta (DziennikWschodni.pl). PPG podaje informację jako pierwsze w 41.0% zdarzeń (mediana różnicy: 18 min)."
+      },
+      {
+        "region": "Zachodniopomorskie",
+        "city_hub": "Szczecin",
+        "ppg_portal_name": "Głos Szczeciński",
+        "ppg_domain": "gs24.pl",
+        "competitor_name": "wSzczecinie.pl / 24Kurier.pl",
+        "competitor_domain": "wszczecinie.pl",
+        "ppg_local_daily_volume": 60,
+        "competitor_local_daily_volume": 67,
+        "ppg_first_on_breaking_pct": 39.5,
+        "median_lag_minutes": 21,
+        "competitor_advantage_topics": [
+          "Infrastruktura i transport (-7.9 pkt proc.)",
+          "Przestrzeń i mieszkanie (-5.4 pkt proc.)"
+        ],
+        "ppg_advantage_topics": [
+          "Bezpieczeństwo i zdarzenia (+5.3 pkt proc.)",
+          "Społeczność i ludzie (+6.6 pkt proc.)"
+        ],
+        "domain_comparison": [
+          {
+            "domain_code": "01",
+            "domain_name": "Władza i polityka",
+            "ppg_daily_count": 7,
+            "competitor_daily_count": 9,
+            "ppg_share_pct": 11.7,
+            "competitor_share_pct": 13.4,
+            "delta_pp": -1.7
+          },
+          {
+            "domain_code": "02",
+            "domain_name": "Bezpieczeństwo i zdarzenia",
+            "ppg_daily_count": 13,
+            "competitor_daily_count": 11,
+            "ppg_share_pct": 21.7,
+            "competitor_share_pct": 16.4,
+            "delta_pp": 5.3
+          },
+          {
+            "domain_code": "04",
+            "domain_name": "Gospodarka i praca",
+            "ppg_daily_count": 5,
+            "competitor_daily_count": 6,
+            "ppg_share_pct": 8.3,
+            "competitor_share_pct": 9.0,
+            "delta_pp": -0.7
+          },
+          {
+            "domain_code": "05",
+            "domain_name": "Infrastruktura i transport",
+            "ppg_daily_count": 6,
+            "competitor_daily_count": 12,
+            "ppg_share_pct": 10.0,
+            "competitor_share_pct": 17.9,
+            "delta_pp": -7.9
+          },
+          {
+            "domain_code": "06",
+            "domain_name": "Przestrzeń i mieszkanie",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 7,
+            "ppg_share_pct": 5.0,
+            "competitor_share_pct": 10.4,
+            "delta_pp": -5.4
+          },
+          {
+            "domain_code": "07",
+            "domain_name": "Zdrowie",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 3,
+            "ppg_share_pct": 5.0,
+            "competitor_share_pct": 4.5,
+            "delta_pp": 0.5
+          },
+          {
+            "domain_code": "08",
+            "domain_name": "Edukacja i dzieci",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 2,
+            "ppg_share_pct": 5.0,
+            "competitor_share_pct": 3.0,
+            "delta_pp": 2.0
+          },
+          {
+            "domain_code": "10",
+            "domain_name": "Społeczność i ludzie",
+            "ppg_daily_count": 12,
+            "competitor_daily_count": 9,
+            "ppg_share_pct": 20.0,
+            "competitor_share_pct": 13.4,
+            "delta_pp": 6.6
+          },
+          {
+            "domain_code": "11",
+            "domain_name": "Kultura",
+            "ppg_daily_count": 3,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 5.0,
+            "competitor_share_pct": 6.0,
+            "delta_pp": -1.0
+          },
+          {
+            "domain_code": "14",
+            "domain_name": "Sport",
+            "ppg_daily_count": 5,
+            "competitor_daily_count": 4,
+            "ppg_share_pct": 8.3,
+            "competitor_share_pct": 6.0,
+            "delta_pp": 2.3
+          }
+        ],
+        "executive_verdict": "W aglomeracji Szczecin Głos Szczeciński publikuje 60 tekstów lokalnych dziennie wobec 67 u konkurenta (wSzczecinie.pl / 24Kurier.pl). PPG podaje informację jako pierwsze w 39.5% zdarzeń (mediana różnicy: 21 min)."
+      }
+    ],
+    "executive_morning_briefing": {
+      "generated_at": "2026-10-18T07:30:00+02:00",
+      "briefing_edition": "Poranny Briefing Zarządu i Redaktorów Naczelnych (07:30 Europe/Warsaw)",
+      "network_24h_summary": {
+        "total_articles_24h": 10800,
+        "unique_articles_24h": 4120,
+        "local_and_localized_share_pct": 57.6,
+        "active_unique_portals_count": 113,
+        "frozen_frontpages_count": 4,
+        "critical_anomalies_count": 6
+      },
+      "top5_locality_dailies": [
+        {
+          "rank": 1,
+          "portal": "Dziennik Zachodni",
+          "domain": "dziennikzachodni.pl",
+          "region": "Śląskie",
+          "local_l_cl_pct": 66.8,
+          "pure_local_l_pct": 43.2,
+          "hero_dwell_h": 2.4
+        },
+        {
+          "rank": 2,
+          "portal": "Gazeta Krakowska",
+          "domain": "gazetakrakowska.pl",
+          "region": "Małopolskie",
+          "local_l_cl_pct": 65.4,
+          "pure_local_l_pct": 42.1,
+          "hero_dwell_h": 2.1
+        },
+        {
+          "rank": 3,
+          "portal": "Dziennik Bałtycki",
+          "domain": "dziennikbaltycki.pl",
+          "region": "Pomorskie",
+          "local_l_cl_pct": 64.1,
+          "pure_local_l_pct": 40.8,
+          "hero_dwell_h": 2.8
+        },
+        {
+          "rank": 4,
+          "portal": "Dziennik Łódzki",
+          "domain": "dzienniklodzki.pl",
+          "region": "Łódzkie",
+          "local_l_cl_pct": 63.2,
+          "pure_local_l_pct": 39.9,
+          "hero_dwell_h": 2.2
+        },
+        {
+          "rank": 5,
+          "portal": "Gazeta Wrocławska",
+          "domain": "gazetawroclawska.pl",
+          "region": "Dolnośląskie",
+          "local_l_cl_pct": 62.5,
+          "pure_local_l_pct": 39.4,
+          "hero_dwell_h": 2.5
+        }
+      ],
+      "bottom5_locality_dailies": [
+        {
+          "rank": 20,
+          "portal": "Głos Koszaliński",
+          "domain": "gk24.pl",
+          "region": "Zachodniopomorskie",
+          "local_l_cl_pct": 41.2,
+          "pure_local_l_pct": 22.8,
+          "hero_dwell_h": 7.8
+        },
+        {
+          "rank": 19,
+          "portal": "Gazeta Współczesna",
+          "domain": "wspolczesna.pl",
+          "region": "Podlaskie",
+          "local_l_cl_pct": 42.6,
+          "pure_local_l_pct": 24.1,
+          "hero_dwell_h": 7.6
+        },
+        {
+          "rank": 18,
+          "portal": "Nowa Trybuna Opolska",
+          "domain": "nto.pl",
+          "region": "Opolskie",
+          "local_l_cl_pct": 43.8,
+          "pure_local_l_pct": 25.0,
+          "hero_dwell_h": 8.1
+        },
+        {
+          "rank": 17,
+          "portal": "Głos Pomorza",
+          "domain": "gp24.pl",
+          "region": "Pomorskie",
+          "local_l_cl_pct": 44.5,
+          "pure_local_l_pct": 25.9,
+          "hero_dwell_h": 6.2
+        },
+        {
+          "rank": 16,
+          "portal": "Nowości Dziennik Toruński",
+          "domain": "nowosci.com.pl",
+          "region": "Kujawsko-Pomorskie",
+          "local_l_cl_pct": 46.1,
+          "pure_local_l_pct": 27.4,
+          "hero_dwell_h": 5.8
+        }
+      ],
+      "active_anomalies": [
+        {
+          "id": "anom-01",
+          "severity": "CRITICAL",
+          "category": "ZASTYGŁA JEDYNKA",
+          "target": "Nowa Trybuna Opolska (nto.pl) & Głos Koszaliński (gk24.pl)",
+          "metric": "Czas życia Hero > 7,5h (nocny przestój > 9,5h)",
+          "action_required": "Wprowadzić obowiązkowy wieczorny przegląd czołówki o 20:30 lub dyżur łączony z hubem sąsiedniego województwa."
+        },
+        {
+          "id": "anom-02",
+          "severity": "CRITICAL",
+          "category": "KANIBALIZACJA SEO",
+          "target": "312 subdomen powiatowych NaszeMiasto",
+          "metric": "41 684 przedruków z tagiem self-canonical zamiast do dziennika macierzystego",
+          "action_required": "Wymusić w szablonie CMS automatyczne ustawianie rel=\"canonical\" na domenę dziennika pierwotnego przy użyciu funkcji 'Kopiuj na inne serwisy'."
+        },
+        {
+          "id": "anom-03",
+          "severity": "WARNING",
+          "category": "LUKA KONKURENCYJNA",
+          "target": "Głos Wielkopolski (Poznań) vs ePoznan.pl",
+          "metric": "Strata -7,4 pkt proc. w dziedzinie 05 Infrastruktura i transport oraz opóźnienie medianowe 19 min",
+          "action_required": "Przesunąć jednego reportera porannego na bezpośredni monitoring MPK Poznań, ZDM i utrudnień drogowych w godzinach 06:30–09:30."
+        },
+        {
+          "id": "anom-04",
+          "severity": "WARNING",
+          "category": "PUSTYNIA POWIATOWA 24H",
+          "target": "84 powiaty TERYT (m.in. choszczeński, lubaczowski, gołdapski, węgorzewski)",
+          "metric": "0 własnych artykułów reporterskich z cytowaniem lokalnych instytucji w ostatnich 24h",
+          "action_required": "Zredukować puste wrzutki cronowe IMGW/ZUS i przypisać powiaty graniczące do mobilnych reporterów subregionalnych."
+        },
+        {
+          "id": "anom-05",
+          "severity": "WARNING",
+          "category": "ODCHYLENIE TONU POLITYCZNEGO",
+          "target": "Dziennik Polski / Podkarpacie (nowiny24.pl)",
+          "metric": "Udział tekstów jednostronnie komunikacyjnych lub nacechowanych poza pasmem 55-70% neutralności",
+          "action_required": "Weryfikacja przestrzegania zasady dwugłosu (władza vs opozycja/ekspert) w materiałach z dziedziny 01 Władza i polityka."
+        }
+      ],
+      "kpi_scorecard": [
+        {
+          "portal": "Gazeta Krakowska",
+          "domain": "gazetakrakowska.pl",
+          "region": "Małopolskie",
+          "local_l_cl_pct": 65.4,
+          "clones_pct": 38.2,
+          "hero_dwell_h": 2.7,
+          "canonical_ok_pct": 92.0,
+          "sla_status": "W_NORMIE"
+        },
+        {
+          "portal": "Dziennik Zachodni",
+          "domain": "dziennikzachodni.pl",
+          "region": "Śląskie",
+          "local_l_cl_pct": 66.8,
+          "clones_pct": 36.5,
+          "hero_dwell_h": 2.9,
+          "canonical_ok_pct": 89.5,
+          "sla_status": "W_NORMIE"
+        },
+        {
+          "portal": "Dziennik Bałtycki",
+          "domain": "dziennikbaltycki.pl",
+          "region": "Pomorskie",
+          "local_l_cl_pct": 64.1,
+          "clones_pct": 39.1,
+          "hero_dwell_h": 3.1,
+          "canonical_ok_pct": 91.5,
+          "sla_status": "W_NORMIE"
+        },
+        {
+          "portal": "Gazeta Wrocławska",
+          "domain": "gazetawroclawska.pl",
+          "region": "Dolnośląskie",
+          "local_l_cl_pct": 62.5,
+          "clones_pct": 38.8,
+          "hero_dwell_h": 2.8,
+          "canonical_ok_pct": 90.1,
+          "sla_status": "W_NORMIE"
+        },
+        {
+          "portal": "Głos Wielkopolski",
+          "domain": "gloswielkopolski.pl",
+          "region": "Wielkopolskie",
+          "local_l_cl_pct": 61.4,
+          "clones_pct": 40.2,
+          "hero_dwell_h": 3.4,
+          "canonical_ok_pct": 88.4,
+          "sla_status": "W_NORMIE"
+        },
+        {
+          "portal": "Dziennik Łódzki",
+          "domain": "dzienniklodzki.pl",
+          "region": "Łódzkie",
+          "local_l_cl_pct": 63.2,
+          "clones_pct": 39.5,
+          "hero_dwell_h": 2.6,
+          "canonical_ok_pct": 87.6,
+          "sla_status": "W_NORMIE"
+        },
+        {
+          "portal": "Gazeta Pomorska",
+          "domain": "pomorska.pl",
+          "region": "Kujawsko-Pomorskie",
+          "local_l_cl_pct": 58.9,
+          "clones_pct": 41.8,
+          "hero_dwell_h": 3.6,
+          "canonical_ok_pct": 86.2,
+          "sla_status": "W_NORMIE"
+        },
+        {
+          "portal": "Echo Dnia",
+          "domain": "echodnia.eu",
+          "region": "Świętokrzyskie",
+          "local_l_cl_pct": 56.4,
+          "clones_pct": 43.5,
+          "hero_dwell_h": 3.8,
+          "canonical_ok_pct": 84.0,
+          "sla_status": "OSTRZEZENIE"
+        },
+        {
+          "portal": "Nowiny24",
+          "domain": "nowiny24.pl",
+          "region": "Podkarpackie",
+          "local_l_cl_pct": 54.8,
+          "clones_pct": 44.9,
+          "hero_dwell_h": 3.9,
+          "canonical_ok_pct": 81.2,
+          "sla_status": "OSTRZEZENIE"
+        },
+        {
+          "portal": "Kurier Lubelski",
+          "domain": "kurierlubelski.pl",
+          "region": "Lubelskie",
+          "local_l_cl_pct": 53.2,
+          "clones_pct": 46.1,
+          "hero_dwell_h": 4.2,
+          "canonical_ok_pct": 79.4,
+          "sla_status": "OSTRZEZENIE"
+        },
+        {
+          "portal": "Głos Szczeciński",
+          "domain": "gs24.pl",
+          "region": "Zachodniopomorskie",
+          "local_l_cl_pct": 51.0,
+          "clones_pct": 47.8,
+          "hero_dwell_h": 4.3,
+          "canonical_ok_pct": 76.8,
+          "sla_status": "OSTRZEZENIE"
+        },
+        {
+          "portal": "Kurier Poranny",
+          "domain": "poranny.pl",
+          "region": "Podlaskie",
+          "local_l_cl_pct": 50.4,
+          "clones_pct": 48.2,
+          "hero_dwell_h": 4.1,
+          "canonical_ok_pct": 77.5,
+          "sla_status": "OSTRZEZENIE"
+        },
+        {
+          "portal": "Gazeta Lubuska",
+          "domain": "gazetalubuska.pl",
+          "region": "Lubuskie",
+          "local_l_cl_pct": 49.2,
+          "clones_pct": 49.0,
+          "hero_dwell_h": 4.4,
+          "canonical_ok_pct": 75.2,
+          "sla_status": "OSTRZEZENIE"
+        },
+        {
+          "portal": "Nowości Dziennik Toruński",
+          "domain": "nowosci.com.pl",
+          "region": "Kujawsko-Pomorskie",
+          "local_l_cl_pct": 46.1,
+          "clones_pct": 52.4,
+          "hero_dwell_h": 4.7,
+          "canonical_ok_pct": 71.0,
+          "sla_status": "NARUSZENIE_SLA"
+        },
+        {
+          "portal": "Głos Pomorza",
+          "domain": "gp24.pl",
+          "region": "Pomorskie",
+          "local_l_cl_pct": 44.5,
+          "clones_pct": 54.1,
+          "hero_dwell_h": 4.8,
+          "canonical_ok_pct": 69.8,
+          "sla_status": "NARUSZENIE_SLA"
+        },
+        {
+          "portal": "Nowa Trybuna Opolska",
+          "domain": "nto.pl",
+          "region": "Opolskie",
+          "local_l_cl_pct": 43.8,
+          "clones_pct": 55.6,
+          "hero_dwell_h": 5.2,
+          "canonical_ok_pct": 68.5,
+          "sla_status": "NARUSZENIE_SLA"
+        },
+        {
+          "portal": "Gazeta Współczesna",
+          "domain": "wspolczesna.pl",
+          "region": "Podlaskie",
+          "local_l_cl_pct": 42.6,
+          "clones_pct": 57.2,
+          "hero_dwell_h": 5.6,
+          "canonical_ok_pct": 64.8,
+          "sla_status": "NARUSZENIE_SLA"
+        },
+        {
+          "portal": "Głos Koszaliński",
+          "domain": "gk24.pl",
+          "region": "Zachodniopomorskie",
+          "local_l_cl_pct": 41.2,
+          "clones_pct": 58.9,
+          "hero_dwell_h": 5.4,
+          "canonical_ok_pct": 62.4,
+          "sla_status": "NARUSZENIE_SLA"
+        }
+      ]
     }
   }
 }
