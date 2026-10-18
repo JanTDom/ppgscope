@@ -723,20 +723,21 @@ def generate():
 
             t_type = t.get("type", "").lower()
             t_region = t.get("region", "Ogólnopolski")
-            if "i.pl" in dom:
+            j_norm = (_domain_jitter(dom) + 1.0) / 2.0  # [0.0, 1.0]
+            if dom == "i.pl":
                 cadence = 185
                 is_nat = True
                 is_hyp = False
             elif "dziennik" in t_type or "regionalny" in t_type:
-                cadence = 75
+                cadence = round(64 + j_norm * 24)
                 is_nat = False
                 is_hyp = False
             elif "naszemiasto" in t_type or "lokalny" in t_type or "naszemiasto" in dom:
-                cadence = 16
+                cadence = round(11 + j_norm * 12)
                 is_nat = False
                 is_hyp = True
             else:
-                cadence = 45
+                cadence = round(36 + j_norm * 22)
                 is_nat = False
                 is_hyp = False
 
