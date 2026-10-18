@@ -588,6 +588,18 @@ def generate():
         }
     ]
 
+    # Build 546-portal Vitality & Uniqueness Audit and 6 Editorial Intelligence Modules
+    import sys
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    from scripts.editorial_intelligence_builder import (
+        build_portal_vitality_audit,
+        build_editorial_intelligence_suite,
+    )
+
+    portal_vitality_audit = build_portal_vitality_audit(titles)
+    editorial_intelligence_suite = build_editorial_intelligence_suite()
+
     # Embed into data/dashboard.json and web/public/data/dashboard.json
     dash_path = repo_root / "data" / "dashboard.json"
     web_dash_path = repo_root / "web" / "public" / "data" / "dashboard.json"
@@ -598,6 +610,8 @@ def generate():
     data["server_aggregates"] = server_aggregates
     data["full_scale_volumes"] = GLOBAL_VOLUMES
     data["sample_ko_articles"] = SAMPLE_KO_ARTICLES
+    data["portal_vitality_audit"] = portal_vitality_audit
+    data["editorial_intelligence"] = editorial_intelligence_suite
 
     with open(dash_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -605,11 +619,11 @@ def generate():
     with open(web_dash_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print("Successfully built and saved full-scale server aggregates!")
+    print("Successfully built and saved full-scale server aggregates + vitality audit + editorial intelligence suite!")
     print(f"Global 'all' volume: {server_aggregates['all']['global']['totalCount']:,} articles across 546 portals")
-    print(f"Global '30d' volume: {server_aggregates['30d']['global']['totalCount']:,} articles")
-    print(f"Sample Gazeta Krakowska 'all': {server_aggregates['all']['per_medium']['gazetakrakowska.pl']['totalCount']:,} articles")
+    print(f"Audited portals for vitality & uniqueness: {portal_vitality_audit['total_portals_audited']}")
 
 
 if __name__ == "__main__":
     generate()
+

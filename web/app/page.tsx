@@ -201,6 +201,213 @@ interface DailyTimeseriesItem {
   prawo: number;
 }
 
+interface PortalVitalityItem {
+  domain: string;
+  portal_name: string;
+  region: string;
+  portal_type: string;
+  http_status: number;
+  vitality_status: "AKTYWNY_UNIKALNY" | "AKTYWNY_SYNDYKAT" | "LEDWO_ZYWY" | "ZOMBIE_AUTOMAT" | "MARTWY";
+  vitality_label: string;
+  vitality_score: number;
+  daily_articles_count: number;
+  unique_articles_count: number;
+  uniqueness_pct: number;
+  syndicated_clones_pct: number;
+  hours_since_last_pub: number;
+  named_authors_count: number;
+  cron_scheduled_pct: number;
+  diagnosis: string;
+}
+
+interface VitalityStatusBucket {
+  count: number;
+  pct: number;
+  label: string;
+  criteria: string;
+}
+
+interface PortalVitalityAuditData {
+  methodology: string;
+  total_portals_audited: number;
+  network_daily_articles: number;
+  network_unique_daily_articles: number;
+  network_avg_uniqueness_pct: number;
+  status_breakdown: Record<string, VitalityStatusBucket>;
+  portals: PortalVitalityItem[];
+}
+
+interface EditorialIntelligenceData {
+  homepage_radar: {
+    captured_at: string;
+    portals_monitored: number;
+    avg_hero_dwell_hours: number;
+    breaking_badges_active: number;
+    paywalled_above_fold_pct: number;
+    sponsored_above_fold_pct: number;
+    agenda_gap: {
+      domain_code: string;
+      domain_name: string;
+      sitemap_share_pct: number;
+      homepage_hero_share_pct: number;
+      gap_pp: number;
+      interpretation: string;
+    }[];
+    live_frontpage_leads: {
+      portal: string;
+      domain: string;
+      hero_title: string;
+      dwell_hours: number;
+      badge: string;
+      is_paywalled: boolean;
+      topic: string;
+    }[];
+  };
+  version_tracker: {
+    monitored_30d_articles: number;
+    headline_mutations_count: number;
+    headline_mutations_pct: number;
+    silent_body_edits_count: number;
+    silent_body_edits_pct: number;
+    delayed_paywall_locks_count: number;
+    delayed_paywall_locks_pct: number;
+    tombstone_deleted_count: number;
+    tombstone_deleted_pct: number;
+    recent_diffs: {
+      id: string;
+      change_type: string;
+      change_label: string;
+      portal: string;
+      domain: string;
+      detected_after_minutes: number;
+      old_title: string;
+      new_title: string | null;
+      body_delta_chars: number;
+      http_status: number;
+      editorial_note: string;
+    }[];
+  };
+  monetization_and_discover: {
+    paywall_strefa_plus: {
+      network_share_pct: number;
+      regional_dailies_share_pct: number;
+      naszemiasto_share_pct: number;
+      top_paywalled_domains: { domain_name: string; locked_pct: number }[];
+    };
+    sponsored_and_commercial: {
+      network_share_pct: number;
+      rel_sponsored_links_30d: number;
+      partner_labeled_articles_30d: number;
+      top_commercial_sectors: { sector: string; share_pct: number }[];
+    };
+    discover_seo_evergreen: {
+      network_share_pct: number;
+      estimated_30d_volume: number;
+      top_templates: { pattern: string; articles_30d: number; syndication_factor: string }[];
+    };
+  };
+  teryt_deserts: {
+    total_counties_poland: number;
+    full_coverage_counties: number;
+    full_coverage_pct: number;
+    weak_coverage_counties: number;
+    weak_coverage_pct: number;
+    information_deserts_counties: number;
+    information_deserts_pct: number;
+    local_institution_quote_rate_pct: number;
+    voivodeship_desert_ranking: {
+      voivodeship: string;
+      total_counties: number;
+      desert_counties: number;
+      desert_pct: number;
+      avg_local_quotes_per_day: number;
+    }[];
+    sample_county_audits: {
+      teryt: string;
+      county: string;
+      portal: string;
+      status: string;
+      unique_local_30d: number;
+      institutions_quoted_30d: number;
+      note: string;
+    }[];
+  };
+  external_echo: {
+    speed_to_publish_benchmarks: {
+      region: string;
+      ppg_title: string;
+      competitor: string;
+      median_lag_minutes: number;
+      ppg_first_pct: number;
+      verdict: string;
+    }[];
+    google_trends_capture_rate_pct: number;
+    median_trends_reaction_minutes: number;
+    connectors_roadmap: {
+      id: string;
+      name: string;
+      tier: string;
+      status: string;
+      proof_type: string;
+      current_capabilities: string;
+      upgrade_target: string;
+    }[];
+  };
+  newsroom_pulse: {
+    total_named_journalists_network: number;
+    central_hub_authors_count: number;
+    local_beat_reporters_count: number;
+    avg_top3_authors_concentration_pct: number;
+    network_cron_scheduled_pct: number;
+    weekend_drop_pct: number;
+    hub_authors_leaderboard: {
+      name: string;
+      role: string;
+      articles_30d: number;
+      syndicated_copies_30d: number;
+      portals_reached: number;
+    }[];
+    hourly_rhythm: {
+      hour: string;
+      human_pct: number;
+      cron_pct: number;
+      volume_index: number;
+    }[];
+  };
+}
+
+interface LiveVitalityProbeResult {
+  ok: boolean;
+  domain: string;
+  probed_at: string;
+  source_used?: string;
+  http_status: number;
+  latency_ms: number;
+  vitality_status: string;
+  vitality_label: string;
+  vitality_score: number;
+  feed_items_count: number;
+  unique_local_count: number;
+  uniqueness_pct: number;
+  syndicated_clones_pct: number;
+  discover_bait_pct: number;
+  cron_scheduled_pct: number;
+  hours_since_last_pub: number;
+  homepage_lead_title: string | null;
+  homepage_paywall_markers: number;
+  homepage_sponsored_markers: number;
+  diagnosis: string;
+  sample_titles: {
+    title: string;
+    link: string;
+    pubDate: string;
+    isUniqueLocal: boolean;
+    isDiscoverBait: boolean;
+    isCronMinute: boolean;
+  }[];
+  error?: string;
+}
+
 interface DashboardPayload {
   generated_at: string;
   methodology: string;
@@ -232,7 +439,10 @@ interface DashboardPayload {
   daily_timeseries?: DailyTimeseriesItem[];
   server_aggregates?: Record<string, { global: DomainBreakdownResult; per_medium: Record<string, DomainBreakdownResult> }>;
   sample_ko_articles?: SampleKOArticle[];
+  portal_vitality_audit?: PortalVitalityAuditData;
+  editorial_intelligence?: EditorialIntelligenceData;
 }
+
 
 // 18 Domains Specification
 const DOMAINS_SPEC: DomainItem[] = [
@@ -382,8 +592,22 @@ export default function PPGscopeApp() {
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "domain_stats" | "charts" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology" | "ko_sentiment"
+    "overview" | "domain_stats" | "vitality_audit" | "charts" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology" | "ko_sentiment"
   >("domain_stats");
+
+  // Portal Vitality & Uniqueness Audit States
+  const [vitalityStatusFilter, setVitalityStatusFilter] = useState<string>("ALL");
+  const [vitalityRegionFilter, setVitalityRegionFilter] = useState<string>("ALL");
+  const [vitalitySortBy, setVitalitySortBy] = useState<"score" | "uniqueness" | "unique_daily" | "hours">("score");
+  const [vitalitySearchQuery, setVitalitySearchQuery] = useState<string>("");
+  const [probeDomainInput, setProbeDomainInput] = useState<string>("gazetakrakowska.pl");
+  const [isProbingVitality, setIsProbingVitality] = useState<boolean>(false);
+  const [liveProbeResult, setLiveProbeResult] = useState<LiveVitalityProbeResult | null>(null);
+
+  // Operational Intelligence Sub-Module Switcher
+  const [intelSubTab, setIntelSubTab] = useState<
+    "homepage_radar" | "version_tracker" | "monetization" | "teryt_deserts" | "external_echo" | "newsroom_pulse" | "wire_cascades"
+  >("homepage_radar");
 
   // KO Political Sentiment States
   const [selectedKOSentimentFilter, setSelectedKOSentimentFilter] = useState<"all" | "positive" | "neutral" | "negative">("all");
@@ -399,7 +623,7 @@ export default function PPGscopeApp() {
 
   // Single Medium Selector (All 546 or specific medium)
   const [selectedMediumDomain, setSelectedMediumDomain] = useState<string>("ALL");
-  const [mediumSearchQuery, setMediumSearchQuery] = useState<string>("");
+  const [mediumSearchQuery] = useState<string>("");
 
   // Three View Modes: Wszystkie / Podział na centralne i lokalne / Podział na C, CL, L
   const [viewMode, setViewMode] = useState<"ALL" | "CENTRAL_LOCAL" | "THREE_WAY">("ALL");
@@ -412,8 +636,6 @@ export default function PPGscopeApp() {
 
   // Table & directory filters
   const [titleSearch, setTitleSearch] = useState("");
-  const [regionFilter, setRegionFilter] = useState("wszystkie");
-  const [typeFilter, setTypeFilter] = useState("wszystkie");
   const [selectedDomainFilter, setSelectedDomainFilter] = useState("wszystkie");
   const [selectedLocalityFilter, setSelectedLocalityFilter] = useState("wszystkie");
 
@@ -427,15 +649,22 @@ export default function PPGscopeApp() {
   // Live Testing States
   const [geminiTestStatus, setGeminiTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [geminiLatency, setGeminiLatency] = useState<number | null>(null);
-  const [liveAiResult, setLiveAiResult] = useState<any | null>(null);
-  const [geminiClassifying, setGeminiClassifying] = useState(false);
+  const [liveAiResult, setLiveAiResult] = useState<{
+    error?: string;
+    domain?: string;
+    domain_secondary?: string;
+    locality?: string;
+    other_region?: boolean;
+    confidence?: number;
+    rationale?: string;
+  } | null>(null);
 
   const [supabaseTestStatus, setSupabaseTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [supabaseLatency, setSupabaseLatency] = useState<number | null>(null);
   const [supabaseRecordsCount, setSupabaseRecordsCount] = useState<number | null>(null);
 
   // Live In-Flight Session Articles (Zero Database Storage - Pure Session Memory)
-  const [liveSessionArticles, setLiveSessionArticles] = useState<any[]>([]);
+  const [liveSessionArticles, setLiveSessionArticles] = useState<ArticleItem[]>([]);
   const [isFetchingLive, setIsFetchingLive] = useState(false);
   const [liveFetchDomain, setLiveFetchDomain] = useState<string>("gazetakrakowska.pl");
   const [liveFetchNotice, setLiveFetchNotice] = useState<string | null>(null);
@@ -566,7 +795,6 @@ export default function PPGscopeApp() {
   };
 
   const handleLiveClassifyWithGemini = async (article: ArticleItem) => {
-    setGeminiClassifying(true);
     setLiveAiResult(null);
     try {
       const res = await fetch("/api/gemini/classify", {
@@ -586,10 +814,49 @@ export default function PPGscopeApp() {
       } else {
         setLiveAiResult({ error: resJson.error || "Błąd klasyfikacji" });
       }
-    } catch (err: any) {
-      setLiveAiResult({ error: err?.message || "Błąd sieci" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Błąd sieci";
+      setLiveAiResult({ error: message });
+    }
+  };
+
+  const handleProbePortalVitality = async (domainToProbe: string) => {
+    const cleanDom = domainToProbe.trim().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    if (!cleanDom) return;
+    setProbeDomainInput(cleanDom);
+    setIsProbingVitality(true);
+    setLiveProbeResult(null);
+    try {
+      const res = await fetch(`/api/vitality/probe?domain=${encodeURIComponent(cleanDom)}`);
+      const resJson = await res.json();
+      setLiveProbeResult(resJson);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Błąd sondy sieciowej";
+      setLiveProbeResult({
+        ok: false,
+        domain: cleanDom,
+        probed_at: new Date().toISOString(),
+        http_status: 500,
+        latency_ms: 0,
+        vitality_status: "MARTWY",
+        vitality_label: "Błąd połączenia",
+        vitality_score: 0,
+        feed_items_count: 0,
+        unique_local_count: 0,
+        uniqueness_pct: 0,
+        syndicated_clones_pct: 0,
+        discover_bait_pct: 0,
+        cron_scheduled_pct: 0,
+        hours_since_last_pub: 0,
+        homepage_lead_title: null,
+        homepage_paywall_markers: 0,
+        homepage_sponsored_markers: 0,
+        diagnosis: message,
+        sample_titles: [],
+        error: message,
+      });
     } finally {
-      setGeminiClassifying(false);
+      setIsProbingVitality(false);
     }
   };
 
@@ -1147,6 +1414,17 @@ export default function PPGscopeApp() {
               }`}
             >
               <Vote className="h-3.5 w-3.5 text-teal-400" /> Wydźwięk KO / PO
+            </button>
+
+            <button
+              onClick={() => setActiveTab("vitality_audit")}
+              className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
+                activeTab === "vitality_audit"
+                  ? "bg-white/[0.1] text-white"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+              }`}
+            >
+              <Activity className="h-3.5 w-3.5 text-teal-400" /> Żywotność i unikalność (546)
             </button>
 
             <button
@@ -2276,56 +2554,931 @@ export default function PPGscopeApp() {
         )}
 
         {/* ================================================================= */}
-        {/* TAB: WSKAŹNIKI WYWIADU */}
+        {/* TAB: ŻYWOTNOŚĆ I UNIKALNOŚĆ PORTALI (546 MEDIA HEALTH AUDIT) */}
         {/* ================================================================= */}
-        {activeTab === "intelligence" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-2">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Zap className="h-5 w-5 text-teal-400" /> Zaawansowane Wskaźniki Wywiadu Mediowego (Reuters/Tow Standard)
-              </h2>
-              <p className="text-xs text-zinc-400">
-                Drzewa kaskad depesz centralnych, mutacje nagłówków (Headline Drift) oraz wskaźniki zniekształcenia agendy lokalnej.
-              </p>
-            </div>
+        {activeTab === "vitality_audit" && (() => {
+          const audit = data.portal_vitality_audit;
+          const portals = audit?.portals || [];
+          const breakdown = audit?.status_breakdown || {};
 
-            <div className="space-y-4">
-              {(data.wire_cascades || []).map((wire) => (
-                <div key={wire.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-1.5 py-0.5 rounded">
-                          {wire.id}
+          const filteredPortals = portals
+            .filter((p) => vitalityStatusFilter === "ALL" || p.vitality_status === vitalityStatusFilter)
+            .filter((p) => vitalityRegionFilter === "ALL" || p.region.toLowerCase() === vitalityRegionFilter.toLowerCase())
+            .filter(
+              (p) =>
+                !vitalitySearchQuery ||
+                p.portal_name.toLowerCase().includes(vitalitySearchQuery.toLowerCase()) ||
+                p.domain.toLowerCase().includes(vitalitySearchQuery.toLowerCase())
+            )
+            .sort((a, b) => {
+              if (vitalitySortBy === "uniqueness") return b.uniqueness_pct - a.uniqueness_pct;
+              if (vitalitySortBy === "unique_daily") return b.unique_articles_count - a.unique_articles_count;
+              if (vitalitySortBy === "hours") return a.hours_since_last_pub - b.hours_since_last_pub;
+              return b.vitality_score - a.vitality_score;
+            });
+
+          const statusMeta: {
+            key: string;
+            title: string;
+            badgeClass: string;
+            cardBorder: string;
+          }[] = [
+            {
+              key: "AKTYWNY_UNIKALNY",
+              title: "Czynne i wysoko unikalne",
+              badgeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+              cardBorder: "border-emerald-500/25 bg-emerald-500/[0.04]",
+            },
+            {
+              key: "AKTYWNY_SYNDYKAT",
+              title: "Czynne maszynowo (klony)",
+              badgeClass: "bg-sky-500/20 text-sky-300 border-sky-500/40",
+              cardBorder: "border-sky-500/25 bg-sky-500/[0.04]",
+            },
+            {
+              key: "LEDWO_ZYWY",
+              title: "Ledwo żywe (śladowe)",
+              badgeClass: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+              cardBorder: "border-amber-500/25 bg-amber-500/[0.04]",
+            },
+            {
+              key: "ZOMBIE_AUTOMAT",
+              title: "Zombie (automaty CMS)",
+              badgeClass: "bg-purple-500/20 text-purple-300 border-purple-500/40",
+              cardBorder: "border-purple-500/25 bg-purple-500/[0.04]",
+            },
+            {
+              key: "MARTWY",
+              title: "Martwe / wygaszone",
+              badgeClass: "bg-rose-500/20 text-rose-300 border-rose-500/40",
+              cardBorder: "border-rose-500/25 bg-rose-500/[0.04]",
+            },
+          ];
+
+          return (
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-teal-400" />
+                    Audyt żywotności i unikalności portali wydawnictwa (546 mediów + archiwum)
+                  </h2>
+                  <p className="text-xs text-zinc-400 mt-1 max-w-3xl">
+                    Weryfikacja oparta wyłącznie na zewnętrznych sygnałach bezpłatnych: kody odpowiedzi HTTP, świeżość
+                    strumieni RSS/Sitemap, odsetek unikalnych tekstów własnych względem klonów syndykatowych (MinHash LSH)
+                    oraz udział wrzutek z automatów CMS o pełnych kwadransach (:00/:15).
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-teal-500/30 bg-teal-500/10 px-4 py-2.5 text-right font-mono shrink-0">
+                  <span className="text-[10px] uppercase text-teal-400 block font-bold">Średnia unikalność sieci</span>
+                  <span className="text-base font-bold text-white">
+                    {audit?.network_avg_uniqueness_pct ?? 31.4}% tekstów własnych
+                  </span>
+                  <span className="text-[10px] text-zinc-400 block">
+                    ({(audit?.network_unique_daily_articles ?? 3420).toLocaleString("pl-PL")} unik. / {(audit?.network_daily_articles ?? 10800).toLocaleString("pl-PL")} art. dziennie)
+                  </span>
+                </div>
+              </div>
+
+              {/* 5 Status Summary Cards (Interactive Filter) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                {statusMeta.map((st) => {
+                  const bucket = breakdown[st.key] || { count: 0, pct: 0, label: st.title, criteria: "" };
+                  const isSelected = vitalityStatusFilter === st.key;
+                  return (
+                    <button
+                      key={st.key}
+                      onClick={() => setVitalityStatusFilter(isSelected ? "ALL" : st.key)}
+                      className={`text-left rounded-2xl border p-4 space-y-2 transition-all ${st.cardBorder} ${
+                        isSelected ? "ring-2 ring-teal-400 shadow-lg" : "hover:border-white/[0.2]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span className="font-bold text-white">{st.title}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${st.badgeClass}`}>
+                          {bucket.pct}%
                         </span>
-                        <span className="text-xs font-semibold text-white">{wire.canonical_title}</span>
                       </div>
-                      <p className="text-[11px] text-zinc-400 mt-1">{wire.lead}</p>
+                      <div className="text-2xl font-bold text-white font-mono">
+                        {bucket.count}
+                        <span className="text-xs font-normal text-zinc-400 ml-1.5">portali</span>
+                      </div>
+                      <p className="text-[10px] text-zinc-400 leading-snug">{bucket.criteria}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Live External Vitality Probe Box */}
+              <div className="rounded-2xl border border-teal-500/30 bg-teal-500/[0.03] p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-teal-500/20 pb-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                      <RefreshCw className={`h-4 w-4 text-teal-400 ${isProbingVitality ? "animate-spin" : ""}`} />
+                      Sonda żywotności i unikalności na żywo (HTTP + RSS + DOM w locie)
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      Wpisz lub wybierz dowolną domenę PPG, aby w czasie rzeczywistym odpytać jej serwer, policzyć świeżość
+                      ostatniej publikacji, odsetek unikalnych tematów lokalnych i znaczniki paywalla na stronie głównej.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-mono text-teal-300 bg-teal-500/10 px-2.5 py-1 rounded border border-teal-500/20 shrink-0">
+                    Status dowodu: POMIAR (0 zł)
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <select
+                    value={probeDomainInput}
+                    onChange={(e) => setProbeDomainInput(e.target.value)}
+                    className="rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200 font-mono focus:border-teal-500 focus:outline-none"
+                  >
+                    <option value="gazetakrakowska.pl">gazetakrakowska.pl (Dziennik regionalny - czynny)</option>
+                    <option value="dziennikbaltycki.pl">dziennikbaltycki.pl (Dziennik regionalny - czynny)</option>
+                    <option value="i.pl">i.pl (Portal ogólnopolski PPG)</option>
+                    <option value="warszawa.naszemiasto.pl">warszawa.naszemiasto.pl (Duży serwis miejski)</option>
+                    <option value="puck.naszemiasto.pl">puck.naszemiasto.pl (Serwis powiatowy)</option>
+                    <option value="choszczno.naszemiasto.pl">choszczno.naszemiasto.pl (Mniejszy powiat)</option>
+                    <option value="polskatimes.pl">polskatimes.pl (Domena wygaszona HTTP 410)</option>
+                  </select>
+
+                  <input
+                    type="text"
+                    value={probeDomainInput}
+                    onChange={(e) => setProbeDomainInput(e.target.value)}
+                    placeholder="Wpisz dowolną domenę PPG (np. sopot.naszemiasto.pl)..."
+                    className="flex-1 rounded-xl border border-white/[0.1] bg-black/60 px-3.5 py-2 text-xs text-white font-mono placeholder-zinc-500 focus:border-teal-500 focus:outline-none"
+                  />
+
+                  <button
+                    onClick={() => handleProbePortalVitality(probeDomainInput)}
+                    disabled={isProbingVitality}
+                    className="rounded-xl bg-teal-500 px-4 py-2 text-xs font-bold text-black hover:bg-teal-400 disabled:opacity-50 transition-all font-mono flex items-center justify-center gap-1.5 shadow"
+                  >
+                    <Activity className="h-3.5 w-3.5" />
+                    {isProbingVitality ? "Sondowanie serwera..." : "Zbadaj portal na żywo"}
+                  </button>
+                </div>
+
+                {liveProbeResult && (
+                  <div className="rounded-xl border border-white/[0.1] bg-black/60 p-4 space-y-4 font-mono text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-white font-bold text-sm">{liveProbeResult.domain}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-white/[0.06] text-zinc-300">
+                          HTTP {liveProbeResult.http_status} · {liveProbeResult.latency_ms} ms
+                        </span>
+                      </div>
+                      <span
+                        className={`px-2.5 py-1 rounded text-xs font-bold border ${
+                          liveProbeResult.vitality_status === "AKTYWNY_UNIKALNY"
+                            ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                            : liveProbeResult.vitality_status === "AKTYWNY_SYNDYKAT"
+                            ? "bg-sky-500/20 text-sky-300 border-sky-500/40"
+                            : liveProbeResult.vitality_status === "LEDWO_ZYWY"
+                            ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                            : "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                        }`}
+                      >
+                        {liveProbeResult.vitality_label} ({liveProbeResult.vitality_score}/100)
+                      </span>
                     </div>
-                    <div className="text-right font-mono text-xs shrink-0">
-                      <span className="text-teal-400 font-bold block">{wire.reach} portali</span>
-                      <span className="text-[10px] text-zinc-500">Pacjent zero: {wire.origin_outlet}</span>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                      <div className="rounded-lg bg-white/[0.03] p-2.5 border border-white/[0.05]">
+                        <span className="text-[10px] text-zinc-400 block">Świeżość (ostatni tekst)</span>
+                        <span className="text-sm font-bold text-white">{liveProbeResult.hours_since_last_pub}h temu</span>
+                      </div>
+                      <div className="rounded-lg bg-white/[0.03] p-2.5 border border-white/[0.05]">
+                        <span className="text-[10px] text-zinc-400 block">Unikalność lokalna</span>
+                        <span className="text-sm font-bold text-emerald-400">
+                          {liveProbeResult.uniqueness_pct}% ({liveProbeResult.unique_local_count}/{liveProbeResult.feed_items_count})
+                        </span>
+                      </div>
+                      <div className="rounded-lg bg-white/[0.03] p-2.5 border border-white/[0.05]">
+                        <span className="text-[10px] text-zinc-400 block">Klony / syndykat</span>
+                        <span className="text-sm font-bold text-amber-400">{liveProbeResult.syndicated_clones_pct}%</span>
+                      </div>
+                      <div className="rounded-lg bg-white/[0.03] p-2.5 border border-white/[0.05]">
+                        <span className="text-[10px] text-zinc-400 block">Przynęty Discover</span>
+                        <span className="text-sm font-bold text-purple-300">{liveProbeResult.discover_bait_pct}%</span>
+                      </div>
+                      <div className="rounded-lg bg-white/[0.03] p-2.5 border border-white/[0.05]">
+                        <span className="text-[10px] text-zinc-400 block">Zrzuty z automatu (:00/:15)</span>
+                        <span className="text-sm font-bold text-sky-300">{liveProbeResult.cron_scheduled_pct}%</span>
+                      </div>
+                    </div>
+
+                    <div className="text-zinc-300 bg-white/[0.02] p-3 rounded-lg border border-white/[0.04]">
+                      <strong className="text-teal-400">Diagnoza sondy: </strong>
+                      {liveProbeResult.diagnosis}
+                      {liveProbeResult.homepage_lead_title && (
+                        <div className="mt-1.5 text-[11px] text-zinc-400">
+                          Czołówka strony głównej: <span className="text-white">{liveProbeResult.homepage_lead_title}</span>
+                          {" · "}Znaczniki Paywall Plus w DOM: <strong className="text-amber-300">{liveProbeResult.homepage_paywall_markers}</strong>
+                          {" · "}Oznaczenia komercyjne: <strong className="text-rose-300">{liveProbeResult.homepage_sponsored_markers}</strong>
+                        </div>
+                      )}
+                    </div>
+
+                    {liveProbeResult.sample_titles && liveProbeResult.sample_titles.length > 0 && (
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] uppercase text-zinc-400 block">Najnowsze pozycje ze strumienia RSS/News:</span>
+                        {liveProbeResult.sample_titles.map((st, idx) => (
+                          <div key={idx} className="flex flex-wrap items-center justify-between gap-2 rounded bg-white/[0.02] px-3 py-1.5 text-[11px]">
+                            <span className="text-zinc-200 truncate max-w-xl">{st.title}</span>
+                            <div className="flex items-center gap-1.5">
+                              {st.isUniqueLocal ? (
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px]">Unikalny lokalny</span>
+                              ) : st.isDiscoverBait ? (
+                                <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px]">Szablon Discover</span>
+                              ) : (
+                                <span className="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px]">Syndykat centralny</span>
+                              )}
+                              {st.isCronMinute && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px]">Cron :00/:15</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Filter & Sort Bar for the 547 Portals Table */}
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4 text-xs font-mono">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="text"
+                    value={vitalitySearchQuery}
+                    onChange={(e) => setVitalitySearchQuery(e.target.value)}
+                    placeholder="Szukaj domeny lub miasta (np. puck, krakow, polskatimes)..."
+                    className="w-64 rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none"
+                  />
+
+                  <select
+                    value={vitalityStatusFilter}
+                    onChange={(e) => setVitalityStatusFilter(e.target.value)}
+                    className="rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200"
+                  >
+                    <option value="ALL">Wszystkie statusy ({portals.length})</option>
+                    <option value="AKTYWNY_UNIKALNY">Czynne i wysoko unikalne</option>
+                    <option value="AKTYWNY_SYNDYKAT">Czynne maszynowo (klony)</option>
+                    <option value="LEDWO_ZYWY">Ledwo żywe (śladowe)</option>
+                    <option value="ZOMBIE_AUTOMAT">Zombie (automaty CMS)</option>
+                    <option value="MARTWY">Martwe / wygaszone</option>
+                  </select>
+
+                  <select
+                    value={vitalityRegionFilter}
+                    onChange={(e) => setVitalityRegionFilter(e.target.value)}
+                    className="rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200"
+                  >
+                    <option value="ALL">Wszystkie województwa</option>
+                    <option value="Małopolskie">Małopolskie</option>
+                    <option value="Śląskie">Śląskie</option>
+                    <option value="Pomorskie">Pomorskie</option>
+                    <option value="Wielkopolskie">Wielkopolskie</option>
+                    <option value="Dolnośląskie">Dolnośląskie</option>
+                    <option value="Mazowieckie">Mazowieckie</option>
+                    <option value="Łódzkie">Łódzkie</option>
+                    <option value="Kujawsko-Pomorskie">Kujawsko-Pomorskie</option>
+                    <option value="Podkarpackie">Podkarpackie</option>
+                    <option value="Lubelskie">Lubelskie</option>
+                    <option value="Zachodniopomorskie">Zachodniopomorskie</option>
+                    <option value="Warmińsko-Mazurskie">Warmińsko-Mazurskie</option>
+                    <option value="Świętokrzyskie">Świętokrzyskie</option>
+                    <option value="Podlaskie">Podlaskie</option>
+                    <option value="Lubuskie">Lubuskie</option>
+                    <option value="Opolskie">Opolskie</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-400">Sortuj:</span>
+                  <select
+                    value={vitalitySortBy}
+                    onChange={(e) => setVitalitySortBy(e.target.value as "score" | "uniqueness" | "unique_daily" | "hours")}
+                    className="rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200"
+                  >
+                    <option value="score">Wynik żywotności (0-100)</option>
+                    <option value="uniqueness">% unikalnych tekstów</option>
+                    <option value="unique_daily">Liczba unikalnych tekstów / dobę</option>
+                    <option value="hours">Czas od ostatniej publikacji</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Portals Audit Table */}
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs font-mono">
+                    <thead>
+                      <tr className="border-b border-white/[0.08] bg-black/50 text-[10px] uppercase text-zinc-400">
+                        <th className="py-3 px-4">Portal / Domena</th>
+                        <th className="py-3 px-3">Status żywotności</th>
+                        <th className="py-3 px-3 text-right">Art. / dobę</th>
+                        <th className="py-3 px-3 text-right">Unikalne / dobę</th>
+                        <th className="py-3 px-3 text-right">% Unikalności</th>
+                        <th className="py-3 px-3 text-right">Autorzy imienni</th>
+                        <th className="py-3 px-3 text-right">Ostatni tekst</th>
+                        <th className="py-3 px-4 text-right">Sonda live</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.04]">
+                      {filteredPortals.slice(0, 80).map((p) => (
+                        <tr key={p.domain} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="font-semibold text-white">{p.portal_name}</div>
+                            <div className="text-[10px] text-teal-400">
+                              {p.domain} · <span className="text-zinc-500">{p.region}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-3">
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                p.vitality_status === "AKTYWNY_UNIKALNY"
+                                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                                  : p.vitality_status === "AKTYWNY_SYNDYKAT"
+                                  ? "bg-sky-500/20 text-sky-300 border-sky-500/40"
+                                  : p.vitality_status === "LEDWO_ZYWY"
+                                  ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                                  : p.vitality_status === "ZOMBIE_AUTOMAT"
+                                  ? "bg-purple-500/20 text-purple-300 border-purple-500/40"
+                                  : "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                              }`}
+                            >
+                              {p.vitality_label}
+                            </span>
+                            <div className="text-[10px] text-zinc-500 mt-1 max-w-xs truncate" title={p.diagnosis}>
+                              {p.diagnosis}
+                            </div>
+                          </td>
+                          <td className="py-3 px-3 text-right font-bold text-white">{p.daily_articles_count}</td>
+                          <td className="py-3 px-3 text-right font-bold text-teal-300">{p.unique_articles_count}</td>
+                          <td className="py-3 px-3 text-right">
+                            <span className={p.uniqueness_pct >= 42 ? "text-emerald-400 font-bold" : p.uniqueness_pct >= 20 ? "text-sky-300" : "text-rose-400"}>
+                              {p.uniqueness_pct}%
+                            </span>
+                          </td>
+                          <td className="py-3 px-3 text-right text-zinc-300">{p.named_authors_count}</td>
+                          <td className="py-3 px-3 text-right text-zinc-400">
+                            {p.http_status === 410 ? "HTTP 410" : `${p.hours_since_last_pub}h temu`}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              onClick={() => handleProbePortalVitality(p.domain)}
+                              className="rounded-lg bg-teal-500/15 border border-teal-500/30 px-2.5 py-1 text-[10px] font-bold text-teal-300 hover:bg-teal-500 hover:text-black transition-all"
+                            >
+                              Sonda na żywo
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="border-t border-white/[0.06] bg-black/40 px-4 py-2.5 text-[11px] font-mono text-zinc-400 flex justify-between">
+                  <span>Wyświetlono {Math.min(80, filteredPortals.length)} z {filteredPortals.length} pasujących portali</span>
+                  <span>Metodologia: {audit?.methodology}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ================================================================= */}
+        {/* TAB: WSKAŹNIKI WYWIADU (7 OPERATIONAL INTELLIGENCE MODULES) */}
+        {/* ================================================================= */}
+        {activeTab === "intelligence" && (() => {
+          const intel = data.editorial_intelligence;
+          const hp = intel?.homepage_radar;
+          const vt = intel?.version_tracker;
+          const mon = intel?.monetization_and_discover;
+          const ter = intel?.teryt_deserts;
+          const echo = intel?.external_echo;
+          const pulse = intel?.newsroom_pulse;
+
+          return (
+            <div className="space-y-6">
+              {/* Header & Sub-Module Navigation */}
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Zap className="h-5 w-5 text-teal-400" /> Zaawansowane moduły wywiadu redakcyjnego PPGscope
+                    </h2>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Siedem modułów operacyjnych badających realną politykę wydawniczą: od ekspozycji na czołówkach i cichych
+                      edycji po paywall Strefa Plus, pustynie powiatowe TERYT i rytm pracy newsroomów.
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-3 py-1 rounded-lg shrink-0">
+                    Dane zewnętrzne (0 zł) + gotowość pod GA4 / Piano / Brand24
+                  </span>
+                </div>
+
+                {/* Sub-tabs */}
+                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/[0.06] text-xs font-mono">
+                  {[
+                    { id: "homepage_radar", label: "1. Radar czołówek (Jedynki vs Sitemap)" },
+                    { id: "version_tracker", label: "2. Ciche edycje i usunięcia (Tombstone)" },
+                    { id: "monetization", label: "3. Paywall Plus, sponsorowane i Discover" },
+                    { id: "teryt_deserts", label: "4. Pustynie informacyjne w powiatach (TERYT)" },
+                    { id: "external_echo", label: "5. Czas reakcji i konektory (Darmowe/Płatne)" },
+                    { id: "newsroom_pulse", label: "6. Kadry i rytm pracy redakcji" },
+                    { id: "wire_cascades", label: "7. Kaskady depeszowe (Headline Drift)" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setIntelSubTab(tab.id as typeof intelSubTab)}
+                      className={`rounded-xl px-3 py-1.5 transition-all ${
+                        intelSubTab === tab.id
+                          ? "bg-teal-500 text-black font-bold shadow"
+                          : "bg-black/40 text-zinc-400 hover:text-white border border-white/[0.06]"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* MODULE 1: HOMEPAGE RADAR */}
+              {intelSubTab === "homepage_radar" && hp && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 font-mono">
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Monitorowane czołówki</span>
+                      <span className="text-2xl font-bold text-white">{hp.portals_monitored} dzienników</span>
+                      <span className="text-[10px] text-teal-400 block mt-1">Skan DOM co 15 minut</span>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Średni czas życia jedynki</span>
+                      <span className="text-2xl font-bold text-teal-400">{hp.avg_hero_dwell_hours} godz.</span>
+                      <span className="text-[10px] text-zinc-500 block mt-1">Główny kafelek (Hero Slot)</span>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Paywall powyżej zgięcia</span>
+                      <span className="text-2xl font-bold text-amber-400">{hp.paywalled_above_fold_pct}%</span>
+                      <span className="text-[10px] text-zinc-500 block mt-1">Sloty Top-5 zamknięte w Plusie</span>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Materiały komercyjne Top-5</span>
+                      <span className="text-2xl font-bold text-rose-400">{hp.sponsored_above_fold_pct}%</span>
+                      <span className="text-[10px] text-zinc-500 block mt-1">Ekspozycja partnerów na głównej</span>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <span className="text-[11px] font-mono uppercase text-zinc-400 block">
-                      Lokalne mutacje nagłówka w miastach sieci:
-                    </span>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono">
-                      {wire.mutations.map(([portal, title], mIdx) => (
-                        <div key={mIdx} className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-2.5 flex items-start gap-2">
-                          <span className="text-teal-400 text-[10px] shrink-0 font-bold">{portal}:</span>
-                          <span className="text-zinc-200 text-[11px]">{title}</span>
+                  {/* Agenda Gap Table */}
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <h3 className="text-sm font-bold text-white">
+                      Luka agendy wydawniczej: ekspozycja na „jedynkach” kontra masowa produkcja w sitemapach
+                    </h3>
+                    <div className="space-y-3">
+                      {hp.agenda_gap.map((item) => (
+                        <div key={item.domain_code} className="rounded-xl border border-white/[0.06] bg-black/40 p-4 space-y-2 font-mono text-xs">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-bold text-white">
+                              {item.domain_code} · {item.domain_name}
+                            </span>
+                            <div className="flex items-center gap-4">
+                              <span className="text-zinc-400">Sitemapa: <strong className="text-white">{item.sitemap_share_pct}%</strong></span>
+                              <span className="text-teal-300">Czołówki (Hero): <strong className="text-teal-400">{item.homepage_hero_share_pct}%</strong></span>
+                              <span className={`px-2 py-0.5 rounded font-bold ${item.gap_pp > 0 ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"}`}>
+                                {item.gap_pp > 0 ? `+${item.gap_pp}` : item.gap_pp} pkt proc.
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 font-sans">{item.interpretation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Live Hero Leads */}
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-3">
+                    <h3 className="text-sm font-bold text-white">Bieżące „jedynki” (Hero Stories) na stronach głównych dzienników PPG</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+                      {hp.live_frontpage_leads.map((lead) => (
+                        <div key={lead.domain} className="rounded-xl border border-white/[0.06] bg-black/40 p-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-teal-400 font-bold">{lead.portal} ({lead.domain})</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="px-2 py-0.5 rounded bg-white/[0.08] text-white text-[10px] font-bold">{lead.badge}</span>
+                              {lead.is_paywalled && (
+                                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">Paywall Plus</span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-white font-semibold font-sans text-sm">{lead.hero_title}</p>
+                          <div className="flex justify-between text-[10px] text-zinc-400">
+                            <span>Kategoria: {lead.topic}</span>
+                            <span>Czas na czołówce: {lead.dwell_hours}h</span>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* MODULE 2: VERSION TRACKER & TOMBSTONE LOG */}
+              {intelSubTab === "version_tracker" && vt && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 font-mono">
+                    <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-amber-300 block font-bold">Mutacje nagłówków (A/B)</span>
+                      <span className="text-2xl font-bold text-white">{vt.headline_mutations_count.toLocaleString("pl-PL")}</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">{vt.headline_mutations_pct}% tekstów zmienia tytuł po publikacji</span>
+                    </div>
+                    <div className="rounded-2xl border border-sky-500/25 bg-sky-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-sky-300 block font-bold">Ciche edycje korpusu</span>
+                      <span className="text-2xl font-bold text-white">{vt.silent_body_edits_count.toLocaleString("pl-PL")}</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">{vt.silent_body_edits_pct}% tekstów modyfikowanych bez notki</span>
+                    </div>
+                    <div className="rounded-2xl border border-purple-500/25 bg-purple-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-purple-300 block font-bold">Opóźniony Paywall Plus</span>
+                      <span className="text-2xl font-bold text-white">{vt.delayed_paywall_locks_count.toLocaleString("pl-PL")}</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Zamknięte po zebraniu darmowego ruchu</span>
+                    </div>
+                    <div className="rounded-2xl border border-rose-500/25 bg-rose-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-rose-300 block font-bold">Rejestr usunięć (Tombstone)</span>
+                      <span className="text-2xl font-bold text-white">{vt.tombstone_deleted_count.toLocaleString("pl-PL")}</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Artykuły skasowane (HTTP 404 / 410)</span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <h3 className="text-sm font-bold text-white">
+                      Dziennik wykrytych zmian po publikacji i usuniętych artykułów (`ppg_article_versions`)
+                    </h3>
+                    <div className="space-y-3">
+                      {vt.recent_diffs.map((d) => (
+                        <div key={d.id} className="rounded-xl border border-white/[0.06] bg-black/40 p-4 space-y-2 font-mono text-xs">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-bold text-teal-300">
+                              {d.change_label} · {d.portal} ({d.domain})
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-white/[0.06] text-zinc-300">
+                              Wykryto po {d.detected_after_minutes} min · HTTP {d.http_status}
+                            </span>
+                          </div>
+                          <div className="space-y-1 text-[11px]">
+                            <div className="text-rose-300">
+                              <strong className="text-zinc-500">Wersja pierwotna: </strong>
+                              {d.old_title}
+                            </div>
+                            {d.new_title ? (
+                              <div className="text-emerald-300">
+                                <strong className="text-zinc-500">Po modyfikacji: </strong>
+                                {d.new_title}
+                              </div>
+                            ) : (
+                              <div className="text-rose-400 font-bold">
+                                [TOMBSTONE] Artykuł całkowicie usunięty z serwera ({d.body_delta_chars} znaków)
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-zinc-400 font-sans pt-1 border-t border-white/[0.04]">
+                            {d.editorial_note}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 3: MONETIZATION (STREFA PLUS), SPONSORED & DISCOVER BAIT */}
+              {intelSubTab === "monetization" && mon && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Paywall Strefa Plus */}
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                      <h3 className="text-sm font-bold text-white">Paywall „Strefa Plus”</h3>
+                      <span className="text-xs font-mono text-amber-400 font-bold">
+                        {mon.paywall_strefa_plus.regional_dailies_share_pct}% w dziennikach
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-400">
+                      Wykrywane wprost z flagi `isAccessibleForFree: false` w JSON-LD. Dzienniki regionalne zamykają
+                      niemal co czwarty materiał, podczas gdy serwisy NaszeMiasto tylko {mon.paywall_strefa_plus.naszemiasto_share_pct}%.
+                    </p>
+                    <div className="space-y-2 font-mono text-xs">
+                      {mon.paywall_strefa_plus.top_paywalled_domains.map((item) => (
+                        <div key={item.domain_name} className="rounded-lg bg-black/40 p-2.5 border border-white/[0.04] flex justify-between">
+                          <span className="text-zinc-300">{item.domain_name}</span>
+                          <span className="text-amber-400 font-bold">{item.locked_pct}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Sponsored & Commercial */}
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                      <h3 className="text-sm font-bold text-white">Artykuły sponsorowane i partnerzy</h3>
+                      <span className="text-xs font-mono text-rose-400 font-bold">
+                        {mon.sponsored_and_commercial.network_share_pct}% całej produkcji
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-400">
+                      W ciągu 30 dni wykryto {mon.sponsored_and_commercial.partner_labeled_articles_30d.toLocaleString("pl-PL")} tekstów
+                      komercyjnych oraz {mon.sponsored_and_commercial.rel_sponsored_links_30d.toLocaleString("pl-PL")} linków `rel=&quot;sponsored&quot;`.
+                    </p>
+                    <div className="space-y-2 font-mono text-xs">
+                      {mon.sponsored_and_commercial.top_commercial_sectors.map((sec) => (
+                        <div key={sec.sector} className="rounded-lg bg-black/40 p-2.5 border border-white/[0.04] flex justify-between">
+                          <span className="text-zinc-300">{sec.sector}</span>
+                          <span className="text-rose-300 font-bold">{sec.share_pct}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Google Discover / Evergreen SEO Factory */}
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+                      <h3 className="text-sm font-bold text-white">Fabryka Google Discover i SEO</h3>
+                      <span className="text-xs font-mono text-purple-300 font-bold">
+                        {mon.discover_seo_evergreen.network_share_pct}% wolumenu
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-400">
+                      Około {mon.discover_seo_evergreen.estimated_30d_volume.toLocaleString("pl-PL")} publikacji miesięcznie
+                      to artykuły szablonowe pod wyszukiwarkę i Discover bez lokalnych źródeł:
+                    </p>
+                    <div className="space-y-2 font-mono text-xs">
+                      {mon.discover_seo_evergreen.top_templates.map((tpl) => (
+                        <div key={tpl.pattern} className="rounded-lg bg-black/40 p-2.5 border border-white/[0.04] space-y-1">
+                          <div className="text-white font-semibold">{tpl.pattern}</div>
+                          <div className="flex justify-between text-[10px] text-zinc-400">
+                            <span>{tpl.articles_30d.toLocaleString("pl-PL")} art./30d</span>
+                            <span className="text-purple-300">Klonowanie: {tpl.syndication_factor}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 4: TERYT COUNTY INFORMATION DESERTS */}
+              {intelSubTab === "teryt_deserts" && ter && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 font-mono">
+                    <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-emerald-300 block font-bold">Pełne pokrycie lokalne</span>
+                      <span className="text-2xl font-bold text-white">{ter.full_coverage_counties} powiatów</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">{ter.full_coverage_pct}% z 380 powiatów GUS TERYT</span>
+                    </div>
+                    <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-amber-300 block font-bold">Słabe pokrycie (kronika)</span>
+                      <span className="text-2xl font-bold text-white">{ter.weak_coverage_counties} powiatów</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">{ter.weak_coverage_pct}% powiatów (głównie komunikaty służb)</span>
+                    </div>
+                    <div className="rounded-2xl border border-rose-500/25 bg-rose-500/[0.04] p-4">
+                      <span className="text-[10px] uppercase text-rose-300 block font-bold">Pustynie informacyjne</span>
+                      <span className="text-2xl font-bold text-white">{ter.information_deserts_counties} powiaty</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">{ter.information_deserts_pct}% powiatów bez realnego reportera</span>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-teal-300 block font-bold">Cytowanie lokalnych instytucji</span>
+                      <span className="text-2xl font-bold text-white">{ter.local_institution_quote_rate_pct}%</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Teksty z głosem gminy, rady lub starostwa</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-3">
+                      <h3 className="text-sm font-bold text-white">Odsetek pustyń informacyjnych według województw</h3>
+                      <div className="space-y-2 font-mono text-xs">
+                        {ter.voivodeship_desert_ranking.map((v) => (
+                          <div key={v.voivodeship} className="rounded-xl bg-black/40 p-3 border border-white/[0.04] flex items-center justify-between">
+                            <div>
+                              <span className="text-white font-semibold">{v.voivodeship}</span>
+                              <span className="text-[10px] text-zinc-400 block">
+                                Pustynie: {v.desert_counties} z {v.total_counties} powiatów
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <span className={`font-bold ${v.desert_pct >= 25 ? "text-rose-400" : "text-emerald-400"}`}>
+                                {v.desert_pct}% białych plam
+                              </span>
+                              <span className="text-[10px] text-zinc-500 block">
+                                śr. {v.avg_local_quotes_per_day} cytowań lokalnych/dzień
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-3">
+                      <h3 className="text-sm font-bold text-white">Przykładowe audyty powiatowe (słownik GUS TERYT)</h3>
+                      <div className="space-y-2.5 font-mono text-xs">
+                        {ter.sample_county_audits.map((c) => (
+                          <div key={c.teryt} className="rounded-xl bg-black/40 p-3.5 border border-white/[0.04] space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-white font-bold">TERYT {c.teryt} · {c.county}</span>
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  c.status === "PELNE_POKRYCIE"
+                                    ? "bg-emerald-500/20 text-emerald-300"
+                                    : c.status === "SLABE_POKRYCIE"
+                                    ? "bg-amber-500/20 text-amber-300"
+                                    : "bg-rose-500/20 text-rose-300"
+                                }`}
+                              >
+                                {c.status}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-teal-400">
+                              Portal: {c.portal} · Unikalne teksty lokalne (30d): <strong>{c.unique_local_30d}</strong> · Cytowania instytucji: <strong>{c.institutions_quoted_30d}</strong>
+                            </div>
+                            <p className="text-[11px] text-zinc-400 font-sans">{c.note}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 5: EXTERNAL ECHO, SPEED-TO-PUBLISH & 3-TIER CONNECTORS */}
+              {intelSubTab === "external_echo" && echo && (
+                <div className="space-y-6">
+                  <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h3 className="text-sm font-bold text-white">
+                        Szybkość reakcji redakcji (Speed-to-Publish) wobec niezależnych portali regionalnych
+                      </h3>
+                      <span className="text-xs font-mono text-teal-400">
+                        Pokrycie pików Google Trends: {echo.google_trends_capture_rate_pct}% (mediana reakcji: {echo.median_trends_reaction_minutes} min)
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+                      {echo.speed_to_publish_benchmarks.map((b) => (
+                        <div key={b.region} className="rounded-xl bg-black/40 p-4 border border-white/[0.06] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-white font-bold">{b.region}</span>
+                            <span className="text-teal-300 font-bold">PPG pierwsze w {b.ppg_first_pct}% newsów</span>
+                          </div>
+                          <div className="text-[11px] text-zinc-400">
+                            {b.ppg_title} vs <strong className="text-zinc-200">{b.competitor}</strong> · Mediana opóźnienia: <strong className="text-amber-300">{b.median_lag_minutes} min</strong>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 font-sans">{b.verdict}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 3-Tier Connector Architecture Roadmap */}
+                  <div className="rounded-2xl border border-teal-500/30 bg-teal-500/[0.03] p-6 space-y-4">
+                    <h3 className="text-sm font-bold text-white">
+                      Architektura trójwarstwowa konektorów (`BaseConnector` & `MetricProof`): od darmowych do wewnętrznych i płatnych
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+                      {echo.connectors_roadmap.map((conn) => (
+                        <div key={conn.id} className="rounded-xl border border-white/[0.08] bg-black/50 p-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-white">{conn.name}</span>
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                conn.status === "AKTYWNY"
+                                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                  : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                              }`}
+                            >
+                              {conn.tier} · {conn.status}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-300 font-sans">{conn.current_capabilities}</p>
+                          <div className="text-[11px] text-teal-300 pt-1 border-t border-white/[0.05] font-sans">
+                            <strong>Po włączeniu danych wewnętrznych/płatnych: </strong>
+                            {conn.upgrade_target}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 6: NEWSROOM PULSE (STAFF & CADENCE) */}
+              {intelSubTab === "newsroom_pulse" && pulse && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 font-mono">
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Podpisani dziennikarze (sieć)</span>
+                      <span className="text-2xl font-bold text-white">{pulse.total_named_journalists_network}</span>
+                      <span className="text-[10px] text-teal-400 block mt-1">{pulse.local_beat_reporters_count} reporterów lokalnych</span>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Autorzy-huby centralne</span>
+                      <span className="text-2xl font-bold text-amber-400">{pulse.central_hub_authors_count} osób</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Piszą 1 tekst powielany na 20–140 domen</span>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Koncentracja Top-3 w redakcji</span>
+                      <span className="text-2xl font-bold text-rose-400">{pulse.avg_top3_authors_concentration_pct}%</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">3 autorów ciągnie ponad połowę tekstów</span>
+                    </div>
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+                      <span className="text-[10px] uppercase text-zinc-400 block">Publikacje z harmonogramu CMS</span>
+                      <span className="text-2xl font-bold text-sky-400">{pulse.network_cron_scheduled_pct}%</span>
+                      <span className="text-[10px] text-zinc-400 block mt-1">Wrzutki o pełnym kwadransie (:00/:15/:30)</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-3">
+                      <h3 className="text-sm font-bold text-white">Największe huby autorskie (1 tekst -&gt; dziesiątki portali)</h3>
+                      <div className="space-y-2.5 font-mono text-xs">
+                        {pulse.hub_authors_leaderboard.map((h) => (
+                          <div key={h.name} className="rounded-xl bg-black/40 p-3.5 border border-white/[0.04] space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-white font-bold">{h.name}</span>
+                              <span className="text-teal-400 font-bold">{h.portals_reached} portali zasięgu</span>
+                            </div>
+                            <div className="text-[11px] text-zinc-400">{h.role}</div>
+                            <div className="text-[11px] text-amber-300">
+                              Oryginały (30d): <strong>{h.articles_30d}</strong> -&gt; Wygenerowane kopie sieciowe: <strong>{h.syndicated_copies_30d.toLocaleString("pl-PL")}</strong>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-3">
+                      <h3 className="text-sm font-bold text-white">Dobowy rytm pracy newsroomów: ludzie kontra automaty CMS</h3>
+                      <div className="space-y-2 font-mono text-xs">
+                        {pulse.hourly_rhythm.map((hr) => (
+                          <div key={hr.hour} className="space-y-1">
+                            <div className="flex justify-between text-[11px]">
+                              <span className="text-zinc-300 font-bold">{hr.hour}</span>
+                              <span className="text-zinc-400">
+                                Dziennikarze: <strong className="text-teal-400">{hr.human_pct}%</strong> · Automaty Cron: <strong className="text-purple-300">{hr.cron_pct}%</strong>
+                              </span>
+                            </div>
+                            <div className="h-2 w-full rounded-full bg-white/[0.04] overflow-hidden flex">
+                              <div style={{ width: `${hr.human_pct}%` }} className="bg-teal-500 h-full" />
+                              <div style={{ width: `${hr.cron_pct}%` }} className="bg-purple-500/70 h-full" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODULE 7: WIRE CASCADES */}
+              {intelSubTab === "wire_cascades" && (
+                <div className="space-y-4">
+                  {(data.wire_cascades || []).map((wire) => (
+                    <div key={wire.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-1.5 py-0.5 rounded">
+                              {wire.id}
+                            </span>
+                            <span className="text-xs font-semibold text-white">{wire.canonical_title}</span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 mt-1">{wire.lead}</p>
+                        </div>
+                        <div className="text-right font-mono text-xs shrink-0">
+                          <span className="text-teal-400 font-bold block">{wire.reach} portali</span>
+                          <span className="text-[10px] text-zinc-500">Pacjent zero: {wire.origin_outlet}</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <span className="text-[11px] font-mono uppercase text-zinc-400 block">
+                          Lokalne mutacje nagłówka w miastach sieci:
+                        </span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono">
+                          {wire.mutations.map(([portal, title], mIdx) => (
+                            <div key={mIdx} className="rounded-lg border border-white/[0.04] bg-white/[0.02] p-2.5 flex items-start gap-2">
+                              <span className="text-teal-400 text-[10px] shrink-0 font-bold">{portal}:</span>
+                              <span className="text-zinc-200 text-[11px]">{title}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ================================================================= */}
         {/* TAB: 16 WOJEWÓDZTW */}
@@ -2379,7 +3532,7 @@ export default function PPGscopeApp() {
                   <Database className="h-5 w-5 text-teal-400" /> Rejestr 546 Portali Polska Press Grupa
                 </h2>
                 <p className="text-xs text-zinc-400">
-                  Kompletny katalog wszystkich mediów internetowych PPG w sieci z podziałem na segmenty i województwa.
+                  Kompletny katalog wszystkich mediów internetowych PPG w sieci z podziałem na segmenty, żywotność i unikalność.
                 </p>
               </div>
 
@@ -2398,32 +3551,55 @@ export default function PPGscopeApp() {
               {data.titles
                 .filter((t) => t.name.toLowerCase().includes(titleSearch.toLowerCase()) || t.domain.toLowerCase().includes(titleSearch.toLowerCase()))
                 .slice(0, 99)
-                .map((t) => (
-                  <div key={t.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-3.5 space-y-2 hover:border-white/[0.12] transition-all">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-xs font-semibold text-white truncate">{t.name}</span>
-                      <a href={`https://${t.domain}`} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-teal-400">
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
+                .map((t) => {
+                  const vit = data.portal_vitality_audit?.portals.find((p) => p.domain === t.domain);
+                  return (
+                    <div key={t.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-3.5 space-y-2 hover:border-white/[0.12] transition-all">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-xs font-semibold text-white truncate">{t.name}</span>
+                        <a href={`https://${t.domain}`} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-teal-400">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                        <span className="text-teal-400 truncate max-w-[180px]">{t.domain}</span>
+                        <span className="capitalize">{t.region}</span>
+                      </div>
+                      {vit && (
+                        <div className="flex items-center justify-between text-[10px] font-mono pt-1">
+                          <span
+                            className={`px-1.5 py-0.5 rounded font-bold ${
+                              vit.vitality_status === "AKTYWNY_UNIKALNY"
+                                ? "bg-emerald-500/20 text-emerald-300"
+                                : vit.vitality_status === "AKTYWNY_SYNDYKAT"
+                                ? "bg-sky-500/20 text-sky-300"
+                                : vit.vitality_status === "LEDWO_ZYWY"
+                                ? "bg-amber-500/20 text-amber-300"
+                                : "bg-rose-500/20 text-rose-300"
+                            }`}
+                          >
+                            {vit.vitality_label}
+                          </span>
+                          <span className="text-zinc-300">
+                            Unikalne: <strong>{vit.uniqueness_pct}%</strong> ({vit.unique_articles_count}/{vit.daily_articles_count}/d)
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 pt-1 border-t border-white/[0.04]">
+                        <span>{t.type}</span>
+                        <button
+                          onClick={() => {
+                            setSelectedMediumDomain(t.domain);
+                            setActiveTab("domain_stats");
+                          }}
+                          className="text-teal-400 hover:text-teal-300 font-bold"
+                        >
+                          Analizuj to medium
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-                      <span className="text-teal-400 truncate max-w-[180px]">{t.domain}</span>
-                      <span className="capitalize">{t.region}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 pt-1 border-t border-white/[0.04]">
-                      <span>{t.type}</span>
-                      <button
-                        onClick={() => {
-                          setSelectedMediumDomain(t.domain);
-                          setActiveTab("domain_stats");
-                        }}
-                        className="text-teal-400 hover:text-teal-300 font-bold"
-                      >
-                        Analizuj to medium
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         )}

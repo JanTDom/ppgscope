@@ -82,3 +82,23 @@ Dokument zawiera spis kluczowych decyzji podjętych w projekcie **PPGscope**, zg
     2. `ExternalMonitoringConnector` (Płatny - nieaktywny w przypadku braku klucza, zgłasza jawny status `NIEAKTYWNY: Brak klucza licencyjnego`).
     3. `InternalAnalyticsConnector` (Wewnętrzny - nieaktywny w przypadku braku uprawnień GA4/Gemius).
   - Wskaźniki pokrycia danych w UI (np. „1 z 3 konektorów aktywny”).
+
+---
+
+## ADR-007: Audyt żywotności i unikalności 546 portali oraz 6 modułów wywiadu redakcyjnego
+
+* **Data:** 2026-10-18
+* **Status:** PRZYJĘTE I WDROŻONE
+* **Kontekst:** Użytkownik zlecił rozbudowę systemu o wykrywanie realnej aktywności i unikalności tekstowej w sieci 546 portali PPG (odróżnienie żywych redakcji od klonów syndykacyjnych, portali ledwo żywych, automatów cronowych i domen wygaszonych) oraz wdrożenie 6 modułów wywiadu redakcyjnego opartych na zewnętrznych danych bezpłatnych z gotowymi gniazdami pod konektory wewnętrzne i płatne.
+* **Decyzja:**
+  1. **Audyt żywotności i unikalności portali (`PortalVitalityAuditor` + `/api/vitality/probe`):**
+     - Pięciostopniowa klasyfikacja: `AKTYWNY_UNIKALNY` ($\ge 10$ art./dobę, unikalność $\ge 35\%$), `AKTYWNY_SYNDYKAT` ($\ge 10$ art./dobę, unikalność $< 35\%$), `LEDWO_ZYWY` ($< 5$ art./dobę lub luka publikacyjna $> 18\text{ h}$), `ZOMBIE_AUTOMAT` ($\ge 65\%$ publikacji w pełnych minutach crona `:00`/`:15`/`:30`/`:45` przy unikalności $< 15\%$), `MARTWY` (HTTP 404/410/5xx lub brak publikacji $> 72\text{ h}$, np. `polskatimes.pl` HTTP 410).
+     - Sonda na żywo (`/api/vitality/probe`) odpytuje bezpłatnie kanały `/rss`, `/google_news/` oraz drzewo DOM strony głównej wybranego portalu.
+  2. **Sześć modułów wywiadu redakcyjnego (`ppgscope/ingest/intelligence.py` + `ppgscope/ingest/extractor.py`):**
+     - **Radar Ekspozycji Stron Głównych (Share of Voice):** cykliczne zrzuty strefy Above-the-Fold (`LEAD_MAIN`, `TOP_GRID`, `SUB_STREAM`) i konfrontacja wolumenu RSS z realną ekspozycją na jedynkach.
+     - **Detektor Mutacji i Wycofywania Tekstów:** porównywanie rewizji artykułu w oknie 48h (zmiany tytułów A/B, edycje leadu/korpusu, pośmiertne zamknięcie za paywallem, usunięcia HTTP 404/410).
+     - **Mapa Monetyzacji, Paywalla i Discover Bait:** ekstrakcja flag `isAccessibleForFree` w JSON-LD (`Strefa Plus`), znaczników `rel="sponsored"` / „Materiał partnera” oraz wzorców nagłówków pod Google Discover.
+     - **Mapa Białych Plam Powiatowych (380 powiatów TERYT):** zestawienie publikacji z lokalnymi instytucjami (`Urząd Gminy`, `Starostwo`, `KPP`, `PSP`) z rejestrem GUS TERYT.
+     - **Zewnętrzny Rezonans i Indeks Pierwotności (Original Scoops vs Echo):** pomiar cytowań w Google News / Wikipedia Current Events / GDELT 2.0.
+     - **Puls Redakcji i Struktura Autorstwa:** profilowanie byline (`named`, `anonymous`, `wire`, `partner`) i rozkładu godzinowego (zmiana dzienna vs nocny automat cron).
+

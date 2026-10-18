@@ -182,6 +182,89 @@ class HtmlArticleExtractor:
         # 10. Press Title
         press_title = press_title_hint or domain
 
+        # 11. Paywall ("Strefa Plus") detection from JSON-LD, meta tags & CSS markers
+        is_paywalled = False
+        for block in json_ld_blocks:
+            acc = block.get("isAccessibleForFree")
+            if acc is False or (isinstance(acc, str) and acc.strip().lower() == "false"):
+                is_paywalled = True
+                break
+        if not is_paywalled:
+            if re.search(
+                r'(?:isAccessibleForFree[\"\']?\s*:\s*[\"\']?false|class=[\"\'][^\"\']*(?:atomsArticlePaywall|strefa-plus|plus-badge|paywall-box)[^\"\']*[\"\']|content=[\"\'](?:locked|metered)[\"\'])',
+                html_content,
+                re.IGNORECASE,
+            ):
+                is_paywalled = True
+
+        # 12. Sponsored / Partner material detection
+        combined_meta_text = f"{title or ''} {lead or ''} {section or ''} {' '.join(tags)} {author or ''}"
+        is_sponsored = False
+        if re.search(
+            r'(?:materia[łl]\s+partnera|artyku[łl]\s+sponsorowany|p[łl]atna\s+wsp[óo][łl]praca|materia[łl]\s+promocyjny|reklama|rel=[\"\']sponsored[\"\'])',
+            f"{combined_meta_text} {html_content}",
+            re.IGNORECASE,
+        ):
+            is_sponsored = True
+
+        # 13. Authorship / Byline classification (named, anonymous, wire, partner)
+        byline_type = "anonymous"
+        clean_author = (author or "").strip()
+        if is_sponsored or re.search(r'(?:partner|promocja|reklama|komercyjny)', clean_author, re.IGNORECASE):
+            byline_type = "partner"
+        elif re.search(r'\b(?:PAP|Polska Agencja Prasowa|IAR|Reuters|Biuro Prasowe)\b', f"{clean_author} {body[:240]}", re.IGNORECASE):
+            byline_type = "wire"
+        elif (
+            clean_author
+            and not re.search(r'^(?:redakcja|zesp[óo][łl]|red\.?|admin|autor|wydawca|naszemiasto|polska press)', clean_author, re.IGNORECASE)
+            and len(clean_author.split()) >= 2
+        ):
+            byline_type = "named"
+
+        # 14. Public comment count extraction
+        comments_count = 0
+        for block in json_ld_blocks:
+            if "commentCount" in block:
+                try:
+                    comments_count = max(comments_count, int(block["commentCount"]))
+                except (ValueError, TypeError):
+                    pass
+        if comments_count == 0:
+            c_match = re.search(r'(?:commentCount|liczba-komentarzy)[\"\']?\s*[:=>]\s*[\"\']?(\d+)', html_content, re.IGNORECASE)
+            if c_match:
+                try:
+                    comments_count = int(c_match.group(1))
+                except ValueError:
+                    pass
+
+        # 15. Local institutions quoted in the article (county/municipality grounding)
+        local_institutions_quoted: List[str] = []
+        institution_patterns = [
+            ("Urząd Miasta / Gminy", r'\burz[aą]d[a-z]*\s+(?:miasta|gminy|miejski)\b'),
+            ("Starostwo Powiatowe", r'\bstarostw[a-z]*\s+powiatow[a-z]*\b|\bstarost[a-z]*\b'),
+            ("Rada Miasta / Gminy / Powiatu", r'\brad[a-z]*\s+(?:miejsk[a-z]*|miasta|gminy|powiatu)\b|\bradn[yi]\b'),
+            ("Prezydent / Burmistrz / Wójt", r'\b(?:prezydent[a-z]*\s+miasta|burmistrz[a-z]*|w[óo]jt[a-z]*|so[łl]tys[a-z]*)\b'),
+            ("Komenda Policji / Straż Miejska", r'\b(?:komend[a-z]*\s+(?:powiatow[a-z]*|miejsk[a-z]*)\s+policji|stra[żz][a-z]*\s+miejsk[a-z]*)\b'),
+            ("Państwowa / Ochotnicza Straż Pożarna", r'\b(?:komend[a-z]*\s+(?:powiatow[a-z]*|miejsk[a-z]*)\s+psp|osp\b|stra[żz]acy\s+z)\b'),
+            ("Szpital Powiatowy / Wojewódzki", r'\bszpital[a-z]*\s+(?:powiatow[a-z]*|wojew[óo]dzk[a-z]*|miejsk[a-z]*)\b'),
+            ("Prokuratura / Sąd Rejonowy", r'\b(?:prokuratur[a-z]*\s+rejonow[a-z]*|s[aą]d[a-z]*\s+rejonow[a-z]*)\b'),
+            ("Zarząd Dróg / MPK / MZK", r'\b(?:zarz[aą]d[a-z]*\s+dr[óo]g|mpk\b|mzk\b|zdit\b|zdm\b)\b'),
+        ]
+        full_text_for_inst = f"{title or ''} {lead or ''} {body or ''}"
+        for inst_label, inst_regex in institution_patterns:
+            if re.search(inst_regex, full_text_for_inst, re.IGNORECASE):
+                local_institutions_quoted.append(inst_label)
+
+        # 16. Google Discover / SEO Evergreen Bait detector
+        is_discover_bait = False
+        discover_headline_re = re.compile(
+            r'(?:kiedy\s+wyp[łl]at|ile\s+wynosi|komu\s+przys[łl]uguje|pilny\s+komunikat|nowe\s+limity|sprawd[źz]\s+czy\s+nale[żz]|tyle\s+dostaniesz|dodatek\s+do\s+emerytury|zmiany\s+w\s+przepisach\s+dla\s+wszystkich|quiz\s+z\s+prl|ma[łl]o\s+kto\s+o\s+tym\s+wie)',
+            re.IGNORECASE,
+        )
+        question_h2_count = len(re.findall(r'<h2[^>]*>[^<]*\?</h2>', html_content, re.IGNORECASE))
+        if (discover_headline_re.search(title or "") or question_h2_count >= 2) and len(local_institutions_quoted) == 0:
+            is_discover_bait = True
+
         return Article(
             canonical_url=canonical_url,
             title=title,
@@ -196,4 +279,11 @@ class HtmlArticleExtractor:
             domain=domain,
             region=region_hint,
             raw_html_hash=raw_hash,
+            is_paywalled=is_paywalled,
+            is_sponsored=is_sponsored,
+            is_discover_bait=is_discover_bait,
+            byline_type=byline_type,
+            comments_count=comments_count,
+            local_institutions_quoted=local_institutions_quoted,
         )
+

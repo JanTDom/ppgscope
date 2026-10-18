@@ -31,10 +31,10 @@ class InternalAnalyticsConnector(BaseConnector):
     @property
     def measured_metrics(self) -> List[str]:
         return [
-            "Liczba odsłon artykułów (Pageviews)",
-            "Czas zaangażowania czytelników",
-            "Źródła ruchu (Search / Social / Direct / Referral)",
-            "Współczynnik konwersji na subskrypcje cyfrowe (Plus)",
+            "Liczba odsłon (Pageviews) i realny czas zaangażowania (GA4)",
+            "Klikalność kafelków na stronach głównych (Homepage CTR)",
+            "Konwersje paywalla Strefa Plus na subskrypcje cyfrowe (Piano)",
+            "Wewnętrzne logi redakcyjne CMS i pokrycie zasięgowe Gemius/Mediapanel",
         ]
 
     @property

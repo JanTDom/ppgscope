@@ -27,7 +27,18 @@ class Article(BaseModel):
     is_duplicate: bool = Field(default=False, description="True if marked as syndicate / shared copy (TEKST WSPÓLNY)")
     duplicate_cluster_id: Optional[str] = Field(default=None, description="Cluster identifier grouping identical publications")
     original_article_url: Optional[str] = Field(default=None, description="Canonical URL of the first published instance")
-    
+
+    # Monetization, SEO bait & editorial provenance signals (free external HTML extraction)
+    is_paywalled: bool = Field(default=False, description="True if locked behind PPG Strefa Plus paywall")
+    is_sponsored: bool = Field(default=False, description="True if labeled as commercial / partner / sponsored material")
+    is_discover_bait: bool = Field(default=False, description="True if structured as Google Discover / SEO evergreen bait")
+    byline_type: str = Field(default="anonymous", description="Authorship type: named, anonymous, wire, partner")
+    comments_count: int = Field(default=0, ge=0, description="Public comments count extracted from page metadata")
+    local_institutions_quoted: List[str] = Field(
+        default_factory=list,
+        description="Local institutions, mayors, councils or emergency services quoted in the text"
+    )
+
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Ingestion timestamp in PPGscope"
@@ -39,3 +50,4 @@ class Article(BaseModel):
         if isinstance(raw_content, str):
             raw_content = raw_content.encode("utf-8")
         return hashlib.sha256(raw_content).hexdigest()
+

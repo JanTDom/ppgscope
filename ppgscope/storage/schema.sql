@@ -168,3 +168,52 @@ CREATE TABLE IF NOT EXISTS ppg_connector_runs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_connector_runs ON ppg_connector_runs (connector_id, started_at DESC);
+
+-- 11. Portal Vitality & Uniqueness Audit (546 Media Health & Originality Index)
+CREATE TABLE IF NOT EXISTS ppg_portal_vitality (
+    domain VARCHAR(255) PRIMARY KEY REFERENCES ppg_titles(domain) ON UPDATE CASCADE,
+    vitality_status VARCHAR(32) NOT NULL, -- AKTYWNY_UNIKALNY, AKTYWNY_SYNDYKAT, LEDWO_ZYWY, ZOMBIE_AUTOMAT, MARTWY
+    vitality_score NUMERIC(5, 2) NOT NULL DEFAULT 0.0,
+    daily_articles_count INTEGER NOT NULL DEFAULT 0,
+    unique_articles_count INTEGER NOT NULL DEFAULT 0,
+    uniqueness_pct NUMERIC(5, 2) NOT NULL DEFAULT 0.0,
+    syndicated_clones_pct NUMERIC(5, 2) NOT NULL DEFAULT 0.0,
+    hours_since_last_pub NUMERIC(7, 2) NOT NULL DEFAULT 0.0,
+    named_authors_count INTEGER NOT NULL DEFAULT 0,
+    cron_scheduled_pct NUMERIC(5, 2) NOT NULL DEFAULT 0.0,
+    http_status INTEGER NOT NULL DEFAULT 200,
+    diagnosis TEXT,
+    measured_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_portal_vitality_status ON ppg_portal_vitality (vitality_status, vitality_score DESC);
+
+-- 12. Homepage Radar Snapshots (Front-page Curation vs Sitemap Bulk)
+CREATE TABLE IF NOT EXISTS ppg_homepage_snapshots (
+    id BIGSERIAL PRIMARY KEY,
+    domain VARCHAR(255) NOT NULL REFERENCES ppg_titles(domain) ON UPDATE CASCADE,
+    captured_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    lead_story_url TEXT,
+    lead_story_title TEXT,
+    above_fold_slots JSONB NOT NULL DEFAULT '[]'::jsonb,
+    breaking_badges_count INTEGER NOT NULL DEFAULT 0,
+    paywall_slots_pct NUMERIC(5, 2) NOT NULL DEFAULT 0.0,
+    sponsored_slots_pct NUMERIC(5, 2) NOT NULL DEFAULT 0.0,
+    agenda_gap_score NUMERIC(5, 2) NOT NULL DEFAULT 0.0
+);
+
+CREATE INDEX IF NOT EXISTS idx_homepage_snapshots_domain ON ppg_homepage_snapshots (domain, captured_at DESC);
+
+-- 13. TERYT County Information Deserts & Local Grounding
+CREATE TABLE IF NOT EXISTS ppg_teryt_coverage (
+    teryt_code VARCHAR(16) PRIMARY KEY,
+    county_name VARCHAR(255) NOT NULL,
+    voivodeship VARCHAR(128) NOT NULL,
+    assigned_domain VARCHAR(255),
+    articles_30d INTEGER NOT NULL DEFAULT 0,
+    unique_local_articles_30d INTEGER NOT NULL DEFAULT 0,
+    local_institutions_quoted_count INTEGER NOT NULL DEFAULT 0,
+    desert_status VARCHAR(32) NOT NULL, -- PELNE_POKRYCIE, SLABE_POKRYCIE, PUSTYNIA_INFORMACYJNA
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+

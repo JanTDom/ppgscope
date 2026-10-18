@@ -37,6 +37,11 @@ class PPGWebPublicConnector(BaseConnector):
             "Struktura tematyczna publikacji",
             "Odsetek tekstów wspólnych (przedruki syndykatowe)",
             "Dynamika i trendy publikacji w czasie",
+            "Audyt żywotności i unikalności 546 portali (Czynne vs Syndykaty vs Martwe)",
+            "Radar czołówek (ekspozycja na stronach głównych vs masówka z sitemapy)",
+            "Śledzenie zmian nagłówków (A/B), cichych edycji i usunięć (Tombstone 404/410)",
+            "Detekcja paywalla (Strefa Plus), tekstów sponsorowanych i przynęt Google Discover",
+            "Mapa białych plam powiatowych (TERYT) i puls kadr redakcyjnych",
         ]
 
     @property

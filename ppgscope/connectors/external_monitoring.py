@@ -32,9 +32,10 @@ class ExternalMonitoringConnector(BaseConnector):
     @property
     def measured_metrics(self) -> List[str]:
         return [
-            "Zasięg i wzmianki w mediach społecznościowych",
-            "Wskaźnik AVE (Advertising Value Equivalency)",
-            "Sentyment wypowiedzi odbiorców",
+            "Zasięg i wzmianki w mediach społecznościowych (Brand24 / Sotrender)",
+            "Widoczność SEO i udział w Google Discover (Senuto / Semrush)",
+            "Ekwiwalent reklamowy AVE i monitoring konkurencji (IMM / PSMM)",
+            "Sentyment wypowiedzi odbiorców w zewnętrznych kanałach",
         ]
 
     @property
