@@ -51,9 +51,10 @@ export async function POST(req: NextRequest) {
       records_count: count,
       message: `Połączenie z bazą Supabase aktywne (${count !== null ? count : 0} artykułów w tabeli)`,
     });
-  } catch (err: any) {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Błąd sieci podczas łączenia z Supabase.";
     return NextResponse.json(
-      { ok: false, error: err?.message || "Błąd sieci podczas łączenia z Supabase." },
+      { ok: false, error: message },
       { status: 500 }
     );
   }

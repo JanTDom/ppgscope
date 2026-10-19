@@ -49,9 +49,10 @@ export async function POST(req: NextRequest) {
       latency_ms: latency,
       reply,
     });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Błąd sieciowy podczas sprawdzania Gemini API";
     return NextResponse.json(
-      { ok: false, error: error?.message || "Błąd sieciowy podczas sprawdzania Gemini API" },
+      { ok: false, error: message },
       { status: 500 }
     );
   }

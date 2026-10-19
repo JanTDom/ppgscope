@@ -2,46 +2,38 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
+import ForensicsPanel from "./forensics-panel";
 import {
   Shield,
   Lock,
   Search,
-  Filter,
   RefreshCw,
   AlertTriangle,
   CheckCircle2,
-  ChevronRight,
   BarChart3,
-  TrendingUp,
   Layers,
   FileText,
   Database,
   Settings,
   X,
   ExternalLink,
-  Calendar,
   GitBranch,
-  Share2,
   Sparkles,
   Check,
-  XCircle,
   Info,
   PieChart,
   Activity,
   Zap,
   Users,
   Compass,
-  MapPin,
   Clock,
   Download,
   Building2,
-  Globe2,
   Target,
   Scale,
   ThumbsUp,
   ThumbsDown,
   Minus,
-  Quote,
   Vote
 } from "lucide-react";
 
@@ -710,7 +702,7 @@ export default function PPGscopeApp() {
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "domain_stats" | "executive_briefing" | "compare" | "vitality_audit" | "charts" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology" | "ko_sentiment"
+    "overview" | "domain_stats" | "executive_briefing" | "compare" | "vitality_audit" | "charts" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology" | "ko_sentiment" | "forensics"
   >("domain_stats");
 
   // Portal Vitality & Uniqueness Audit States
@@ -821,43 +813,46 @@ export default function PPGscopeApp() {
 
   // Initialize client time and load configuration
   useEffect(() => {
-    try {
-      const storedKey = localStorage.getItem("ppgscope_gemini_api_key");
-      if (storedKey && storedKey.trim().length > 0) setGeminiApiKey(storedKey);
+    const timer = window.setTimeout(() => {
+      try {
+        const storedKey = localStorage.getItem("ppgscope_gemini_api_key");
+        if (storedKey && storedKey.trim().length > 0) setGeminiApiKey(storedKey);
 
-      const storedSbUrl = localStorage.getItem("ppgscope_supabase_url");
-      if (storedSbUrl && storedSbUrl.trim().length > 0) setSupabaseUrl(storedSbUrl);
+        const storedSbUrl = localStorage.getItem("ppgscope_supabase_url");
+        if (storedSbUrl && storedSbUrl.trim().length > 0) setSupabaseUrl(storedSbUrl);
 
-      const storedSbAnon = localStorage.getItem("ppgscope_supabase_anon_key");
-      if (storedSbAnon && storedSbAnon.trim().length > 0) setSupabaseAnonKey(storedSbAnon);
+        const storedSbAnon = localStorage.getItem("ppgscope_supabase_anon_key");
+        if (storedSbAnon && storedSbAnon.trim().length > 0) setSupabaseAnonKey(storedSbAnon);
 
-      fetch("/api/gemini/config")
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.key && (!storedKey || storedKey.trim().length === 0)) {
-            setGeminiApiKey(d.key);
-            localStorage.setItem("ppgscope_gemini_api_key", d.key);
-          }
-          if (d.supabaseUrl && (!storedSbUrl || storedSbUrl.trim().length === 0)) {
-            setSupabaseUrl(d.supabaseUrl);
-            localStorage.setItem("ppgscope_supabase_url", d.supabaseUrl);
-          }
-          if (d.supabaseAnonKey && (!storedSbAnon || storedSbAnon.trim().length === 0)) {
-            setSupabaseAnonKey(d.supabaseAnonKey);
-            localStorage.setItem("ppgscope_supabase_anon_key", d.supabaseAnonKey);
-          }
-        })
-        .catch(() => {});
+        fetch("/api/gemini/config")
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.key && (!storedKey || storedKey.trim().length === 0)) {
+              setGeminiApiKey(d.key);
+              localStorage.setItem("ppgscope_gemini_api_key", d.key);
+            }
+            if (d.supabaseUrl && (!storedSbUrl || storedSbUrl.trim().length === 0)) {
+              setSupabaseUrl(d.supabaseUrl);
+              localStorage.setItem("ppgscope_supabase_url", d.supabaseUrl);
+            }
+            if (d.supabaseAnonKey && (!storedSbAnon || storedSbAnon.trim().length === 0)) {
+              setSupabaseAnonKey(d.supabaseAnonKey);
+              localStorage.setItem("ppgscope_supabase_anon_key", d.supabaseAnonKey);
+            }
+          })
+          .catch(() => {});
 
-      const nowMs = Date.now();
-      setClientNow(nowMs);
-      const endStr = new Date(nowMs).toISOString().split("T")[0];
-      const startStr = new Date(nowMs - 30 * 86400 * 1000).toISOString().split("T")[0];
-      setCustomStartDate(startStr);
-      setCustomEndDate(endStr);
-    } catch {
-      // Ignore localStorage in private browsing
-    }
+        const nowMs = Date.now();
+        setClientNow(nowMs);
+        const endStr = new Date(nowMs).toISOString().split("T")[0];
+        const startStr = new Date(nowMs - 30 * 86400 * 1000).toISOString().split("T")[0];
+        setCustomStartDate(startStr);
+        setCustomEndDate(endStr);
+      } catch {
+        // Ignore localStorage in private browsing
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const handleSaveSettings = () => {
@@ -1862,6 +1857,17 @@ export default function PPGscopeApp() {
             </button>
 
             <button
+              onClick={() => setActiveTab("forensics")}
+              className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
+                activeTab === "forensics"
+                  ? "bg-amber-500/20 text-amber-200 border border-amber-500/40"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+              }`}
+            >
+              <Shield className="h-3.5 w-3.5 text-amber-400" /> Szyba śledcza
+            </button>
+
+            <button
               onClick={() => setActiveTab("compare")}
               className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
                 activeTab === "compare"
@@ -1967,6 +1973,7 @@ export default function PPGscopeApp() {
       <main className="mx-auto max-w-7xl p-4 sm:p-6 space-y-6">
 
         {/* Global Context Bar: Searchable 546-Medium Selector + Locality Toggles */}
+        {activeTab !== "forensics" && (
         <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Medium Selector Dropdown + Instant Search */}
@@ -2109,11 +2116,12 @@ export default function PPGscopeApp() {
             </div>
           )}
         </div>
+        )}
 
         {/* ================================================================= */}
         {/* SINGLE MEDIUM 360-DEGREE DIAGNOSTIC PANEL (ALL CRITERIA AT ONCE) */}
         {/* ================================================================= */}
-        {selectedPortalFullAudit && activeTab !== "compare" && (
+        {selectedPortalFullAudit && activeTab !== "compare" && activeTab !== "forensics" && (
           <div className="rounded-2xl border border-teal-500/30 bg-gradient-to-br from-teal-500/[0.07] via-[#0c0e12] to-[#0c0e12] p-5 space-y-4 shadow-xl">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
               <div>
@@ -2338,6 +2346,11 @@ export default function PPGscopeApp() {
             </div>
           </div>
         )}
+
+        {/* ================================================================= */}
+        {/* TAB: SZYBA ŚLEDCZA / LIVE FORENSICS OSINT */}
+        {/* ================================================================= */}
+        {activeTab === "forensics" && <ForensicsPanel />}
 
         {/* ================================================================= */}
         {/* TAB: 18 DZIEDZIN I LOKALNOŚĆ (MAIN VIEW) */}
@@ -2643,7 +2656,7 @@ export default function PPGscopeApp() {
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-500">
-                  Zdolność redakcji do 'przepakowywania' tematów ogólnopolskich na konkretne przykłady lokalne
+                  Zdolność redakcji do &apos;przepakowywania&apos; tematów ogólnopolskich na konkretne przykłady lokalne
                 </p>
               </div>
             </div>

@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs";
 
+interface AggregateArticle {
+  published_at?: string;
+  portal_domain?: string;
+  domain?: string;
+  locality?: string;
+}
+
+interface AggregateCube {
+  global?: unknown;
+  per_medium?: Record<string, unknown>;
+}
+
+interface DashboardAggregateData {
+  generated_at?: string;
+  recent_articles?: AggregateArticle[];
+  server_aggregates?: Record<string, AggregateCube>;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,7 +33,7 @@ export async function GET(req: NextRequest) {
     }
 
     const rawData = fs.readFileSync(dataPath, "utf-8");
-    const dashboard = JSON.parse(rawData);
+    const dashboard = JSON.parse(rawData) as DashboardAggregateData;
 
     // If pre-computed server aggregates exist for this preset
     if (dashboard.server_aggregates && dashboard.server_aggregates[preset]) {
@@ -60,8 +77,8 @@ export async function GET(req: NextRequest) {
       start = new Date("2024-03-09T08:00:00+01:00");
     }
 
-    const filtered = articles.filter((a: any) => {
-      const pub = new Date(a.published_at);
+    const filtered = articles.filter((a) => {
+      const pub = new Date(a.published_at ?? "");
       const matchesTime = pub >= start && pub <= now;
       const matchesDomain = domainFilter === "ALL" || a.portal_domain === domainFilter;
       return matchesTime && matchesDomain;
@@ -82,7 +99,7 @@ export async function GET(req: NextRequest) {
     let countCL = 0;
     let countL = 0;
 
-    filtered.forEach((a: any) => {
+    filtered.forEach((a) => {
       const dom = a.domain || "spolecznosc";
       const loc = a.locality || "C";
       if (!counts[dom]) {
@@ -120,7 +137,8 @@ export async function GET(req: NextRequest) {
         domains: counts,
       },
     });
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err?.message }, { status: 500 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Błąd agregacji danych.";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

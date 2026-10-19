@@ -152,9 +152,10 @@ Fragment treści: ${(body || "").substring(0, 1500)}
         classified_at: new Date().toISOString(),
       },
     });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Wystąpił błąd klasyfikacji";
     return NextResponse.json(
-      { ok: false, error: error?.message || "Wystąpił błąd klasyfikacji" },
+      { ok: false, error: message },
       { status: 500 }
     );
   }
