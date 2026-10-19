@@ -1,0 +1,36 @@
+{
+  "dataset_id": "dashboard.json",
+  "mode": "synthetic_fixture",
+  "display_label": "Snapshot demonstracyjny",
+  "trust_label": "PRECOMPUTED / FIXTURE",
+  "generated_at": "2026-10-18T00:25:00+02:00",
+  "source_class": "verified_registry_plus_deterministic_generated_distribution",
+  "source_summary": "Rejestr domen pochodzi z konfiguracji zweryfikowanych serwisów; artykuły i część wskaźników w tym payloadzie są prekompilowanym fixture'em, a nie bieżącym pomiarem z każdego wydawcy.",
+  "primary_sources": [
+    "config/verified_domains.json",
+    "sources/ppg_registry.yaml",
+    "ppgscope/connectors/ppg_web.py"
+  ],
+  "live_paths": [
+    {
+      "path": "/api/articles/live",
+      "source": "publisher RSS, then Google News RSS fallback",
+      "trust": "POMIAR + heurystyczna klasyfikacja",
+      "storage": "session only"
+    },
+    {
+      "path": "/api/vitality/probe",
+      "source": "publisher RSS, Google News RSS fallback, optional homepage probe",
+      "trust": "POMIAR obserwacji + heurystyczna interpretacja",
+      "storage": "not persisted"
+    }
+  ],
+  "not_verified_in_static_payload": [
+    "aktualne tytuły artykułów i ich URL-e źródłowe",
+    "audience, CTR, pageviews and subscription conversions",
+    "Google Trends / Discover capture rate",
+    "external citations and competitor benchmark values",
+    "homepage, paywall and canonical observations"
+  ],
+  "honesty_note": "Nie oznaczaj tego payloadu jako LIVE. Przełączenie na dane live wymaga uruchomionego, audytowalnego ingestu z timestampem, URL-em źródłowym i dowodem dla każdej metryki."
+}
