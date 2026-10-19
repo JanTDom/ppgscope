@@ -559,6 +559,33 @@ interface DashboardPayload {
   editorial_intelligence?: EditorialIntelligenceData;
 }
 
+function ChartPanel({
+  title,
+  icon: Icon,
+  meta,
+  children,
+  className = "",
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  meta?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-4 ${className}`}>
+      <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] pb-3">
+        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+          <Icon className="h-4 w-4 shrink-0 text-teal-400" />
+          {title}
+        </h3>
+        {meta ? <span className="shrink-0 text-[10px] font-mono text-zinc-500">{meta}</span> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 type AppTab =
   | "overview"
   | "domain_stats"
@@ -573,6 +600,8 @@ type AppTab =
   | "methodology"
   | "ko_sentiment"
   | "forensics";
+
+type ChartView = "all" | "content" | "network" | "operations";
 
 const NAV_GROUPS: {
   label: string;
@@ -761,6 +790,7 @@ export default function PPGscopeApp() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<AppTab>("executive_briefing");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [chartView, setChartView] = useState<ChartView>("all");
 
   // Portal Vitality & Uniqueness Audit States
   const [vitalityStatusFilter, setVitalityStatusFilter] = useState<string>("ALL");
@@ -1590,6 +1620,37 @@ export default function PPGscopeApp() {
       strongestB,
     };
   }, [data, timePreset, selectedMediumDomain, compareMediumDomain]);
+
+  // Chart Center data products: each visualisation uses the same live payload,
+  // but the derived collections keep the rendering layer readable and fast.
+  const chartTimeseries = useMemo(() => data?.daily_timeseries || [], [data]);
+  const chartDomains = useMemo(
+    () => [...domainBreakdown.domains].filter((domain) => domain.total > 0).sort((a, b) => b.total - a.total),
+    [domainBreakdown]
+  );
+  const chartRegions = useMemo(
+    () => [...(data?.cross_sections?.by_voivodeship || [])].sort((a, b) => b.articles_count - a.articles_count),
+    [data]
+  );
+  const chartSegments = useMemo(
+    () => [...(data?.cross_sections?.by_segment || [])].sort((a, b) => b.articles_count - a.articles_count),
+    [data]
+  );
+  const chartPortals = useMemo(
+    () => [...(data?.portal_vitality_audit?.portals || [])].sort((a, b) => b.daily_articles_count - a.daily_articles_count),
+    [data]
+  );
+  const chartStatusBuckets = useMemo(() => {
+    const order = ["AKTYWNY_UNIKALNY", "AKTYWNY_SYNDYKAT", "LEDWO_ZYWY", "ZOMBIE_AUTOMAT", "MARTWY"];
+    return order.map((key) => ({
+      key,
+      ...(data?.portal_vitality_audit?.status_breakdown?.[key] || { count: 0, pct: 0, label: key, criteria: "" }),
+    }));
+  }, [data]);
+  const chartEntities = useMemo(() => data?.hhi_entities?.entities || [], [data]);
+
+  const chartMax = (values: number[]) => Math.max(1, ...values);
+  const chartScale = (value: number, max: number, size: number) => (value / Math.max(1, max)) * size;
 
   // CSV Export Handler
   const handleExportCSV = () => {
@@ -4676,13 +4737,211 @@ export default function PPGscopeApp() {
         {activeTab === "charts" && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-2">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <PieChart className="h-5 w-5 text-teal-400" /> Centrum Wykresów Graficznych i Wizualizacji Danych
-              </h2>
-              <p className="text-xs text-zinc-400">
-                Graficzne podsumowanie struktury mediów, rozkładu lokalności oraz kaskad depeszowych.
-              </p>
+                  </h2>
+                  <p className="mt-1 max-w-3xl text-xs text-zinc-400">
+                    Wielowarstwowy atlas sieci PPG: wolumen, tematy, lokalność, regiony, żywotność portali i przepływ informacji.
+                    Wszystkie widoki korzystają z bieżącego zakresu danych i wybranego medium.
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2 font-mono text-[10px] text-zinc-400">
+                  <span className="rounded-lg border border-teal-500/20 bg-teal-500/10 px-2.5 py-1.5 text-teal-300">{chartDomains.length || 18} dziedzin</span>
+                  <span className="rounded-lg border border-white/[0.08] bg-black/30 px-2.5 py-1.5">{chartRegions.length || 16} regionów</span>
+                  <span className="rounded-lg border border-white/[0.08] bg-black/30 px-2.5 py-1.5">{chartPortals.length || 547} portali</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4">
+                <span className="mr-1 text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">Widoki:</span>
+                {([
+                  ["all", "Wszystkie"],
+                  ["content", "Treść i tematy"],
+                  ["network", "Sieć i regiony"],
+                  ["operations", "Operacje i ryzyko"],
+                ] as [ChartView, string][]).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setChartView(value)}
+                    className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all ${
+                      chartView === value
+                        ? "border-teal-400/40 bg-teal-400/15 text-teal-200"
+                        : "border-white/[0.08] bg-black/20 text-zinc-400 hover:border-white/[0.16] hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                { label: "Publikacje w zakresie", value: domainBreakdown.totalCount.toLocaleString("pl-PL"), note: selectedMediumDomain === "ALL" ? "cała sieć" : selectedMediumDomain, tone: "text-teal-300" },
+                { label: "Udział lokalny", value: `${domainBreakdown.localContentShare}%`, note: "L + CL / wszystkie", tone: "text-emerald-300" },
+                { label: "Największa dziedzina", value: chartDomains[0]?.name || "—", note: chartDomains[0] ? `${chartDomains[0].pct}% zakresu` : "brak danych", tone: "text-amber-300" },
+                { label: "Średnia unikalność", value: `${data?.portal_vitality_audit?.network_avg_uniqueness_pct ?? 31.4}%`, note: "audyt portali", tone: "text-sky-300" },
+              ].map((metric) => (
+                <div key={metric.label} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/70 p-4">
+                  <span className="block text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">{metric.label}</span>
+                  <strong className={`mt-2 block truncate text-xl font-semibold ${metric.tone}`}>{metric.value}</strong>
+                  <span className="mt-1 block truncate text-[11px] font-mono text-zinc-500">{metric.note}</span>
+                </div>
+              ))}
+            </div>
+
+            {(chartView === "all" || chartView === "content") && (
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <ChartPanel title="Wolumen publikacji w czasie" icon={Activity} meta={`${chartTimeseries.length} dni · globalnie`}>
+                  <div className="space-y-3">
+                    <svg viewBox="0 0 720 230" className="h-auto w-full" role="img" aria-label="Wolumen publikacji i treści lokalnych w czasie">
+                      {[0, 1, 2, 3].map((step) => {
+                        const y = 28 + step * 48;
+                        return <line key={step} x1="42" x2="700" y1={y} y2={y} stroke="rgba(159,186,199,.10)" strokeDasharray="3 5" />;
+                      })}
+                      {chartTimeseries.length > 1 && (() => {
+                        const max = chartMax(chartTimeseries.map((point) => point.total));
+                        const points = chartTimeseries.map((point, index) => `${42 + (index / (chartTimeseries.length - 1)) * 658},${190 - (point.total / max) * 150}`).join(" ");
+                        const localPoints = chartTimeseries.map((point, index) => `${42 + (index / (chartTimeseries.length - 1)) * 658},${190 - (point.lokalne / max) * 150}`).join(" ");
+                        return (
+                          <>
+                            <polyline points={`${points} 700,190 42,190`} fill="rgba(87,224,197,.08)" stroke="none" />
+                            <polyline points={points} fill="none" stroke="#57e0c5" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+                            <polyline points={localPoints} fill="none" stroke="#75b8ff" strokeWidth="2" strokeDasharray="5 4" strokeLinejoin="round" />
+                            {[0, Math.floor(chartTimeseries.length / 2), chartTimeseries.length - 1].map((index) => {
+                              const point = chartTimeseries[index];
+                              return <text key={point.date} x={42 + (index / (chartTimeseries.length - 1)) * 658} y="216" textAnchor={index === 0 ? "start" : index === chartTimeseries.length - 1 ? "end" : "middle"} fill="#70808a" fontSize="10" fontFamily="monospace">{point.label}</text>;
+                            })}
+                          </>
+                        );
+                      })()}
+                      <text x="42" y="18" fill="#70808a" fontSize="10" fontFamily="monospace">art./dzień</text>
+                    </svg>
+                    <div className="flex flex-wrap gap-4 text-[11px] font-mono text-zinc-400">
+                      <span className="flex items-center gap-2"><i className="h-2 w-5 rounded-full bg-teal-300" /> Wszystkie publikacje</span>
+                      <span className="flex items-center gap-2"><i className="h-0.5 w-5 border-t-2 border-dashed border-blue-300" /> Treści lokalne</span>
+                      <span className="ml-auto text-zinc-500">Szczyt: {chartTimeseries.length ? Math.max(...chartTimeseries.map((point) => point.total)).toLocaleString("pl-PL") : "—"}</span>
+                    </div>
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Mix tematów dzień po dniu" icon={Layers} meta="ostatnie 14 obserwacji">
+                  <div className="space-y-3">
+                    <div className="flex h-44 items-end gap-1.5 border-b border-l border-white/[0.08] px-2 pb-0">
+                      {chartTimeseries.slice(-14).map((point) => {
+                        const topics = [point.lokalne, point.sport, point.prawo, point.gospodarka, point.spoleczenstwo, point.polityka];
+                        const total = chartMax(topics);
+                        return (
+                          <div key={point.date} className="group relative flex h-full flex-1 flex-col justify-end gap-px" title={`${point.label}: ${point.total} publikacji`}>
+                            {topics.map((topic, index) => <span key={index} className={`block min-h-[2px] rounded-sm ${["bg-teal-400", "bg-blue-400", "bg-amber-400", "bg-rose-400", "bg-purple-400", "bg-zinc-400"][index]}`} style={{ height: `${(topic / total) * 100}%` }} />)}
+                            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] font-mono text-zinc-600">{point.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 text-[10px] font-mono text-zinc-400">
+                      {["Lokalne", "Sport", "Prawo", "Gospodarka", "Społeczeństwo", "Polityka"].map((label, index) => <span key={label} className="flex items-center gap-1.5"><i className={`h-2 w-2 rounded-sm ${["bg-teal-400", "bg-blue-400", "bg-amber-400", "bg-rose-400", "bg-purple-400", "bg-zinc-400"][index]}`} />{label}</span>)}
+                    </div>
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Ranking 18 dziedzin" icon={BarChart3} meta="udział w zakresie" className="xl:col-span-2">
+                  <div className="grid grid-cols-1 gap-x-8 gap-y-2 md:grid-cols-2">
+                    {chartDomains.slice(0, 18).map((domain, index) => {
+                      const width = chartScale(domain.pct, chartMax(chartDomains.map((item) => item.pct)), 100);
+                      return (
+                        <div key={domain.slug} className="grid grid-cols-[24px_minmax(0,1fr)_50px] items-center gap-2 text-xs">
+                          <span className="font-mono text-zinc-600">{String(index + 1).padStart(2, "0")}</span>
+                          <div className="min-w-0">
+                            <div className="mb-1 flex justify-between gap-2 font-mono"><span className="truncate text-zinc-300">{domain.name}</span><span className="text-zinc-500">{domain.total.toLocaleString("pl-PL")}</span></div>
+                            <div className="h-2 overflow-hidden rounded-full bg-white/[0.05]"><div className={`h-full rounded-full ${index < 3 ? "bg-teal-400" : "bg-teal-400/55"}`} style={{ width: `${width}%` }} /></div>
+                          </div>
+                          <span className="text-right font-mono font-bold text-teal-300">{domain.pct}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Macierz dziedzin i lokalności" icon={Compass} meta="C · CL · L" className="xl:col-span-2">
+                  <div className="overflow-x-auto">
+                    <div className="min-w-[620px] space-y-1.5">
+                      <div className="grid grid-cols-[minmax(180px,1fr)_repeat(3,1fr)] gap-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500"><span>Dziedzina</span><span className="text-center">C centralne</span><span className="text-center">CL rozwinięcie</span><span className="text-center">L lokalne</span></div>
+                      {chartDomains.map((domain) => {
+                        const maxCell = chartMax(chartDomains.flatMap((item) => [item.countC, item.countCL, item.countL]));
+                        return <div key={domain.slug} className="grid grid-cols-[minmax(180px,1fr)_repeat(3,1fr)] gap-1"><span className="truncate py-1 text-[11px] text-zinc-400">{domain.code} · {domain.name}</span>{[domain.countC, domain.countCL, domain.countL].map((value, index) => <span key={index} className="rounded-md px-2 py-1 text-center font-mono text-[10px] text-zinc-200" style={{ backgroundColor: `rgba(${index === 2 ? "87,224,197" : index === 1 ? "117,184,255" : "148,163,184"},${Math.min(.65, .08 + value / maxCell * .57)})` }}>{value.toLocaleString("pl-PL")}</span>)}</div>;
+                      })}
+                    </div>
+                  </div>
+                </ChartPanel>
+              </div>
+            )}
+
+            {(chartView === "all" || chartView === "network") && (
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <ChartPanel title="Autonomia i syndykacja województw" icon={Map} meta={`${chartRegions.length || 16} regionów`} className="xl:col-span-2">
+                  <div className="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">
+                    {chartRegions.map((region) => <div key={region.region} className="space-y-1.5"><div className="flex justify-between gap-3 text-[11px] font-mono"><span className="truncate text-zinc-300">{region.region}</span><span className="shrink-0 text-zinc-500">{region.articles_count.toLocaleString("pl-PL")} art.</span></div><div className="relative h-2 overflow-hidden rounded-full bg-white/[0.05]"><div className="absolute inset-y-0 left-0 rounded-full bg-emerald-400/80" style={{ width: `${region.autonomy_index_pct}%` }} /><div className="absolute inset-y-0 left-0 rounded-full border-r-2 border-amber-300" style={{ width: `${region.syndicated_pct}%` }} /></div><div className="flex justify-between text-[9px] font-mono text-zinc-600"><span>autonomia {region.autonomy_index_pct}%</span><span>syndykacja {region.syndicated_pct}%</span></div></div>)}
+                  </div>
+                  <div className="flex flex-wrap gap-4 border-t border-white/[0.06] pt-3 text-[10px] font-mono text-zinc-500"><span className="flex items-center gap-2"><i className="h-2 w-5 rounded-full bg-emerald-400/80" /> indeks autonomii</span><span className="flex items-center gap-2"><i className="h-2 w-5 rounded-full border-r-2 border-amber-300 bg-white/[0.05]" /> udział syndykacji</span></div>
+                </ChartPanel>
+
+                <ChartPanel title="Mapa: wolumen × autonomia" icon={Target} meta="każdy punkt = województwo">
+                  <svg viewBox="0 0 520 260" className="h-auto w-full" role="img" aria-label="Wolumen publikacji względem autonomii województw">
+                    <line x1="48" y1="220" x2="492" y2="220" stroke="rgba(159,186,199,.22)" /><line x1="48" y1="28" x2="48" y2="220" stroke="rgba(159,186,199,.22)" />
+                    {[0, 1, 2, 3].map((step) => <line key={step} x1="48" x2="492" y1={220 - step * 64} y2={220 - step * 64} stroke="rgba(159,186,199,.08)" strokeDasharray="3 5" />)}
+                    {chartRegions.map((region) => { const max = chartMax(chartRegions.map((item) => item.articles_count)); const x = 56 + (region.autonomy_index_pct / 100) * 425; const y = 210 - (region.articles_count / max) * 170; return <g key={region.region}><circle cx={x} cy={y} r="5" fill="#57e0c5" fillOpacity=".85" stroke="#07100f" strokeWidth="2" /><text x={x + 8} y={y + 3} fill="#8e9da7" fontSize="9" fontFamily="monospace">{region.region.slice(0, 3)}</text></g>; })}
+                    <text x="48" y="246" fill="#70808a" fontSize="10" fontFamily="monospace">niski indeks autonomii</text><text x="492" y="246" textAnchor="end" fill="#70808a" fontSize="10" fontFamily="monospace">wysoki indeks autonomii</text><text x="48" y="18" fill="#70808a" fontSize="10" fontFamily="monospace">wolumen publikacji ↑</text>
+                  </svg>
+                </ChartPanel>
+
+                <ChartPanel title="Segmenty portfela" icon={Layers} meta={`${chartSegments.length} segmentów`}>
+                  <div className="space-y-3">
+                    {chartSegments.map((segment, index) => <div key={segment.segment} className="space-y-1.5"><div className="flex justify-between gap-3 text-[11px] font-mono"><span className="truncate text-zinc-300">{segment.segment.replaceAll("_", " ")}</span><span className="text-teal-300">{segment.share_pct}%</span></div><div className="h-2 overflow-hidden rounded-full bg-white/[0.05]"><div className={`h-full rounded-full ${index === 0 ? "bg-teal-400" : index === 1 ? "bg-blue-400" : "bg-amber-400"}`} style={{ width: `${Math.max(1, segment.share_pct)}%` }} /></div><div className="flex justify-between text-[9px] font-mono text-zinc-600"><span>{segment.portals_count} portali</span><span>autonomia {segment.autonomy_index_pct}%</span></div></div>)}
+                  </div>
+                </ChartPanel>
+              </div>
+            )}
+
+            {(chartView === "all" || chartView === "operations") && (
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <ChartPanel title="Żywotność sieci — rozkład statusów" icon={Activity} meta="audyt portali">
+                  <div className="space-y-4">
+                    <div className="flex h-8 overflow-hidden rounded-xl">
+                      {chartStatusBuckets.map((bucket, index) => <div key={bucket.key} className={["bg-emerald-400", "bg-sky-400", "bg-amber-400", "bg-purple-400", "bg-rose-400"][index]} style={{ width: `${bucket.pct}%` }} title={`${bucket.label}: ${bucket.pct}%`} />)}
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {chartStatusBuckets.map((bucket, index) => <div key={bucket.key} className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.05] bg-black/30 px-3 py-2 text-[11px] font-mono"><span className="flex min-w-0 items-center gap-2 text-zinc-400"><i className={`h-2 w-2 shrink-0 rounded-full ${["bg-emerald-400", "bg-sky-400", "bg-amber-400", "bg-purple-400", "bg-rose-400"][index]}`} /><span className="truncate">{bucket.label.split(" (")[0]}</span></span><strong className="shrink-0 text-white">{bucket.count} · {bucket.pct}%</strong></div>)}
+                    </div>
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Macierz żywotności portali" icon={Target} meta="unikalność × produkcja">
+                  <svg viewBox="0 0 520 270" className="h-auto w-full" role="img" aria-label="Macierz żywotności portali według unikalności i liczby publikacji">
+                    <line x1="46" y1="230" x2="496" y2="230" stroke="rgba(159,186,199,.22)" /><line x1="46" y1="20" x2="46" y2="230" stroke="rgba(159,186,199,.22)" />
+                    {[25, 50, 75].map((tick) => <line key={tick} x1={46 + tick * 4.5} x2={46 + tick * 4.5} y1="20" y2="230" stroke="rgba(159,186,199,.07)" strokeDasharray="3 5" />)}
+                    {chartPortals.slice(0, 90).map((portal) => { const max = chartMax(chartPortals.map((item) => item.daily_articles_count)); const x = 48 + (portal.uniqueness_pct / 100) * 440; const y = 220 - (portal.daily_articles_count / max) * 185; const colors: Record<string, string> = { AKTYWNY_UNIKALNY: "#57e0c5", AKTYWNY_SYNDYKAT: "#75b8ff", LEDWO_ZYWY: "#f6c56b", ZOMBIE_AUTOMAT: "#c084fc", MARTWY: "#ff7f87" }; return <circle key={portal.domain} cx={x} cy={y} r="3" fill={colors[portal.vitality_status] || "#8e9da7"} fillOpacity=".72" />; })}
+                    <text x="46" y="252" fill="#70808a" fontSize="10" fontFamily="monospace">0% unikalności</text><text x="496" y="252" textAnchor="end" fill="#70808a" fontSize="10" fontFamily="monospace">100%</text><text x="46" y="14" fill="#70808a" fontSize="10" fontFamily="monospace">publikacje/dobę ↑</text>
+                  </svg>
+                  <div className="flex flex-wrap gap-3 text-[10px] font-mono text-zinc-500">{[["bg-emerald-300", "unikalne"], ["bg-sky-300", "syndykat"], ["bg-amber-300", "śladowe"], ["bg-purple-300", "zombie"], ["bg-rose-300", "martwe"]].map(([color, label]) => <span key={label} className="flex items-center gap-1.5"><i className={`h-2 w-2 rounded-full ${color}`} />{label}</span>)}</div>
+                </ChartPanel>
+
+                <ChartPanel title="Ekspozycja instytucji" icon={Users} meta={`HHI ${data?.hhi_entities?.score?.toFixed(3) ?? "0.142"}`}>
+                  <div className="space-y-3">
+                    {chartEntities.slice(0, 8).map((entity, index) => <div key={entity.name} className="grid grid-cols-[24px_minmax(0,1fr)_54px] items-center gap-2"><span className="font-mono text-[10px] text-zinc-600">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0"><div className="mb-1 truncate text-[11px] text-zinc-300">{entity.name}</div><div className="h-2 overflow-hidden rounded-full bg-white/[0.05]"><div className="h-full rounded-full bg-blue-400/80" style={{ width: `${(entity.count / chartMax(chartEntities.map((item) => item.count))) * 100}%` }} /></div></div><span className="text-right font-mono text-[10px] text-white">{entity.count}</span></div>)}
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Prędkość kaskad depeszowych" icon={Zap} meta="zasięg / godzina">
+                  <div className="flex h-48 items-end gap-3 border-b border-l border-white/[0.08] px-3 pb-0">
+                    {(data.wire_cascades || []).map((wire) => { const velocity = Math.round((wire.reach / Math.max(.1, wire.duration_hours)) * 10) / 10; const max = chartMax((data.wire_cascades || []).map((item) => item.reach / Math.max(.1, item.duration_hours))); return <div key={wire.id} className="group relative flex h-full flex-1 flex-col justify-end"><div className="mb-1 text-center text-[10px] font-mono text-amber-300 opacity-0 transition-opacity group-hover:opacity-100">{velocity}</div><div className="rounded-t-lg bg-gradient-to-t from-amber-500/80 to-amber-300" style={{ height: `${Math.max(5, (velocity / max) * 82)}%` }} /><span className="absolute -bottom-5 left-1/2 max-w-[70px] -translate-x-1/2 truncate text-[8px] font-mono text-zinc-600">{wire.origin_outlet}</span></div>; })}
+                  </div>
+                  <p className="pt-2 text-[10px] font-mono text-zinc-500">Najwyższy słupek oznacza historię, która dotarła do największej liczby portali w najkrótszym czasie.</p>
+                </ChartPanel>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
