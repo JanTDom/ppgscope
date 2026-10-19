@@ -582,6 +582,24 @@ interface DataProvenance {
   honesty_note: string;
 }
 
+interface IngestStatusPayload {
+  configured: boolean;
+  latest_run: {
+    status: "running" | "success" | "partial" | "failed";
+    started_at: string;
+    finished_at: string | null;
+    sources_attempted: number;
+    sources_succeeded: number;
+    articles_written: number;
+    metrics_written: number;
+  } | null;
+  metric_proofs: Array<{
+    metric_key: string;
+    status: "observed" | "partial" | "no_data";
+    source_urls: string[];
+  }>;
+}
+
 function DataTrustBadge({ provenance, compact = false }: { provenance: DataProvenance | null; compact?: boolean }) {
   const isLive = provenance?.mode === "live";
   return (
@@ -618,6 +636,38 @@ function DataTrustNotice({ provenance }: { provenance: DataProvenance | null }) 
         <div className="shrink-0 text-left text-[10px] font-mono uppercase tracking-[0.08em] text-zinc-500 lg:text-right">
           <div>Timestamp payloadu</div>
           <div className="mt-1 text-zinc-200">{new Date(provenance.generated_at).toLocaleString("pl-PL")}</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function IngestStatusCard({ status }: { status: IngestStatusPayload | null }) {
+  const run = status?.latest_run;
+  if (!status || !run) return null;
+  const healthy = run.status === "success";
+  return (
+    <section className={`rounded-2xl border p-4 ${healthy ? "border-teal-400/20 bg-teal-400/[0.05]" : "border-amber-400/25 bg-amber-400/[0.06]"}`} aria-label="Status cyklicznego ingestu">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-3">
+          <div className={`mt-0.5 rounded-xl p-2 ${healthy ? "bg-teal-400/10 text-teal-200" : "bg-amber-400/10 text-amber-200"}`}>
+            <Radio className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-white">Cykliczny ingest źródeł</p>
+              <span className={`rounded-full border px-2 py-1 text-[9px] font-mono uppercase tracking-[0.08em] ${healthy ? "border-teal-400/30 text-teal-200" : "border-amber-400/30 text-amber-200"}`}>
+                {run.status === "success" ? "PRODUKCJA · OK" : run.status.toUpperCase()}
+              </span>
+            </div>
+            <p className="mt-1 text-xs leading-5 text-zinc-300">RSS/sitemap → trwały storage. Każda metryka ma dowód obserwacji, artykułów i URL-i źródłowych.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-x-5 gap-y-2 text-[10px] font-mono uppercase tracking-[0.08em] text-zinc-500 sm:grid-cols-4 lg:text-right">
+          <span><b className="block text-sm text-white">{run.sources_succeeded}/{run.sources_attempted}</b>źródeł</span>
+          <span><b className="block text-sm text-white">{run.articles_written.toLocaleString("pl-PL")}</b>artykułów</span>
+          <span><b className="block text-sm text-white">{run.metrics_written}</b>proofów</span>
+          <span><b className="block text-sm text-white">{new Date(run.finished_at || run.started_at).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}</b>ostatni cykl UTC</span>
         </div>
       </div>
     </section>
@@ -970,6 +1020,7 @@ export default function PPGscopeApp() {
   // Application Data State
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [provenance, setProvenance] = useState<DataProvenance | null>(null);
+  const [ingestStatus, setIngestStatus] = useState<IngestStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<AppTab>("executive_briefing");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -1126,14 +1177,16 @@ export default function PPGscopeApp() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [dataRes, provenanceRes] = await Promise.all([
+        const [dataRes, provenanceRes, ingestRes] = await Promise.all([
           fetch("/data/dashboard.json", { cache: "no-store" }),
           fetch("/data/provenance.json", { cache: "no-store" }),
+          fetch("/api/ingest/status", { cache: "no-store" }),
         ]);
         if (!dataRes.ok) throw new Error("Nie można pobrać bazy danych PPGscope.");
         const json = await dataRes.json();
         setData(json);
         if (provenanceRes.ok) setProvenance(await provenanceRes.json());
+        if (ingestRes.ok) setIngestStatus(await ingestRes.json());
       } catch (err) {
         console.error("Błąd ładowania danych dashboard.json:", err);
       } finally {
@@ -2337,6 +2390,7 @@ export default function PPGscopeApp() {
       <main className="mx-auto max-w-7xl p-4 sm:p-6 space-y-6">
 
         <DataTrustNotice provenance={provenance} />
+        <IngestStatusCard status={ingestStatus} />
 
         {/* Global Context Bar: Searchable 546-Medium Selector + Locality Toggles */}
         {activeTab !== "forensics" && (
