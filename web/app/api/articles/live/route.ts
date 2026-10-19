@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireApiSession } from "../../../../lib/api-auth";
 
 interface LiveArticleItem {
   id: string;
@@ -104,6 +105,9 @@ function classifyInFlight(title: string, lead: string): { domain: string; locali
 }
 
 export async function GET(req: NextRequest) {
+  const unauthorized = requireApiSession(req);
+  if (unauthorized) return unauthorized;
+
   try {
     const { searchParams } = new URL(req.url);
     const domain = searchParams.get("domain") || "gazetakrakowska.pl";

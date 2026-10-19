@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireApiSession } from "../../../../lib/api-auth";
 
 const TAXONOMY_V2_DEFINITIONS = `
 Dozwolone dziedziny tematyczne (wybierz dokładnie jedną domenę główną i opcjonalnie maksymalnie jedną poboczną domain_secondary):
@@ -36,10 +37,12 @@ Reguły rozstrzygania:
 `;
 
 export async function POST(req: NextRequest) {
+  const unauthorized = requireApiSession(req);
+  if (unauthorized) return unauthorized;
+
   try {
-    const { title, lead, body, outlet, apiKey } = await req.json();
+    const { title, lead, body, outlet } = await req.json();
     const effectiveKey =
-      apiKey ||
       process.env.PPGSCOPE_GEMINI_API_KEY ||
       process.env.GEMINI_API_KEY;
 

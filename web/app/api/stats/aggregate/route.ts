@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs";
+import { requireApiSession } from "../../../../lib/api-auth";
 
 interface AggregateArticle {
   published_at?: string;
@@ -21,6 +22,9 @@ interface DashboardAggregateData {
 }
 
 export async function GET(req: NextRequest) {
+  const unauthorized = requireApiSession(req);
+  if (unauthorized) return unauthorized;
+
   try {
     const { searchParams } = new URL(req.url);
     const preset = searchParams.get("preset") || "30d";

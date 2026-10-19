@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireApiSession } from "../../../../lib/api-auth";
 
 interface ParsedFeedItem {
   title: string;
@@ -10,6 +11,9 @@ interface ParsedFeedItem {
 }
 
 export async function GET(req: NextRequest) {
+  const unauthorized = requireApiSession(req);
+  if (unauthorized) return unauthorized;
+
   const t0 = Date.now();
   try {
     const { searchParams } = new URL(req.url);
