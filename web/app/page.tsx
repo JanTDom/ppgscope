@@ -34,7 +34,13 @@ import {
   ThumbsUp,
   ThumbsDown,
   Minus,
-  Vote
+  Vote,
+  Menu,
+  ChevronRight,
+  LayoutDashboard,
+  Map,
+  BookOpen,
+  SlidersHorizontal
 } from "lucide-react";
 
 // =========================================================================
@@ -553,6 +559,58 @@ interface DashboardPayload {
   editorial_intelligence?: EditorialIntelligenceData;
 }
 
+type AppTab =
+  | "overview"
+  | "domain_stats"
+  | "executive_briefing"
+  | "compare"
+  | "vitality_audit"
+  | "charts"
+  | "intelligence"
+  | "cross_sections"
+  | "titles"
+  | "articles"
+  | "methodology"
+  | "ko_sentiment"
+  | "forensics";
+
+const NAV_GROUPS: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: { id: AppTab; label: string; meta?: string; icon: React.ComponentType<{ className?: string }> }[];
+}[] = [
+  {
+    label: "Pulpit",
+    icon: LayoutDashboard,
+    items: [
+      { id: "executive_briefing", label: "Briefing zarządczy", meta: "07:30", icon: Target },
+      { id: "domain_stats", label: "Dziedziny i lokalność", meta: "18", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Analiza",
+    icon: SlidersHorizontal,
+    items: [
+      { id: "forensics", label: "Szyba śledcza", icon: Shield },
+      { id: "compare", label: "Porównywarka mediów", meta: "A / B", icon: Scale },
+      { id: "ko_sentiment", label: "Wydźwięk KO / PO", icon: Vote },
+      { id: "vitality_audit", label: "Żywotność i unikalność", meta: "546", icon: Activity },
+      { id: "charts", label: "Centrum wykresów", icon: PieChart },
+      { id: "intelligence", label: "Wskaźniki wywiadu", icon: Zap },
+      { id: "cross_sections", label: "Przekroje regionalne", meta: "16", icon: Map },
+    ],
+  },
+  {
+    label: "Biblioteka",
+    icon: BookOpen,
+    items: [
+      { id: "titles", label: "Serwisy PPG", meta: "546", icon: Database },
+      { id: "articles", label: "Baza artykułów", icon: FileText },
+      { id: "methodology", label: "Metodologia", meta: "v2.0", icon: Info },
+    ],
+  },
+];
+
 
 // 18 Domains Specification
 const DOMAINS_SPEC: DomainItem[] = [
@@ -701,9 +759,8 @@ export default function PPGscopeApp() {
   // Application Data State
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "domain_stats" | "executive_briefing" | "compare" | "vitality_audit" | "charts" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology" | "ko_sentiment" | "forensics"
-  >("domain_stats");
+  const [activeTab, setActiveTab] = useState<AppTab>("executive_briefing");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Portal Vitality & Uniqueness Audit States
   const [vitalityStatusFilter, setVitalityStatusFilter] = useState<string>("ALL");
@@ -1593,10 +1650,10 @@ export default function PPGscopeApp() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center p-4 selection:bg-teal-500 selection:text-black">
-        <div className="w-full max-w-md p-8 rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 backdrop-blur-xl shadow-2xl">
+      <div className="ppg-auth-screen min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center p-4 selection:bg-teal-500 selection:text-black">
+        <div className="ppg-auth-card w-full max-w-md p-8 rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 backdrop-blur-xl shadow-2xl">
           {/* Project Brand Header */}
-          <div className="flex flex-col items-center text-center mb-6">
+          <div className="ppg-auth-brand flex flex-col items-center text-center mb-6">
             <div className="relative mb-3 flex items-center justify-center rounded-2xl bg-white px-6 py-4 shadow-lg border border-zinc-200">
               <Image
                 src="/logo.png"
@@ -1622,7 +1679,7 @@ export default function PPGscopeApp() {
             Standard Fable 5.1 · Prawda danych ponad wszystko
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="ppg-auth-form space-y-4">
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Hasło dostępu do systemu:
@@ -1692,22 +1749,61 @@ export default function PPGscopeApp() {
     (t.city && t.city.toLowerCase().includes(compareSearchQuery.toLowerCase()))
   );
 
+  const activeNavItem = NAV_GROUPS.flatMap((group) => group.items).find((item) => item.id === activeTab);
+  const periodLabel = timePreset === "24h" ? "Ostatnie 24 godziny" : timePreset === "7d" ? "Ostatnie 7 dni" : timePreset === "30d" ? "Ostatnie 30 dni" : timePreset === "90d" ? "Ostatnie 90 dni" : timePreset === "1y" ? "Ostatni rok" : "Cała baza";
+
   return (
-    <div className="min-h-screen bg-[#07080a] text-zinc-100 selection:bg-teal-500 selection:text-black">
+    <div className="ppg-app-shell min-h-screen bg-[#07080a] text-zinc-100 selection:bg-teal-500 selection:text-black">
+      <aside className={`ppg-sidebar ${mobileNavOpen ? "is-open" : ""}`} aria-label="Nawigacja PPGscope">
+        <div className="ppg-sidebar-brand">
+          <div className="ppg-sidebar-mark"><span>PPG</span><span>scope</span></div>
+          <div className="ppg-sidebar-brand-meta"><span>INTELLIGENCE</span><strong>v2.0</strong></div>
+        </div>
+        <div className="ppg-sidebar-workspace">
+          <span className="ppg-sidebar-kicker">WORKSPACE</span>
+          <div className="ppg-workspace-row"><span className="ppg-live-dot" /> Polska Press Grupa <ChevronRight className="h-3.5 w-3.5" /></div>
+        </div>
+        <nav className="ppg-sidebar-nav">
+          {NAV_GROUPS.map((group) => {
+            const GroupIcon = group.icon;
+            return (
+              <div key={group.label} className="ppg-nav-group">
+                <div className="ppg-nav-group-label"><GroupIcon className="h-3.5 w-3.5" />{group.label}</div>
+                <div className="ppg-nav-items">
+                  {group.items.map((item) => {
+                    const ItemIcon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => { setActiveTab(item.id); setMobileNavOpen(false); }}
+                        className={`ppg-nav-item ${isActive ? "is-active" : ""}`}
+                        aria-current={isActive ? "page" : undefined}
+                      >
+                        <ItemIcon className="ppg-nav-item-icon h-4 w-4" />
+                        <span className="ppg-nav-item-label">{item.label}</span>
+                        {item.meta ? <span className="ppg-nav-item-meta">{item.meta}</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </nav>
+        <div className="ppg-sidebar-footer">
+          <div className="ppg-sync-status"><span className="ppg-live-dot" /> Dane zsynchronizowane</div>
+          <p>Ostatni pomiar<br /><strong>{data ? new Date(data.generated_at).toLocaleString("pl-PL", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}</strong></p>
+        </div>
+      </aside>
+      {mobileNavOpen ? <button type="button" className="ppg-sidebar-overlay" aria-label="Zamknij menu" onClick={() => setMobileNavOpen(false)} /> : null}
       {/* Top Header & Global Bar */}
-      <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#07080a]/95 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center rounded-xl bg-white px-3 py-1.5 shadow-md border border-zinc-200">
-              <Image
-                src="/logo.png"
-                alt="Logo projektu"
-                width={200}
-                height={75}
-                className="h-11 sm:h-12 w-auto object-contain"
-                priority
-              />
-            </div>
+      <header className="ppg-topbar sticky top-0 z-30 border-b border-white/[0.08] bg-[#07080a]/95 backdrop-blur-xl">
+        <div className="ppg-topbar-inner mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+          <button type="button" className="ppg-mobile-menu-trigger" aria-label="Otwórz menu" onClick={() => setMobileNavOpen(true)}><Menu className="h-5 w-5" /></button>
+          <div className="ppg-header-brand flex items-center gap-4">
+            <div className="ppg-topbar-wordmark" aria-label="PPGscope"><span>PPG</span><span>scope</span></div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono bg-white/[0.06] text-zinc-300 border border-white/[0.08] px-1.5 py-0.5 rounded">
@@ -1721,6 +1817,11 @@ export default function PPGscopeApp() {
                 Kategoryzacja tematyczna i analityka lokalności (C / CL / L)
               </p>
             </div>
+          </div>
+
+          <div className="ppg-topbar-current hidden md:flex">
+            <span>PPGSCOPE / {activeNavItem?.label ?? "Panel"}</span>
+            <strong>{periodLabel}</strong>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -1812,6 +1913,7 @@ export default function PPGscopeApp() {
             {/* Session Lock Button */}
             <button
               onClick={() => setIsAuthenticated(false)}
+              aria-label="Zablokuj sesję analityczną"
               className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
             >
               <Lock className="h-3 w-3" />
@@ -1821,7 +1923,7 @@ export default function PPGscopeApp() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="mx-auto flex max-w-7xl overflow-x-auto px-4 sm:px-6 border-t border-white/[0.04]">
+        <div className="ppg-legacy-navigation mx-auto flex max-w-7xl overflow-x-auto px-4 sm:px-6 border-t border-white/[0.04]">
           <nav className="flex space-x-1 py-1.5 text-xs font-medium">
             <button
               onClick={() => setActiveTab("domain_stats")}
