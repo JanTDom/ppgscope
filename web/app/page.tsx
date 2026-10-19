@@ -1800,17 +1800,6 @@ export default function PPGscopeApp() {
               <span className="hidden md:inline">Eksport CSV</span>
             </button>
 
-            {/* Master Project Spec DOCX Download Link */}
-            <a
-              href="/docs/PPGscope_Projekt_Docelowy_Master_Architecture.docx"
-              download="PPGscope_Projekt_Docelowy_Master_Architecture.docx"
-              className="rounded-xl border border-teal-500/30 bg-teal-500/10 px-3 py-1.5 text-xs text-teal-300 hover:bg-teal-500/20 hover:text-white transition-all flex items-center gap-1.5 font-mono"
-              title="Pobierz pełny projekt docelowy i architekturę systemu PPGscope (Word .DOCX)"
-            >
-              <FileText className="h-3.5 w-3.5 text-teal-400" />
-              <span className="hidden lg:inline">Projekt (.DOCX)</span>
-            </a>
-
             {/* Settings Modal Button */}
             <button
               onClick={() => setIsSettingsOpen(true)}
