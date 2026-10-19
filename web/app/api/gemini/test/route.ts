@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireApiSession } from "../../../../lib/api-auth";
 
 export async function POST(req: NextRequest) {
+  const unauthorized = requireApiSession(req);
+  if (unauthorized) return unauthorized;
+
   try {
-    const { apiKey } = await req.json();
     const effectiveKey =
-      apiKey ||
       process.env.PPGSCOPE_GEMINI_API_KEY ||
       process.env.GEMINI_API_KEY;
 

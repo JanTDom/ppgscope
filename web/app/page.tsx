@@ -962,7 +962,7 @@ function evaluateKOSentiment(text: string): {
 }
 
 export default function PPGscopeApp() {
-  // Session Authentication State (In-Memory Only, No Cookies)
+  // Session Authentication State (server-issued HttpOnly cookie)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
@@ -1052,12 +1052,11 @@ export default function PPGscopeApp() {
   const [selectedDomainFilter, setSelectedDomainFilter] = useState("wszystkie");
   const [selectedLocalityFilter, setSelectedLocalityFilter] = useState("wszystkie");
 
-  // Settings Modal State with LocalStorage Persistence
+  // Settings Modal State (secrets remain server-side)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsSavedNotice, setSettingsSavedNotice] = useState(false);
-  const [geminiApiKey, setGeminiApiKey] = useState("");
-  const [supabaseUrl, setSupabaseUrl] = useState("https://nkeoyouxtschemvpqgmq.supabase.co");
-  const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
+  const [geminiConfigured, setGeminiConfigured] = useState(false);
+  const [supabaseConfigured, setSupabaseConfigured] = useState(false);
 
   // Live Testing States
   const [geminiTestStatus, setGeminiTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
@@ -1083,64 +1082,45 @@ export default function PPGscopeApp() {
   const [liveFetchNotice, setLiveFetchNotice] = useState<string | null>(null);
   const [articlesViewMode, setArticlesViewMode] = useState<"live_session" | "sample_archive">("live_session");
 
-  // Initialize client time and load configuration
+  // Establish the server-side session before loading protected data.
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      try {
-        const storedKey = localStorage.getItem("ppgscope_gemini_api_key");
-        if (storedKey && storedKey.trim().length > 0) setGeminiApiKey(storedKey);
-
-        const storedSbUrl = localStorage.getItem("ppgscope_supabase_url");
-        if (storedSbUrl && storedSbUrl.trim().length > 0) setSupabaseUrl(storedSbUrl);
-
-        const storedSbAnon = localStorage.getItem("ppgscope_supabase_anon_key");
-        if (storedSbAnon && storedSbAnon.trim().length > 0) setSupabaseAnonKey(storedSbAnon);
-
-        fetch("/api/gemini/config")
-          .then((r) => r.json())
-          .then((d) => {
-            if (d.key && (!storedKey || storedKey.trim().length === 0)) {
-              setGeminiApiKey(d.key);
-              localStorage.setItem("ppgscope_gemini_api_key", d.key);
-            }
-            if (d.supabaseUrl && (!storedSbUrl || storedSbUrl.trim().length === 0)) {
-              setSupabaseUrl(d.supabaseUrl);
-              localStorage.setItem("ppgscope_supabase_url", d.supabaseUrl);
-            }
-            if (d.supabaseAnonKey && (!storedSbAnon || storedSbAnon.trim().length === 0)) {
-              setSupabaseAnonKey(d.supabaseAnonKey);
-              localStorage.setItem("ppgscope_supabase_anon_key", d.supabaseAnonKey);
-            }
-          })
-          .catch(() => {});
-
-        const nowMs = Date.now();
-        setClientNow(nowMs);
-        const endStr = new Date(nowMs).toISOString().split("T")[0];
-        const startStr = new Date(nowMs - 30 * 86400 * 1000).toISOString().split("T")[0];
-        setCustomStartDate(startStr);
-        setCustomEndDate(endStr);
-      } catch {
-        // Ignore localStorage in private browsing
-      }
-    }, 0);
-    return () => window.clearTimeout(timer);
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((result) => setIsAuthenticated(Boolean(result.authenticated)))
+      .catch(() => setIsAuthenticated(false));
   }, []);
 
   const handleSaveSettings = () => {
-    try {
-      localStorage.setItem("ppgscope_gemini_api_key", geminiApiKey);
-      localStorage.setItem("ppgscope_supabase_url", supabaseUrl);
-      localStorage.setItem("ppgscope_supabase_anon_key", supabaseAnonKey);
-      setSettingsSavedNotice(true);
-      setTimeout(() => {
-        setSettingsSavedNotice(false);
-        setIsSettingsOpen(false);
-      }, 1500);
-    } catch {
+    setSettingsSavedNotice(true);
+    window.setTimeout(() => {
+      setSettingsSavedNotice(false);
       setIsSettingsOpen(false);
-    }
+    }, 1500);
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetch("/api/gemini/config", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((result) => {
+        setGeminiConfigured(Boolean(result.configured));
+        setSupabaseConfigured(Boolean(result.supabaseConfigured));
+      })
+      .catch(() => {
+        setGeminiConfigured(false);
+        setSupabaseConfigured(false);
+      });
+
+    const timer = window.setTimeout(() => {
+      const nowMs = Date.now();
+      setClientNow(nowMs);
+      const endStr = new Date(nowMs).toISOString().split("T")[0];
+      const startStr = new Date(nowMs - 30 * 86400 * 1000).toISOString().split("T")[0];
+      setCustomStartDate(startStr);
+      setCustomEndDate(endStr);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [isAuthenticated]);
 
   // Fetch dashboard dataset
   useEffect(() => {
@@ -1160,17 +1140,34 @@ export default function PPGscopeApp() {
         setLoading(false);
       }
     }
-    loadData();
-  }, []);
+    if (isAuthenticated) loadData();
+  }, [isAuthenticated]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === "A132a132!" || passwordInput === "Felek2026") {
-      setIsAuthenticated(true);
-      setPasswordError(false);
-    } else {
+    setPasswordError(false);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+      if (response.ok) {
+        setIsAuthenticated(true);
+        setPasswordInput("");
+      } else {
+        setPasswordError(true);
+      }
+    } catch {
       setPasswordError(true);
     }
+  };
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    setIsAuthenticated(false);
+    setData(null);
+    setWallMode(false);
   };
 
   const handleTestGemini = async () => {
@@ -1179,7 +1176,6 @@ export default function PPGscopeApp() {
       const res = await fetch("/api/gemini/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey: geminiApiKey }),
       });
       const resJson = await res.json();
       if (res.ok && resJson.ok) {
@@ -1199,7 +1195,6 @@ export default function PPGscopeApp() {
       const res = await fetch("/api/supabase/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: supabaseUrl, anonKey: supabaseAnonKey }),
       });
       const resJson = await res.json();
       if (res.ok && resJson.ok) {
@@ -1225,7 +1220,6 @@ export default function PPGscopeApp() {
           lead: article.lead,
           body: article.title,
           outlet: article.portal_name,
-          apiKey: geminiApiKey,
         }),
       });
       const resJson = await res.json();
@@ -2060,7 +2054,10 @@ export default function PPGscopeApp() {
           })}
         </nav>
         <div className="ppg-sidebar-footer">
-          <div className="ppg-sync-status"><span className="ppg-live-dot" /> Dane zsynchronizowane</div>
+          <div className="ppg-sync-status">
+            <span className={provenance?.mode === "live" ? "ppg-live-dot" : "h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_0_4px_rgba(246,197,107,0.10)]"} />
+            {provenance?.mode === "live" ? "Dane z pomiaru live" : "Snapshot demonstracyjny"}
+          </div>
           <p>{provenance?.display_label || "Status danych"}<br /><strong>{data ? new Date(data.generated_at).toLocaleString("pl-PL", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}</strong></p>
         </div>
       </aside>
@@ -2188,7 +2185,7 @@ export default function PPGscopeApp() {
 
             {/* Session Lock Button */}
             <button
-              onClick={() => setIsAuthenticated(false)}
+              onClick={handleLogout}
               aria-label="Zablokuj sesję analityczną"
               className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
             >
@@ -6915,7 +6912,7 @@ export default function PPGscopeApp() {
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
               <div className="flex items-center gap-2.5">
                 <Settings className="h-5 w-5 text-teal-400" />
-                <h2 className="text-base font-semibold text-white">Konfiguracja kluczy API i bazy danych</h2>
+                <h2 className="text-base font-semibold text-white">Stan usług serwerowych</h2>
               </div>
               <button onClick={() => setIsSettingsOpen(false)} className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/[0.06] hover:text-white">
                 <X className="h-4 w-4" />
@@ -6934,17 +6931,14 @@ export default function PPGscopeApp() {
                   <label className="font-semibold text-zinc-200 flex items-center gap-1.5">
                     <Sparkles className="h-4 w-4 text-teal-400" /> Google Gemini API (AI Classifier)
                   </label>
-                  <button onClick={handleTestGemini} disabled={geminiTestStatus === "testing"} className="rounded bg-teal-500/20 border border-teal-500/40 px-2.5 py-1 text-[11px] font-medium text-teal-300">
+                  <button onClick={handleTestGemini} disabled={geminiTestStatus === "testing" || !geminiConfigured} className="rounded bg-teal-500/20 border border-teal-500/40 px-2.5 py-1 text-[11px] font-medium text-teal-300">
                     {geminiTestStatus === "testing" ? "Sprawdzanie..." : "Testuj połączenie Gemini"}
                   </button>
                 </div>
-                <input
-                  type="text"
-                  value={geminiApiKey}
-                  onChange={(e) => setGeminiApiKey(e.target.value)}
-                  placeholder="Klucz API Gemini..."
-                  className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-2 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
-                />
+                <p className="text-[11px] text-zinc-400">Klucz jest przechowywany wyłącznie po stronie serwera i nie jest wysyłany do przeglądarki.</p>
+                <p className={`text-[11px] font-mono ${geminiConfigured ? "text-emerald-400" : "text-amber-300"}`}>
+                  {geminiConfigured ? "Konfiguracja serwerowa aktywna" : "Brak konfiguracji serwerowej"}
+                </p>
                 {geminiTestStatus === "success" && (
                   <p className="text-[11px] text-emerald-400 flex items-center gap-1 pt-1 font-mono">
                     <Check className="h-3 w-3" /> Połączenie aktywne (Model: gemini-3.8-flash, opóźnienie: {geminiLatency} ms)
@@ -6954,30 +6948,14 @@ export default function PPGscopeApp() {
 
               <div className="space-y-2 rounded-xl border border-white/[0.06] bg-black/40 p-4">
                 <label className="font-semibold text-zinc-200 block">Baza danych PostgreSQL / Supabase</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-zinc-400 text-[11px] block mb-1">Supabase URL:</span>
-                    <input
-                      type="text"
-                      value={supabaseUrl}
-                      onChange={(e) => setSupabaseUrl(e.target.value)}
-                      className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-1.5 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <span className="text-zinc-400 text-[11px] block mb-1">Publishable / Anon Key:</span>
-                    <input
-                      type="text"
-                      value={supabaseAnonKey}
-                      onChange={(e) => setSupabaseAnonKey(e.target.value)}
-                      className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-1.5 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
+                <p className="text-[11px] text-zinc-400">URL i klucz są zarządzane w środowisku serwerowym. Nie zapisujemy ich w localStorage ani w kodzie klienta.</p>
                 <div className="flex items-center justify-between pt-1">
-                  <button onClick={handleTestSupabase} disabled={supabaseTestStatus === "testing" || !supabaseAnonKey} className="rounded bg-sky-500/20 border border-sky-500/40 px-2.5 py-1 text-[11px] font-medium text-sky-300">
+                  <button onClick={handleTestSupabase} disabled={supabaseTestStatus === "testing" || !supabaseConfigured} className="rounded bg-sky-500/20 border border-sky-500/40 px-2.5 py-1 text-[11px] font-medium text-sky-300">
                     {supabaseTestStatus === "testing" ? "Sprawdzanie..." : "Testuj połączenie Supabase"}
                   </button>
+                  <span className={`text-[11px] font-mono ${supabaseConfigured ? "text-emerald-400" : "text-amber-300"}`}>
+                    {supabaseConfigured ? "Konfiguracja serwerowa aktywna" : "Brak konfiguracji serwerowej"}
+                  </span>
                   {supabaseTestStatus === "success" && (
                     <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
                       <Check className="h-3 w-3" /> Połączenie aktywne ({supabaseRecordsCount ?? 0} rekordów, {supabaseLatency} ms)
@@ -6992,7 +6970,7 @@ export default function PPGscopeApp() {
                 Anuluj
               </button>
               <button onClick={handleSaveSettings} className="rounded-xl bg-teal-500 px-4 py-2 text-xs font-semibold text-black hover:bg-teal-400 transition-all shadow-md shadow-teal-500/20">
-                Zapisz konfigurację
+                Zamknij
               </button>
             </div>
           </div>

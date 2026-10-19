@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireApiSession } from "../../../lib/api-auth";
 
 import { runForensics, type ForensicsPayload } from "@/lib/forensics/run";
 
@@ -12,6 +13,9 @@ let cached: { payload: ForensicsPayload; storedAtMs: number } | null = null;
  * generowało lawiny zapytań do cudzych serwerów; `?refresh=1` pomija pamięć podręczną.
  */
 export async function GET(req: NextRequest) {
+  const unauthorized = requireApiSession(req);
+  if (unauthorized) return unauthorized;
+
   const forceRefresh = new URL(req.url).searchParams.get("refresh") === "1";
   const nowMs = Date.now();
   try {
