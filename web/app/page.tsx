@@ -901,12 +901,10 @@ export default function PPGscopeApp() {
   const [liveFetchNotice, setLiveFetchNotice] = useState<string | null>(null);
   const [articlesViewMode, setArticlesViewMode] = useState<"live_session" | "sample_archive">("live_session");
 
-  // Establish the server-side session before loading protected data.
+  // Za każdym odświeżeniem strony unieważniamy sesję ciasteczkową na serwerze,
+  // wymuszając ponowne uwierzytelnienie hasłem analitycznym.
   useEffect(() => {
-    fetch("/api/auth/session", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((result) => setIsAuthenticated(Boolean(result.authenticated)))
-      .catch(() => setIsAuthenticated(false));
+    fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
   }, []);
 
   const internalRowsCount = useMemo(
@@ -1866,7 +1864,7 @@ export default function PPGscopeApp() {
             <div className="relative mb-3 flex items-center justify-center rounded-2xl bg-white px-6 py-4 shadow-lg border border-zinc-200">
               <Image
                 src="/logo.png"
-                alt="Logo projektu"
+                alt="PPGscope Logo"
                 width={320}
                 height={133}
                 className="h-20 w-auto object-contain"
@@ -1878,7 +1876,7 @@ export default function PPGscopeApp() {
                 Intelligence v2.0
               </span>
               <span className="text-[11px] font-mono bg-white/[0.06] text-zinc-400 border border-white/[0.08] px-2 py-0.5 rounded">
-                546 mediów PPG
+                553 mediów PPG
               </span>
             </div>
             <p className="text-xs text-zinc-400 mt-2">System wywiadu mediowego i taksonomii Polska Press Grupa</p>
@@ -1935,9 +1933,21 @@ export default function PPGscopeApp() {
   if (loading || !data) {
     return (
       <div className="min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center">
-        <div className="flex items-center gap-3">
-          <RefreshCw className="h-5 w-5 animate-spin text-teal-400" />
-          <span className="text-sm font-mono text-zinc-400">Inicjalizacja 546 mediów PPGscope...</span>
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center rounded-2xl bg-white px-6 py-3 shadow-xl border border-zinc-200">
+            <Image
+              src="/logo.png"
+              alt="PPGscope Logo"
+              width={200}
+              height={80}
+              className="h-10 w-auto object-contain"
+              priority
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <RefreshCw className="h-5 w-5 animate-spin text-teal-400" />
+            <span className="text-sm font-mono text-zinc-400">Inicjalizacja 553 mediów PPGscope...</span>
+          </div>
         </div>
       </div>
     );
@@ -1965,7 +1975,16 @@ export default function PPGscopeApp() {
     <div className="ppg-app-shell min-h-screen bg-[#07080a] text-zinc-100 selection:bg-teal-500 selection:text-black">
       <aside className={`ppg-sidebar ${mobileNavOpen ? "is-open" : ""}`} aria-label="Nawigacja PPGscope">
         <div className="ppg-sidebar-brand">
-          <div className="ppg-sidebar-mark"><span>PPG</span><span>scope</span></div>
+          <div className="flex items-center rounded-xl bg-white px-2.5 py-1 shadow-md border border-zinc-200">
+            <Image
+              src="/logo.png"
+              alt="PPGscope Logo"
+              width={140}
+              height={50}
+              className="h-7 w-auto object-contain"
+              priority
+            />
+          </div>
           <div className="ppg-sidebar-brand-meta"><span>INTELLIGENCE</span><strong>v2.0</strong></div>
         </div>
         <div className="ppg-sidebar-workspace">
@@ -7561,9 +7580,18 @@ export default function PPGscopeApp() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.06] bg-[#060709] py-6 px-4 text-center text-[11px] font-mono text-zinc-500">
+      <footer className="border-t border-white/[0.06] bg-[#060709] py-6 px-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-center text-[11px] font-mono text-zinc-500">
+        <div className="flex items-center rounded-lg bg-white px-2 py-0.5 shadow-sm border border-zinc-200">
+          <Image
+            src="/logo.png"
+            alt="PPGscope Logo"
+            width={90}
+            height={36}
+            className="h-4 w-auto object-contain"
+          />
+        </div>
         <p>
-          PPGscope v2.0 Intelligence · 546 serwisów Polska Press Grupa · Taksonomia 18 Dziedzin & Lokalność (C/CL/L) · Standard Fable 5.1
+          PPGscope v2.0 Intelligence · 553 serwisy Polska Press Grupa · Taksonomia 18 Dziedzin & Lokalność (C/CL/L) · Standard Fable 5.1
         </p>
       </footer>
     </div>

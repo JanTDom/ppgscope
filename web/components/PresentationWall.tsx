@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import Image from "next/image";
 import { ArrowLeft, Maximize2, Map } from "lucide-react";
 import { DataTrustBadge, type DataProvenance } from "./DataTrustBadge";
 
@@ -56,9 +57,15 @@ export function PresentationWall({
       <div className="ppg-wall-grid" />
       <header className="ppg-wall-header">
         <div className="flex items-center gap-4">
-          <div className="ppg-wall-wordmark">
-            <span>PPG</span>
-            <span>scope</span>
+          <div className="flex items-center rounded-xl bg-white px-3 py-1.5 shadow-md border border-zinc-200">
+            <Image
+              src="/logo.png"
+              alt="PPGscope Logo"
+              width={160}
+              height={60}
+              className="h-8 w-auto object-contain"
+              priority
+            />
           </div>
           <div className="hidden border-l border-white/10 pl-4 sm:block">
             <p className="ppg-wall-eyebrow">MEDIA INTELLIGENCE CONTROL ROOM</p>
@@ -207,9 +214,13 @@ export function PresentationWall({
         </section>
 
         <footer className="ppg-wall-footer">
-          <span>
-            <span className="ppg-live-dot" /> PPGscope Intelligence v2.0
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="ppg-live-dot" />
+            <span className="inline-flex items-center rounded-md bg-white px-2 py-0.5 border border-zinc-200">
+              <Image src="/logo.png" alt="PPGscope Logo" width={80} height={30} className="h-4 w-auto object-contain" />
+            </span>
+            <span>Intelligence v2.0</span>
+          </div>
           <span>{syntheticNotice ? "Snapshot demonstracyjny · nie jest pomiarem live" : "Live measurement"}</span>
           <span>Źródło: {provenance?.source_class || "status nieznany"}</span>
         </footer>
