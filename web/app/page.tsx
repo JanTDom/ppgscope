@@ -1011,6 +1011,8 @@ function evaluateKOSentiment(text: string): {
   };
 }
 
+const INTERNAL_CSV_MAX_BYTES = 1_000_000;
+
 export default function PPGscopeApp() {
   // Session Authentication State (server-issued HttpOnly cookie)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1109,6 +1111,8 @@ export default function PPGscopeApp() {
   const [geminiConfigured, setGeminiConfigured] = useState(false);
   const [supabaseConfigured, setSupabaseConfigured] = useState(false);
 
+  const [internalCsvNotice, setInternalCsvNotice] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+
   // Live Testing States
   const [geminiTestStatus, setGeminiTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [geminiLatency, setGeminiLatency] = useState<number | null>(null);
@@ -1140,6 +1144,37 @@ export default function PPGscopeApp() {
       .then((result) => setIsAuthenticated(Boolean(result.authenticated)))
       .catch(() => setIsAuthenticated(false));
   }, []);
+
+  const internalRowsCount = useMemo(
+    () =>
+      internalCsvInput
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && !line.toLowerCase().startsWith("url,")).length,
+    [internalCsvInput]
+  );
+
+  const handleInternalCsvFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (file.size > INTERNAL_CSV_MAX_BYTES) {
+      setInternalCsvNotice({ kind: "error", text: "Plik jest za duży (limit 1 MB). Podziel dane na mniejsze części." });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === "string" ? reader.result : "";
+      if (text.trim().length === 0) {
+        setInternalCsvNotice({ kind: "error", text: "Plik jest pusty." });
+        return;
+      }
+      setInternalCsvInput(text.replace(/\r\n?/g, "\n"));
+      setInternalCsvNotice({ kind: "ok", text: `Wczytano plik ${file.name}. Dane żyją tylko w tej sesji przeglądarki.` });
+    };
+    reader.onerror = () => setInternalCsvNotice({ kind: "error", text: "Nie udało się odczytać pliku. Spróbuj ponownie." });
+    reader.readAsText(file);
+  };
 
   const handleSaveSettings = () => {
     setSettingsSavedNotice(true);
@@ -2120,7 +2155,16 @@ export default function PPGscopeApp() {
         <div className="ppg-topbar-inner mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <button type="button" className="ppg-mobile-menu-trigger" aria-label="Otwórz menu" onClick={() => setMobileNavOpen(true)}><Menu className="h-5 w-5" /></button>
           <div className="ppg-header-brand flex items-center gap-4">
-            <div className="ppg-topbar-wordmark" aria-label="PPGscope"><span>PPG</span><span>scope</span></div>
+            <div className="ppg-topbar-logo flex items-center rounded-xl bg-white px-3 py-1.5 shadow-md border border-zinc-200">
+              <Image
+                src="/logo.png"
+                alt="Logo projektu"
+                width={200}
+                height={75}
+                className="h-11 sm:h-12 w-auto object-contain"
+                priority
+              />
+            </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono bg-white/[0.06] text-zinc-300 border border-white/[0.08] px-1.5 py-0.5 rounded">
@@ -7016,6 +7060,50 @@ export default function PPGscopeApp() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-3 rounded-xl border border-teal-500/30 bg-teal-500/[0.04] p-4">
+                <label className="font-semibold text-zinc-200 flex items-center gap-1.5" htmlFor="internal-csv-settings">
+                  <Database className="h-4 w-4 text-teal-400" /> Dane wewnętrzne (GA4, GSC, Piano Strefa Plus, inne zrzuty CSV)
+                </label>
+                <p className="text-[11px] text-zinc-400">
+                  Wczytaj plik CSV albo wklej wiersze w formacie <span className="font-mono">url,pageviews,engaged_time_sec,strefa_plus_conversions</span>.
+                  Dane trafiają do adaptera w panelu analitycznym i żyją wyłącznie w tej sesji przeglądarki. Nie są wysyłane na serwer ani zapisywane.
+                </p>
+                <textarea
+                  id="internal-csv-settings"
+                  rows={6}
+                  value={internalCsvInput}
+                  onChange={(e) => {
+                    setInternalCsvInput(e.target.value);
+                    setInternalCsvNotice(null);
+                  }}
+                  className="w-full rounded-xl border border-white/[0.12] bg-black/80 p-3 font-mono text-xs text-teal-200 focus:border-teal-400 focus:outline-none"
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="cursor-pointer rounded bg-teal-500/20 border border-teal-500/40 px-2.5 py-1 text-[11px] font-medium text-teal-300 focus-within:ring-2 focus-within:ring-teal-400">
+                    Wczytaj plik CSV
+                    <input type="file" accept=".csv,text/csv,text/plain" onChange={handleInternalCsvFile} className="sr-only" />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInternalCsvInput("url,pageviews,engaged_time_sec,strefa_plus_conversions");
+                      setInternalCsvNotice({ kind: "ok", text: "Dane wewnętrzne wyczyszczone." });
+                    }}
+                    className="rounded border border-white/[0.12] px-2.5 py-1 text-[11px] font-medium text-zinc-300 hover:text-white"
+                  >
+                    Wyczyść dane
+                  </button>
+                  <span className="text-[11px] font-mono text-zinc-300" aria-live="polite">
+                    Wierszy: {internalRowsCount}
+                  </span>
+                </div>
+                {internalCsvNotice && (
+                  <p role="status" className={`text-[11px] font-mono ${internalCsvNotice.kind === "ok" ? "text-emerald-400" : "text-rose-300"}`}>
+                    {internalCsvNotice.text}
+                  </p>
+                )}
               </div>
             </div>
 
