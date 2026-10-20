@@ -1,0 +1,201 @@
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import {
+  POLITICAL_ACTORS,
+  ALL_POLITICAL_ACTOR_IDS,
+  detectPoliticalActors,
+  evaluatePoliticalSentiment,
+  evaluateKOSentiment,
+  calculateAllPoliticalSentiments,
+  type PoliticalActorId,
+} from "./sentiment.ts";
+
+describe("Wydźwięk sceny politycznej — Detekcja podmiotów", () => {
+  it("posiada komplet 8 zdefiniowanych sił politycznych", () => {
+    assert.equal(ALL_POLITICAL_ACTOR_IDS.length, 8);
+    const expected: PoliticalActorId[] = [
+      "ko",
+      "pis",
+      "psl",
+      "polska2050",
+      "lewica",
+      "konfederacja",
+      "nawrocki",
+      "rozwoj_plus",
+    ];
+    for (const exp of expected) {
+      assert.ok(POLITICAL_ACTORS[exp], `Brak konfiguracji dla aktora ${exp}`);
+    }
+  });
+
+  it("wykrywa KO / PO po politykach i nazwie partii", () => {
+    const text1 = "Premier Donald Tusk spotkał się z mieszkańcami Gdańska.";
+    const detected1 = detectPoliticalActors(text1);
+    assert.ok(detected1.includes("ko"));
+
+    const text2 = "Rafał Trzaskowski zapowiada inwestycje w infrastrukturę stolicy.";
+    const detected2 = detectPoliticalActors(text2);
+    assert.ok(detected2.includes("ko"));
+
+    const text3 = "Koalicja Obywatelska przedstawiła projekt nowelizacji.";
+    assert.ok(detectPoliticalActors(text3).includes("ko"));
+  });
+
+  it("wykrywa PiS po politykach i nazwach partii", () => {
+    const text1 = "Prezes Jarosław Kaczyński przemawiał na konwencji.";
+    assert.ok(detectPoliticalActors(text1).includes("pis"));
+
+    const text2 = "Mateusz Morawiecki i Mariusz Błaszczak skrytykowali decyzje rządu.";
+    assert.ok(detectPoliticalActors(text2).includes("pis"));
+
+    const text3 = "Klub Prawo i Sprawiedliwość złożył wniosek o wotum nieufności.";
+    assert.ok(detectPoliticalActors(text3).includes("pis"));
+  });
+
+  it("wykrywa PSL i ludowców", () => {
+    const text1 = "Wicepremier Władysław Kosiniak-Kamysz podpisał kontrakt na dostawę sprzętu.";
+    assert.ok(detectPoliticalActors(text1).includes("psl"));
+
+    const text2 = "Dariusz Klimczak oraz Czesław Siekierski reprezentują Polskie Stronnictwo Ludowe.";
+    assert.ok(detectPoliticalActors(text2).includes("psl"));
+
+    const text3 = "Działacze ludowców spotkali się na zjeździe wojewódzkim.";
+    assert.ok(detectPoliticalActors(text3).includes("psl"));
+  });
+
+  it("wykrywa Polskę 2050", () => {
+    const text1 = "Marszałek Szymon Hołownia otworzył posiedzenie Sejmu.";
+    assert.ok(detectPoliticalActors(text1).includes("polska2050"));
+
+    const text2 = "Katarzyna Pełczyńska-Nałęcz omówiła wydatkowanie środków unijnych.";
+    assert.ok(detectPoliticalActors(text2).includes("polska2050"));
+
+    const text3 = "Ugrupowanie Polska 2050 ogłosiło pakiet zmian.";
+    assert.ok(detectPoliticalActors(text3).includes("polska2050"));
+  });
+
+  it("wykrywa Lewicę i Partię Razem", () => {
+    const text1 = "Włodzimierz Czarzasty i Robert Biedroń podsumowali konsultacje.";
+    assert.ok(detectPoliticalActors(text1).includes("lewica"));
+
+    const text2 = "Agnieszka Dziemianowicz-Bąk przedstawiła założenia renty wdowiej.";
+    assert.ok(detectPoliticalActors(text2).includes("lewica"));
+
+    const text3 = "Adrian Zandberg z Partii Razem zabrał głos w debacie.";
+    assert.ok(detectPoliticalActors(text3).includes("lewica"));
+  });
+
+  it("wykrywa Konfederację", () => {
+    const text1 = "Sławomir Mentzen spotkał się z przedsiębiorcami na Śląsku.";
+    assert.ok(detectPoliticalActors(text1).includes("konfederacja"));
+
+    const text2 = "Wicemarszałek Krzysztof Bosak zaprezentował stanowisko Konfederacji.";
+    assert.ok(detectPoliticalActors(text2).includes("konfederacja"));
+
+    const text3 = "Konfederacja Wolność i Niepodległość zorganizowała konferencję.";
+    assert.ok(detectPoliticalActors(text3).includes("konfederacja"));
+  });
+
+  it("wykrywa Karola Nawrockiego", () => {
+    const text1 = "Karol Nawrocki odwiedził Małopolskę i spotkał się z mieszkańcami.";
+    assert.ok(detectPoliticalActors(text1).includes("nawrocki"));
+
+    const text2 = "Prezes IPN dr Karol Nawrocki wygłosił wykład okolicznościowy.";
+    assert.ok(detectPoliticalActors(text2).includes("nawrocki"));
+
+    const text3 = "Sztab Karola Nawrockiego zebrał wymagane podpisy poparcia.";
+    assert.ok(detectPoliticalActors(text3).includes("nawrocki"));
+  });
+
+  it("wykrywa Rozwój Plus i ruch Tak Dla Rozwoju", () => {
+    const text1 = "Inicjatywa Rozwój Plus przedstawiła raport o korzyściach z budowy CPK.";
+    assert.ok(detectPoliticalActors(text1).includes("rozwoj_plus"));
+
+    const text2 = "Ruch Społeczny Tak Dla Rozwoju złożył projekt obywatelski.";
+    assert.ok(detectPoliticalActors(text2).includes("rozwoj_plus"));
+
+    const text3 = "Marcin Horała i Paulina Matysiak mówią o strategicznych projektach rozwojowych.";
+    assert.ok(detectPoliticalActors(text3).includes("rozwoj_plus"));
+  });
+});
+
+describe("Wydźwięk sceny politycznej — Ewaluacja nastrojów i standard KRRiT", () => {
+  it("poprawnie klasyfikuje wydźwięk pozytywny przy afirmatywnej leksyce", () => {
+    const res = evaluatePoliticalSentiment(
+      "Władysław Kosiniak-Kamysz ogłosił wielki sukces i historyczny miliard na inwestycje obronne w regionie.",
+      "psl"
+    );
+    assert.equal(res.sentiment, "positive");
+    assert.equal(res.label, "Pozytywny");
+    assert.ok(res.detected_entities.includes("Władysław Kosiniak-Kamysz"));
+    assert.ok(res.rationale.includes("pozytywnych"));
+  });
+
+  it("poprawnie klasyfikuje wydźwięk negatywny przy leksyce krytycznej i sporach", () => {
+    const res = evaluatePoliticalSentiment(
+      "Ostra krytyka i zarzuty wobec działań klubu PiS, protest mieszkańców przeciwko chaosowi i podwyżkom cen.",
+      "pis"
+    );
+    assert.equal(res.sentiment, "negative");
+    assert.equal(res.label, "Negatywny");
+    assert.ok(res.detected_entities.includes("Klub PiS") || res.detected_entities.includes("Prawo i Sprawiedliwość"));
+    assert.ok(res.rationale.includes("krytycznych"));
+  });
+
+  it("poprawnie klasyfikuje wydźwięk neutralny dla suchych relacji faktograficznych", () => {
+    const res = evaluatePoliticalSentiment(
+      "Szymon Hołownia poprowadził posiedzenie Sejmu, podczas którego posłowie głosowali nad porządkiem obrad.",
+      "polska2050"
+    );
+    assert.equal(res.sentiment, "neutral");
+    assert.equal(res.label, "Neutralny");
+    assert.ok(res.detected_entities.includes("Szymon Hołownia"));
+  });
+
+  it("zwraca no_actor, gdy tekst nie dotyczy danego podmiotu", () => {
+    const res = evaluatePoliticalSentiment(
+      "Pogoda w Tatrach: ratownicy TOPR ostrzegają przed lawinami na szlakach.",
+      "ko"
+    );
+    assert.equal(res.sentiment, "no_actor");
+    assert.equal(res.label, "Brak podmiotu");
+    assert.equal(res.detected_entities.length, 0);
+  });
+
+  it("zachowuje pełną kompatybilność wsteczną z evaluateKOSentiment", () => {
+    const res1 = evaluateKOSentiment("Donald Tusk odtrąbił sukces i rekordowy wzrost inwestycji.");
+    assert.equal(res1.sentiment, "positive");
+    assert.ok(res1.detected_entities.includes("Donald Tusk"));
+
+    const res2 = evaluateKOSentiment("Pogoda w Zakopanem: słońce i ciepły wiatr.");
+    assert.equal(res2.sentiment, "no_ko");
+  });
+});
+
+describe("Wydźwięk sceny politycznej — Agregacja dla całej bazy", () => {
+  it("oblicza metryki dla wszystkich 8 aktorów", () => {
+    const mockArticles = [
+      { title: "Kosiniak-Kamysz ogłasza rekordowe inwestycje", lead: "Sukces negocjacyjny PSL" },
+      { title: "Czarzasty i Lewica w Sejmie", lead: "Relacja z obrad klubu" },
+      { title: "Kaczyński krytykuje rząd za chaos i podwyżki", lead: "Klub PiS zwołuje konferencję" },
+      { title: "Rozwój Plus zbiera podpisy pod CPK", lead: "Wielki sukces ruchu Tak Dla Rozwoju" },
+      { title: "Karol Nawrocki spotkał się z mieszkańcami", lead: "Prezes IPN w Małopolsce" },
+    ];
+
+    const result = calculateAllPoliticalSentiments(mockArticles, 100, 30);
+
+    for (const actorId of ALL_POLITICAL_ACTOR_IDS) {
+      const data = result[actorId];
+      assert.ok(data, `Brak danych agregatu dla ${actorId}`);
+      assert.equal(data.actor_id, actorId);
+      assert.ok(data.mentions_count >= 1);
+      assert.ok(data.top_politicians.length > 0);
+      assert.ok(data.breakdown.positive.pct >= 0);
+      assert.ok(data.breakdown.neutral.pct >= 0);
+      assert.ok(data.breakdown.negative.pct >= 0);
+      // Suma procentów zaokrąglona do 100%
+      const sum = Math.round(data.breakdown.positive.pct + data.breakdown.neutral.pct + data.breakdown.negative.pct);
+      assert.ok(Math.abs(sum - 100) <= 1, `Suma procentów wynosi ${sum}, oczekiwano ~100`);
+    }
+  });
+});

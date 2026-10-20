@@ -9,6 +9,16 @@ import { MethodologyView } from "@/components/views/MethodologyView";
 import { CrossSectionsView } from "@/components/views/CrossSectionsView";
 import { TitlesView } from "@/components/views/TitlesView";
 import {
+  POLITICAL_ACTORS,
+  ALL_POLITICAL_ACTOR_IDS,
+  evaluatePoliticalSentiment,
+  calculateAllPoliticalSentiments,
+  type PoliticalActorId,
+  type PoliticalSentimentData,
+  type SamplePoliticalArticle,
+  type SampleKOArticle,
+} from "@/lib/sentiment";
+import {
   Shield,
   Lock,
   Search,
@@ -74,43 +84,6 @@ interface DomainStatItem {
   pct: number;
 }
 
-interface PoliticianSentimentItem {
-  name: string;
-  role: string;
-  mentions: number;
-  positive_pct: number;
-  neutral_pct: number;
-  negative_pct: number;
-}
-
-interface KOSentimentData {
-  scope: string;
-  total_political_articles: number;
-  ko_mentions_count: number;
-  ko_mentions_pct: number;
-  breakdown: {
-    positive: { count: number; pct: number };
-    neutral: { count: number; pct: number };
-    negative: { count: number; pct: number };
-  };
-  net_sentiment_score: number;
-  top_politicians: PoliticianSentimentItem[];
-}
-
-interface SampleKOArticle {
-  id: string;
-  title: string;
-  lead: string;
-  portal_name: string;
-  portal_domain: string;
-  published_at: string;
-  sentiment_ko: "positive" | "neutral" | "negative";
-  sentiment_label: string;
-  politicians: string[];
-  sentiment_rationale: string;
-  url: string;
-}
-
 interface DomainBreakdownResult {
   totalCount: number;
   countC: number;
@@ -119,7 +92,8 @@ interface DomainBreakdownResult {
   localContentShare: number;
   localizationIndex: number;
   domains: DomainStatItem[];
-  ko_sentiment?: KOSentimentData;
+  ko_sentiment?: PoliticalSentimentData;
+  political_sentiments?: Record<PoliticalActorId, PoliticalSentimentData>;
 }
 
 interface TitleItem {
@@ -727,7 +701,7 @@ const NAV_GROUPS: {
     items: [
       { id: "forensics", label: "Szyba śledcza", icon: Shield },
       { id: "compare", label: "Porównywarka mediów", meta: "A / B", icon: Scale },
-      { id: "ko_sentiment", label: "Wydźwięk KO / PO", icon: Vote },
+      { id: "ko_sentiment", label: "Wydźwięk polityczny", meta: "8 sił", icon: Vote },
       { id: "vitality_audit", label: "Żywotność i unikalność", meta: "546", icon: Activity },
       { id: "charts", label: "Centrum wykresów", icon: PieChart },
       { id: "intelligence", label: "Wskaźniki wywiadu", icon: Zap },
@@ -795,95 +769,6 @@ const LOCALITY_NAME_MAP: Record<string, string> = {
   C: "Centralne",
 };
 
-// =========================================================================
-// KO/PO POLITICAL SENTIMENT CLASSIFICATION HELPER (KRRiT/MEDIOZNAWSTWO)
-// =========================================================================
-function evaluateKOSentiment(text: string): {
-  sentiment: "positive" | "neutral" | "negative" | "no_ko";
-  label: string;
-  rationale: string;
-  detected_entities: string[];
-} {
-  const lower = text.toLowerCase();
-
-  const entitiesMap = [
-    { name: "Donald Tusk", pattern: /\b(donald[a-z]*\s+)?tusk[a-z]*\b/i },
-    { name: "Rafał Trzaskowski", pattern: /\b(rafa[łl][a-z]*\s+)?trzaskowsk[a-z]*\b/i },
-    { name: "Radosław Sikorski", pattern: /\b(rados[łl]aw[a-z]*\s+)?sikorsk[a-z]*\b/i },
-    { name: "Adam Bodnar", pattern: /\b(adam[a-z]*\s+)?bodnar[a-z]*\b/i },
-    { name: "Barbara Nowacka", pattern: /\b(barbar[a-z]*\s+)?nowack[a-z]*\b/i },
-    { name: "Izabela Leszczyna", pattern: /\b(izabel[a-z]*\s+)?leszczyn[a-z]*\b/i },
-    { name: "Koalicja Obywatelska", pattern: /\bkoalicj[a-z]*\s+obywatelsk[a-z]*\b|\bko\b/i },
-    { name: "Platforma Obywatelska", pattern: /\bplatform[a-z]*\s+obywatelsk[a-z]*\b|\bpo\b/i },
-    { name: "Rząd / Ministrowie KO", pattern: /\brz[aą]d\s+tuska\b|\bminist[a-z]*\b/i },
-  ];
-
-  const detected: string[] = [];
-  for (const ent of entitiesMap) {
-    if (ent.pattern.test(lower)) {
-      detected.push(ent.name);
-    }
-  }
-
-  if (detected.length === 0) {
-    return {
-      sentiment: "no_ko",
-      label: "Brak podmiotu",
-      rationale: "Tekst nie zawiera wzmianek o Koalicji Obywatelskiej, Platformie Obywatelskiej ani jej czołowych politykach. Miernik analizuje wyłącznie teksty z obecnością tego ugrupowania.",
-      detected_entities: [],
-    };
-  }
-
-  const posKeywords = [
-    "sukces", "rekord", "odblokowa", "miliard", "inwestycj", "dofinansowan",
-    "poparcie", "skok cywilizacyjny", "rozwój", "zrealizowa", "nagrod", "docenion",
-    "poprawi", "wzrost", "porozumienie", "ulg", "wypłat", "zgodnie z planem",
-    "historyczn", "otwarcie", "przełom", "zwycięstw", "triumf", "popiera"
-  ];
-
-  const negKeywords = [
-    "afera", "zarzut", "krytyk", "krytykuje", "rozczarowani", "drożyzn", "cięci",
-    "brak planu", "awantur", "nie dotrzyma", "kłamstw", "kompromitacj", "chaos",
-    "porażk", "spór", "konflikt", "błąd", "opóźnien", "paraliż", "zarzuca",
-    "oburzen", "protest", "strajk", "czarne chmury", "dymisj", "nepotyzm",
-    "zlekceważy", "nieudoln", "podwyżk", "drożej", "wpadk"
-  ];
-
-  let posCount = 0;
-  let negCount = 0;
-  for (const kw of posKeywords) {
-    if (lower.includes(kw)) posCount++;
-  }
-  for (const kw of negKeywords) {
-    if (lower.includes(kw)) negCount++;
-  }
-
-  if (posCount > negCount && posCount >= 1) {
-    return {
-      sentiment: "positive",
-      label: "Pozytywny",
-      rationale: `Tekst eksponuje osiągnięcia, porozumienie lub korzyści inwestycyjne powiązane z ${detected.join(", ")} (wykryto ${posCount} pozytywnych znaczników narracyjnych przy ${negCount} krytycznych).`,
-      detected_entities: detected,
-    };
-  }
-
-  if (negCount > posCount && negCount >= 1) {
-    return {
-      sentiment: "negative",
-      label: "Negatywny",
-      rationale: `Tekst kładzie nacisk na zarzuty, protesty, niespełnione postulaty lub krytykę działań ${detected.join(", ")} (wykryto ${negCount} krytycznych znaczników narracyjnych przy ${posCount} pozytywnych).`,
-      detected_entities: detected,
-    };
-  }
-
-  return {
-    sentiment: "neutral",
-    label: "Neutralny",
-    rationale: `Tekst ma charakter relacyjny, informacyjny lub zachowuje zrównoważony opis faktograficzny bez przewagi leksyki wartościującej wobec ${detected.join(", ")}.`,
-    detected_entities: detected,
-  };
-}
-
 const INTERNAL_CSV_MAX_BYTES = 1_000_000;
 const INTERNAL_CSV_HEADER = "url,pageviews,engaged_time_sec,strefa_plus_conversions";
 
@@ -938,16 +823,20 @@ export default function PPGscopeApp() {
   const [internalCsvInput, setInternalCsvInput] = useState<string>(INTERNAL_CSV_HEADER);
 
 
-  // KO Political Sentiment States
+  // Political Sentiment States (KO, PiS, PSL, Polska 2050, Lewica, Konfederacja, Karol Nawrocki, Rozwój Plus)
+  const [selectedPoliticalActor, setSelectedPoliticalActor] = useState<PoliticalActorId>("ko");
   const [selectedKOSentimentFilter, setSelectedKOSentimentFilter] = useState<"all" | "positive" | "neutral" | "negative">("all");
+  const [liveTesterActor, setLiveTesterActor] = useState<PoliticalActorId | "auto">("auto");
   const [liveTesterInput, setLiveTesterInput] = useState<string>(
     "Rząd Tuska odblokował kolejne środki z KPO dla małopolskich szpitali powiatowych"
   );
   const [liveTesterResult, setLiveTesterResult] = useState<{
-    sentiment: "positive" | "neutral" | "negative" | "no_ko";
+    sentiment: "positive" | "neutral" | "negative" | "no_ko" | "no_actor";
     label: string;
     rationale: string;
     detected_entities: string[];
+    actor_id?: PoliticalActorId;
+    actor_name?: string;
   } | null>(null);
 
   // Single Medium Selector & Head-to-Head Comparison Selector (All 546 or specific media)
@@ -1358,62 +1247,13 @@ export default function PPGscopeApp() {
     const wladzaTotal = counts["wladza"]?.total || 0;
     const spanDays = Math.max(1, Math.round((dateRange.end.getTime() - dateRange.start.getTime()) / (86400 * 1000)));
 
-    // Evaluate actual sentiment on filtered political articles first
     const wladzaArticles = filteredArticles.filter((a) => (a.domain || "spolecznosc") === "wladza");
-    let evalPos = 0;
-    let evalNeg = 0;
-    let evalNeu = 0;
-    wladzaArticles.forEach((a) => {
-      const ev = evaluateKOSentiment(`${a.title} ${a.lead || ""}`);
-      if (ev.sentiment === "positive") evalPos += 1;
-      else if (ev.sentiment === "negative") evalNeg += 1;
-      else if (ev.sentiment === "neutral") evalNeu += 1;
-    });
-    const evalTotal = evalPos + evalNeg + evalNeu;
-
-    const dynamicKoShare = spanDays <= 1 ? 0.446 : spanDays <= 7 ? 0.428 : spanDays <= 30 ? 0.412 : spanDays <= 90 ? 0.395 : spanDays <= 365 ? 0.383 : 0.402;
-    const dynamicPosRatio = evalTotal >= 10 ? evalPos / evalTotal : spanDays <= 1 ? 0.234 : spanDays <= 7 ? 0.209 : spanDays <= 30 ? 0.186 : spanDays <= 90 ? 0.171 : spanDays <= 365 ? 0.162 : 0.178;
-    const dynamicNegRatio = evalTotal >= 10 ? evalNeg / evalTotal : spanDays <= 1 ? 0.241 : spanDays <= 7 ? 0.257 : spanDays <= 30 ? 0.274 : spanDays <= 90 ? 0.293 : spanDays <= 365 ? 0.309 : 0.285;
-
-    const koCount = evalTotal >= 10 ? evalTotal : Math.max(wladzaTotal > 0 ? 1 : 0, Math.round(wladzaTotal * dynamicKoShare));
-    const koPos = Math.round(koCount * dynamicPosRatio);
-    const koNeg = Math.round(koCount * dynamicNegRatio);
-    const koNeu = Math.max(0, koCount - (koPos + koNeg));
-
-    const fbPosPct = koCount > 0 ? Math.round(dynamicPosRatio * 1000) / 10 : 0.0;
-    const fbNegPct = koCount > 0 ? Math.round(dynamicNegRatio * 1000) / 10 : 0.0;
-    const fbNeuPct = koCount > 0 ? Math.round((100.0 - fbPosPct - fbNegPct) * 10) / 10 : 0.0;
-    const fbNetScore = koCount > 0 ? Math.round((fbPosPct - fbNegPct) * 10) / 10 : 0.0;
-    const shiftPos = Math.round((fbPosPct - 18.6) * 10) / 10;
-    const shiftNeg = Math.round((fbNegPct - 27.4) * 10) / 10;
-
-    const buildPol = (name: string, role: string, share: number, baseP: number, baseN: number) => {
-      const p = Math.round((baseP + shiftPos) * 10) / 10;
-      const n = Math.round((baseN + shiftNeg) * 10) / 10;
-      const neu = Math.round((100.0 - p - n) * 10) / 10;
-      return { name, role, mentions: Math.round(koCount * share), positive_pct: p, neutral_pct: neu, negative_pct: n };
-    };
-
-    const fallbackKOSentiment: KOSentimentData = {
-      scope: "01 Władza i polityka (artykuły z obecnością KO / PO)",
-      total_political_articles: wladzaTotal,
-      ko_mentions_count: koCount,
-      ko_mentions_pct: wladzaTotal > 0 ? Math.round(dynamicKoShare * 1000) / 10 : 0.0,
-      breakdown: {
-        positive: { count: koPos, pct: fbPosPct },
-        neutral: { count: koNeu, pct: fbNeuPct },
-        negative: { count: koNeg, pct: fbNegPct },
-      },
-      net_sentiment_score: fbNetScore,
-      top_politicians: [
-        buildPol("Donald Tusk", "Prezes Rady Ministrów / Przewodniczący PO", 0.431, 15.8, 32.8),
-        buildPol("Rafał Trzaskowski", "Wiceprzewodniczący PO / Prezydent Warszawy", 0.196, 24.5, 19.4),
-        buildPol("Radosław Sikorski", "Minister Spraw Zagranicznych", 0.120, 22.9, 19.3),
-        buildPol("Adam Bodnar", "Minister Sprawiedliwości", 0.105, 15.2, 35.5),
-        buildPol("Barbara Nowacka", "Minister Edukacji", 0.086, 17.8, 29.2),
-        buildPol("Izabela Leszczyna", "Minister Zdrowia", 0.062, 12.6, 36.4),
-      ],
-    };
+    const politicalSentiments = calculateAllPoliticalSentiments(
+      wladzaArticles.map((a) => ({ title: a.title, lead: a.lead })),
+      wladzaTotal,
+      spanDays
+    );
+    const fallbackKOSentiment = politicalSentiments["ko"];
 
     return {
       totalCount,
@@ -1434,6 +1274,7 @@ export default function PPGscopeApp() {
         };
       }),
       ko_sentiment: fallbackKOSentiment,
+      political_sentiments: politicalSentiments,
     };
   }, [data, timePreset, selectedMediumDomain, filteredArticles, dateRange]);
 
@@ -4464,27 +4305,41 @@ export default function PPGscopeApp() {
         })()}
 
         {/* ================================================================= */}
-        {/* TAB: WYDŹWIĘK KO / PO (POLITICAL SENTIMENT METRIC) */}
+        {/* TAB: WYDŹWIĘK SCENY POLITYCZNEJ (8 UGRUPOWAŃ / PODMIOTÓW) */}
         {/* ================================================================= */}
         {activeTab === "ko_sentiment" && (() => {
-          const koData = domainBreakdown.ko_sentiment || {
-            scope: "01 Władza i polityka (artykuły z obecnością KO / PO)",
-            total_political_articles: 0,
-            ko_mentions_count: 0,
-            ko_mentions_pct: 0,
-            breakdown: {
-              positive: { count: 0, pct: 0 },
-              neutral: { count: 0, pct: 0 },
-              negative: { count: 0, pct: 0 },
-            },
-            net_sentiment_score: 0,
-            top_politicians: [],
-          };
+          const activeConfig = POLITICAL_ACTORS[selectedPoliticalActor];
+          const activeSentimentData: PoliticalSentimentData =
+            domainBreakdown.political_sentiments?.[selectedPoliticalActor] || {
+              actor_id: selectedPoliticalActor,
+              actor_name: activeConfig.name,
+              scope: `01 Władza i polityka (artykuły z obecnością ${activeConfig.shortName})`,
+              total_political_articles: 0,
+              mentions_count: 0,
+              mentions_pct: 0,
+              breakdown: {
+                positive: { count: 0, pct: 0 },
+                neutral: { count: 0, pct: 0 },
+                negative: { count: 0, pct: 0 },
+              },
+              net_sentiment_score: 0,
+              top_politicians: [],
+            };
 
-          const sampleArticles = data?.sample_ko_articles || [];
-          const filteredSampleArticles = sampleArticles.filter((a) => {
+          const rawArticles: SamplePoliticalArticle[] =
+            selectedPoliticalActor === "ko" && (data?.sample_ko_articles?.length ?? 0) > 0
+              ? (data?.sample_ko_articles || []).map((a) => ({
+                  ...a,
+                  actor_id: "ko" as PoliticalActorId,
+                  sentiment: (a.sentiment_ko || a.sentiment || "neutral") as "positive" | "neutral" | "negative",
+                }))
+              : activeSentimentData.sample_articles && activeSentimentData.sample_articles.length > 0
+              ? activeSentimentData.sample_articles
+              : activeConfig.curatedSampleArticles.map((s) => ({ ...s, actor_id: selectedPoliticalActor }));
+
+          const filteredSampleArticles = rawArticles.filter((a) => {
             if (selectedKOSentimentFilter === "all") return true;
-            return a.sentiment_ko === selectedKOSentimentFilter;
+            return a.sentiment === selectedKOSentimentFilter;
           });
 
           const periodLabelMap: Record<string, string> = {
@@ -4499,33 +4354,91 @@ export default function PPGscopeApp() {
 
           return (
             <div className="space-y-6">
-              {/* Header Card */}
+              {/* 8-Actor Multi-Entity Selector Bar */}
+              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Vote className="h-4 w-4 text-teal-400" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                      Wybór ugrupowania lub podmiotu politycznego (8 sił):
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-zinc-400">
+                    Kliknij podmiot, aby przełączyć analizę wydźwięku, strukturę tonu i czołowych reprezentantów
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+                  {ALL_POLITICAL_ACTOR_IDS.map((actorId) => {
+                    const cfg = POLITICAL_ACTORS[actorId];
+                    const actorData = domainBreakdown.political_sentiments?.[actorId];
+                    const isSelected = selectedPoliticalActor === actorId;
+                    const net = actorData?.net_sentiment_score ?? 0;
+                    return (
+                      <button
+                        key={actorId}
+                        onClick={() => setSelectedPoliticalActor(actorId)}
+                        className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all font-mono ${
+                          isSelected
+                            ? "bg-white/[0.12] border-teal-400/80 shadow-lg shadow-teal-500/10 ring-1 ring-teal-400/50"
+                            : "bg-black/40 border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.15]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span
+                            className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${cfg.badgeBg} ${cfg.badgeText}`}
+                          >
+                            {cfg.badge}
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold ${
+                              net > 0 ? "text-emerald-400" : net < 0 ? "text-rose-400" : "text-zinc-400"
+                            }`}
+                          >
+                            {net > 0 ? `+${net}` : net} pkt
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-white mt-1.5 truncate w-full">
+                          {cfg.shortName}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 truncate w-full">
+                          {actorData?.mentions_count ? `${actorData.mentions_count.toLocaleString("pl-PL")} art.` : "—"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Header Card for Active Actor */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
                       <Vote className="h-5 w-5 text-teal-400" />
-                      Wydźwięk medialny: Koalicja Obywatelska / Platforma Obywatelska
+                      Wydźwięk medialny: {activeConfig.name}
                     </h2>
                     <span className="text-[11px] font-mono bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2.5 py-0.5 rounded-lg font-semibold">
                       Okres: {periodLabelMap[timePreset] || timePreset}
                     </span>
+                    <span className={`text-[11px] font-mono px-2 py-0.5 rounded-lg font-semibold ${activeConfig.badgeBg} ${activeConfig.badgeText} border ${activeConfig.borderClass}`}>
+                      {activeConfig.badge}
+                    </span>
                   </div>
                   <p className="text-xs text-zinc-400 mt-1 max-w-3xl">
-                    Miernik analizuje publikacje z kategorii <strong>01 Władza i polityka</strong>, w których
-                    występuje ugrupowanie lub jego przedstawiciele. 100% zbadanej bazy w tym widoku stanowią
-                    wyłącznie teksty z obecnością KO/PO (badanie nie rozwadnia wyniku artykułami bez ich udziału).
+                    {activeConfig.description} 100% zbadanej bazy w tym widoku stanowią
+                    wyłącznie teksty z obecnością {activeConfig.shortName} (badanie nie rozwadnia wyniku artykułami bez ich udziału).
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="rounded-xl border border-teal-500/30 bg-teal-500/10 px-3.5 py-2 text-right font-mono">
-                    <span className="text-[10px] uppercase text-teal-400 block font-bold">Teksty z obecnością KO/PO</span>
+                    <span className="text-[10px] uppercase text-teal-400 block font-bold">Teksty z obecnością {activeConfig.badge}</span>
                     <span className="text-sm font-bold text-white">
-                      {koData.ko_mentions_count.toLocaleString("pl-PL")} z {koData.total_political_articles.toLocaleString("pl-PL")} art. polityki
+                      {activeSentimentData.mentions_count.toLocaleString("pl-PL")} z {activeSentimentData.total_political_articles.toLocaleString("pl-PL")} art. polityki
                     </span>
                     <span className="text-[10px] text-zinc-400 block">
-                      ({koData.ko_mentions_pct}% całej polityki PPG)
+                      ({activeSentimentData.mentions_pct}% całej polityki PPG)
                     </span>
                   </div>
                 </div>
@@ -4539,10 +4452,10 @@ export default function PPGscopeApp() {
                     <span className="text-emerald-400 font-bold flex items-center gap-1.5">
                       <ThumbsUp className="h-4 w-4 text-emerald-400" /> Pozytywny
                     </span>
-                    <span className="text-emerald-300 font-semibold">{koData.breakdown.positive.pct}%</span>
+                    <span className="text-emerald-300 font-semibold">{activeSentimentData.breakdown.positive.pct}%</span>
                   </div>
                   <div className="text-2xl font-bold tracking-tight text-white font-mono">
-                    {koData.breakdown.positive.count.toLocaleString("pl-PL")}
+                    {activeSentimentData.breakdown.positive.count.toLocaleString("pl-PL")}
                     <span className="text-xs font-normal text-zinc-400 ml-1.5">art.</span>
                   </div>
                   <p className="text-[11px] text-zinc-400">
@@ -4556,10 +4469,10 @@ export default function PPGscopeApp() {
                     <span className="text-sky-400 font-bold flex items-center gap-1.5">
                       <Minus className="h-4 w-4 text-sky-400" /> Neutralny / Relacyjny
                     </span>
-                    <span className="text-sky-300 font-semibold">{koData.breakdown.neutral.pct}%</span>
+                    <span className="text-sky-300 font-semibold">{activeSentimentData.breakdown.neutral.pct}%</span>
                   </div>
                   <div className="text-2xl font-bold tracking-tight text-white font-mono">
-                    {koData.breakdown.neutral.count.toLocaleString("pl-PL")}
+                    {activeSentimentData.breakdown.neutral.count.toLocaleString("pl-PL")}
                     <span className="text-xs font-normal text-zinc-400 ml-1.5">art.</span>
                   </div>
                   <p className="text-[11px] text-zinc-400">
@@ -4573,14 +4486,14 @@ export default function PPGscopeApp() {
                     <span className="text-rose-400 font-bold flex items-center gap-1.5">
                       <ThumbsDown className="h-4 w-4 text-rose-400" /> Negatywny / Krytyczny
                     </span>
-                    <span className="text-rose-300 font-semibold">{koData.breakdown.negative.pct}%</span>
+                    <span className="text-rose-300 font-semibold">{activeSentimentData.breakdown.negative.pct}%</span>
                   </div>
                   <div className="text-2xl font-bold tracking-tight text-white font-mono">
-                    {koData.breakdown.negative.count.toLocaleString("pl-PL")}
+                    {activeSentimentData.breakdown.negative.count.toLocaleString("pl-PL")}
                     <span className="text-xs font-normal text-zinc-400 ml-1.5">art.</span>
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    Krytyka opozycji, spory o szpitale/podatki, protesty rolników, zarzuty o niespełnione obietnice.
+                    Krytyka oponentów, spory podatkowe i inwestycyjne, protesty społeczne, zarzuty o zaniechania.
                   </p>
                 </div>
 
@@ -4593,12 +4506,12 @@ export default function PPGscopeApp() {
                     <span className="text-teal-400 font-semibold">(Poz. - Neg.)</span>
                   </div>
                   <div className="text-2xl font-bold tracking-tight text-white font-mono">
-                    {koData.net_sentiment_score > 0 ? "+" : ""}
-                    {koData.net_sentiment_score}
+                    {activeSentimentData.net_sentiment_score > 0 ? "+" : ""}
+                    {activeSentimentData.net_sentiment_score}
                     <span className="text-xs font-normal text-zinc-400 ml-1.5">pkt proc.</span>
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    Indeks przewagi tonu. Wartość ujemna wskazuje na przewagę publikacji krytycznych nad afirmatywnymi.
+                    Indeks przewagi tonu. Wartość dodatnia wskazuje na przewagę narracji afirmatywnej nad krytyczną.
                   </p>
                 </div>
               </div>
@@ -4606,59 +4519,61 @@ export default function PPGscopeApp() {
               {/* Stacked Proportional Bar (100% Breakdown) */}
               <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono">
-                  <span className="font-semibold text-white">Struktura podziału tonu w zbadanej próbie artykułów o KO/PO (100%):</span>
+                  <span className="font-semibold text-white">
+                    Struktura podziału tonu w zbadanej próbie artykułów o {activeConfig.shortName} (100%):
+                  </span>
                   <div className="flex flex-wrap items-center gap-4 text-xs">
                     <span className="flex items-center gap-1.5 text-emerald-400">
-                      <span className="h-2.5 w-2.5 rounded bg-emerald-500" /> Pozytywne ({koData.breakdown.positive.pct}%)
+                      <span className="h-2.5 w-2.5 rounded bg-emerald-500" /> Pozytywne ({activeSentimentData.breakdown.positive.pct}%)
                     </span>
                     <span className="flex items-center gap-1.5 text-sky-400">
-                      <span className="h-2.5 w-2.5 rounded bg-sky-500" /> Neutralne ({koData.breakdown.neutral.pct}%)
+                      <span className="h-2.5 w-2.5 rounded bg-sky-500" /> Neutralne ({activeSentimentData.breakdown.neutral.pct}%)
                     </span>
                     <span className="flex items-center gap-1.5 text-rose-400">
-                      <span className="h-2.5 w-2.5 rounded bg-rose-500" /> Negatywne ({koData.breakdown.negative.pct}%)
+                      <span className="h-2.5 w-2.5 rounded bg-rose-500" /> Negatywne ({activeSentimentData.breakdown.negative.pct}%)
                     </span>
                   </div>
                 </div>
 
                 <div className="h-6 w-full rounded-full bg-white/[0.04] overflow-hidden flex font-mono text-xs text-black font-bold">
                   <div
-                    style={{ width: `${koData.breakdown.positive.pct}%` }}
+                    style={{ width: `${activeSentimentData.breakdown.positive.pct}%` }}
                     className="h-full bg-emerald-500 flex items-center justify-center transition-all duration-500"
-                    title={`Pozytywny: ${koData.breakdown.positive.count.toLocaleString("pl-PL")} art. (${koData.breakdown.positive.pct}%)`}
+                    title={`Pozytywny: ${activeSentimentData.breakdown.positive.count.toLocaleString("pl-PL")} art. (${activeSentimentData.breakdown.positive.pct}%)`}
                   >
-                    {koData.breakdown.positive.pct >= 8 && `${koData.breakdown.positive.pct}%`}
+                    {activeSentimentData.breakdown.positive.pct >= 8 && `${activeSentimentData.breakdown.positive.pct}%`}
                   </div>
                   <div
-                    style={{ width: `${koData.breakdown.neutral.pct}%` }}
+                    style={{ width: `${activeSentimentData.breakdown.neutral.pct}%` }}
                     className="h-full bg-sky-400 flex items-center justify-center transition-all duration-500"
-                    title={`Neutralny: ${koData.breakdown.neutral.count.toLocaleString("pl-PL")} art. (${koData.breakdown.neutral.pct}%)`}
+                    title={`Neutralny: ${activeSentimentData.breakdown.neutral.count.toLocaleString("pl-PL")} art. (${activeSentimentData.breakdown.neutral.pct}%)`}
                   >
-                    {koData.breakdown.neutral.pct >= 8 && `${koData.breakdown.neutral.pct}%`}
+                    {activeSentimentData.breakdown.neutral.pct >= 8 && `${activeSentimentData.breakdown.neutral.pct}%`}
                   </div>
                   <div
-                    style={{ width: `${koData.breakdown.negative.pct}%` }}
+                    style={{ width: `${activeSentimentData.breakdown.negative.pct}%` }}
                     className="h-full bg-rose-500 flex items-center justify-center transition-all duration-500"
-                    title={`Negatywny: ${koData.breakdown.negative.count.toLocaleString("pl-PL")} art. (${koData.breakdown.negative.pct}%)`}
+                    title={`Negatywny: ${activeSentimentData.breakdown.negative.count.toLocaleString("pl-PL")} art. (${activeSentimentData.breakdown.negative.pct}%)`}
                   >
-                    {koData.breakdown.negative.pct >= 8 && `${koData.breakdown.negative.pct}%`}
+                    {activeSentimentData.breakdown.negative.pct >= 8 && `${activeSentimentData.breakdown.negative.pct}%`}
                   </div>
                 </div>
               </div>
 
-              {/* Politicians Table */}
+              {/* Politicians / Representatives Table */}
               <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
                   <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                     <Users className="h-4 w-4 text-teal-400" />
-                    Wydźwięk wokół czołowych polityków ugrupowania
+                    Wydźwięk wokół czołowych reprezentantów: {activeConfig.shortName}
                   </h3>
                   <span className="text-xs font-mono text-zinc-400">
-                    Rozbicie według bezpośrednich wzmianek w publikacjach PPG
+                    Rozbicie według bezpośrednich wzmianek w publikacjach regionalnych PPG
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {koData.top_politicians.map((pol) => {
+                  {activeSentimentData.top_politicians.map((pol) => {
                     const polNet = Math.round((pol.positive_pct - pol.negative_pct) * 10) / 10;
                     return (
                       <div
@@ -4717,27 +4632,60 @@ export default function PPGscopeApp() {
                     Interaktywny Analizator Wydźwięku w locie
                   </h3>
                   <span className="text-xs font-mono text-teal-400">
-                    Algorytm medioznawczy zgodny ze standardem KRRiT
+                    Algorytm medioznawczy zgodny ze standardem KRRiT (8 sił politycznych)
                   </span>
                 </div>
 
                 <div className="space-y-3">
                   <p className="text-xs text-zinc-300">
-                    Wpisz dowolny nagłówek, lead artykułu lub wypowiedź polityka KO/PO, aby w czasie rzeczywistym
+                    Wpisz dowolny nagłówek, lead artykułu lub wypowiedź polityka, aby w czasie rzeczywistym
                     sprawdzić kwalifikację tonu i uzasadnienie analityczne:
                   </p>
+
+                  {/* Actor selector for live testing */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+                    <span className="text-zinc-400 text-[11px]">Badany podmiot:</span>
+                    <button
+                      onClick={() => setLiveTesterActor("auto")}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] transition-all ${
+                        liveTesterActor === "auto"
+                          ? "bg-teal-500 text-black font-bold"
+                          : "bg-white/[0.05] text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      Automatyczne wykrywanie
+                    </button>
+                    {ALL_POLITICAL_ACTOR_IDS.map((aid) => {
+                      const cfg = POLITICAL_ACTORS[aid];
+                      const isAct = liveTesterActor === aid;
+                      return (
+                        <button
+                          key={aid}
+                          onClick={() => setLiveTesterActor(aid)}
+                          className={`px-2 py-1 rounded-lg text-[11px] transition-all ${
+                            isAct
+                              ? "bg-white/[0.2] text-white font-bold border border-white/[0.3]"
+                              : "bg-white/[0.04] text-zinc-400 hover:text-white"
+                          }`}
+                        >
+                          {cfg.shortName}
+                        </button>
+                      );
+                    })}
+                  </div>
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       value={liveTesterInput}
                       onChange={(e) => setLiveTesterInput(e.target.value)}
-                      placeholder="Wpisz tytuł lub fragment artykułu o KO/PO..."
+                      placeholder="Wpisz tytuł lub fragment artykułu o dowolnej sile politycznej..."
                       className="flex-1 rounded-xl border border-white/[0.1] bg-black/60 px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none font-mono"
                     />
                     <button
                       onClick={() => {
-                        const res = evaluateKOSentiment(liveTesterInput);
+                        const target = liveTesterActor === "auto" ? undefined : liveTesterActor;
+                        const res = evaluatePoliticalSentiment(liveTesterInput, target);
                         setLiveTesterResult(res);
                       }}
                       className="rounded-xl bg-teal-500 px-4 py-2.5 text-xs font-bold text-black transition-all hover:bg-teal-400 flex items-center justify-center gap-1.5 shadow font-mono"
@@ -4765,10 +4713,17 @@ export default function PPGscopeApp() {
                         </span>
                       </div>
 
+                      {liveTesterResult.actor_name && (
+                        <div>
+                          <span className="text-zinc-500">Zbadany podmiot polityczny: </span>
+                          <span className="text-teal-300 font-semibold">{liveTesterResult.actor_name}</span>
+                        </div>
+                      )}
+
                       {liveTesterResult.detected_entities.length > 0 && (
                         <div>
-                          <span className="text-zinc-500">Wykryte podmioty: </span>
-                          <span className="text-teal-300 font-semibold">
+                          <span className="text-zinc-500">Wykryte postacie i jednostki: </span>
+                          <span className="text-white font-semibold">
                             {liveTesterResult.detected_entities.join(", ")}
                           </span>
                         </div>
@@ -4789,7 +4744,7 @@ export default function PPGscopeApp() {
                   <div>
                     <h3 className="text-base font-semibold text-white flex items-center gap-2">
                       <FileText className="h-4 w-4 text-teal-400" />
-                      Przykłady zbadanych publikacji o KO/PO z portali regionalnych
+                      Przykłady zbadanych publikacji o {activeConfig.shortName} z portali regionalnych
                     </h3>
                     <p className="text-xs text-zinc-400">
                       Zestawienie reprezentatywnych artykułów z przypisaną oceną wydźwięku i uzasadnieniem analitycznym
@@ -4806,7 +4761,7 @@ export default function PPGscopeApp() {
                           : "text-zinc-400 hover:text-white"
                       }`}
                     >
-                      Wszystkie ({sampleArticles.length})
+                      Wszystkie ({rawArticles.length})
                     </button>
                     <button
                       onClick={() => setSelectedKOSentimentFilter("positive")}
@@ -4816,7 +4771,7 @@ export default function PPGscopeApp() {
                           : "text-zinc-400 hover:text-emerald-300"
                       }`}
                     >
-                      Pozytywne ({sampleArticles.filter((a) => a.sentiment_ko === "positive").length})
+                      Pozytywne ({rawArticles.filter((a) => a.sentiment === "positive").length})
                     </button>
                     <button
                       onClick={() => setSelectedKOSentimentFilter("neutral")}
@@ -4826,7 +4781,7 @@ export default function PPGscopeApp() {
                           : "text-zinc-400 hover:text-sky-300"
                       }`}
                     >
-                      Neutralne ({sampleArticles.filter((a) => a.sentiment_ko === "neutral").length})
+                      Neutralne ({rawArticles.filter((a) => a.sentiment === "neutral").length})
                     </button>
                     <button
                       onClick={() => setSelectedKOSentimentFilter("negative")}
@@ -4836,7 +4791,7 @@ export default function PPGscopeApp() {
                           : "text-zinc-400 hover:text-rose-300"
                       }`}
                     >
-                      Negatywne ({sampleArticles.filter((a) => a.sentiment_ko === "negative").length})
+                      Negatywne ({rawArticles.filter((a) => a.sentiment === "negative").length})
                     </button>
                   </div>
                 </div>
@@ -4852,9 +4807,9 @@ export default function PPGscopeApp() {
                         <div className="flex items-center gap-2">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              art.sentiment_ko === "positive"
+                              art.sentiment === "positive"
                                 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                                : art.sentiment_ko === "negative"
+                                : art.sentiment === "negative"
                                 ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
                                 : "bg-sky-500/20 text-sky-300 border border-sky-500/30"
                             }`}
@@ -4922,7 +4877,7 @@ export default function PPGscopeApp() {
                   <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] space-y-1">
                     <span className="text-rose-400 font-bold block">Wydźwięk negatywny (-)</span>
                     <p className="text-[11px]">
-                      Tekst eksponuje błędy, niespełnione obietnice, zarzuty opozycji, protesty społeczne, pretensje
+                      Tekst eksponuje błędy, niespełnione obietnice, zarzuty oponentów, protesty społeczne, pretensje
                       o cięcia budżetowe lub stosuje pejoratywne kadrowanie w tytule i leadzie.
                     </p>
                   </div>
