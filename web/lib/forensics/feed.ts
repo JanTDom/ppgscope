@@ -8,6 +8,8 @@ export interface FeedItem {
   author: string | null;
   /** Lead z kanału, bez HTML. Pełnej treści artykułu kanały RSS nie zawierają. */
   summary: string;
+  /** Surowy zwiastun/opis z kanału przed oczyszczeniem tagów HTML (do analizy linków). */
+  rawSummary?: string;
 }
 
 export interface FeedFetchResult {
@@ -124,12 +126,14 @@ export function parseFeed(xml: string): FeedItem[] {
     const title = readTag(block, "title");
     const link = atom ? readAtomLink(block) : readTag(block, "link");
     if (title === null || link === null) continue;
+    const rawDesc = readTag(block, atom ? "summary" : "description") ?? readTag(block, "content") ?? "";
     items.push({
       title: cleanText(title),
       link: cleanText(link),
       publishedAt: parsePublishedAt(block),
       author: parseAuthor(block),
-      summary: cleanText(readTag(block, atom ? "summary" : "description") ?? readTag(block, "content") ?? ""),
+      summary: cleanText(rawDesc),
+      rawSummary: rawDesc,
     });
   }
   return items;

@@ -9,6 +9,12 @@ import { buildGoogleNewsQuery, cleanGoogleNewsItem, googleNewsUrl, limitToVerifi
 import { fetchFeed, type FeedFetchResult, type FeedItem } from "./feed.ts";
 import { analyzeNewsroom, type NewsroomReport } from "./newsroom.ts";
 import {
+  analyzeStreamRotation,
+  analyzeStreamPaywall,
+  analyzeStreamLinks,
+  type StreamIntelligence,
+} from "./streams.ts";
+import {
   BLOCKED_MODULES,
   COMPETITOR_FEEDS,
   OFFICIAL_FEEDS,
@@ -57,6 +63,7 @@ export interface ForensicsPayload {
   blindspot: BlindspotComparison[];
   verbatim: VerbatimReport & { officialItems: number };
   newsroom: NewsroomReport;
+  streamIntelligence: StreamIntelligence;
   blocked: typeof BLOCKED_MODULES;
 }
 
@@ -151,6 +158,22 @@ export async function runForensics(nowMs: number = Date.now()): Promise<Forensic
   );
   const newsroom = analyzeNewsroom(ppgIndexed.map((p) => ({ portalName: p.portalName, item: p.item })));
 
+  const streamRotation = analyzeStreamRotation(
+    ppgResults,
+    competitorResults,
+    PPG_FEEDS,
+    COMPETITOR_FEEDS,
+    nowMs,
+  );
+
+  const streamPaywall = analyzeStreamPaywall(
+    ppgIndexed.map((p) => ({ portalName: p.portalName, item: p.item })),
+  );
+
+  const streamLinks = analyzeStreamLinks(
+    ppgIndexed.map((p) => ({ portalName: p.portalName, item: p.item })),
+  );
+
   return {
     measuredAt: new Date(nowMs).toISOString(),
     methodologyVersion: METHODOLOGY_VERSION,
@@ -164,6 +187,11 @@ export async function runForensics(nowMs: number = Date.now()): Promise<Forensic
     blindspot,
     verbatim: { ...verbatim, officialItems: officialItems.length },
     newsroom,
+    streamIntelligence: {
+      rotation: streamRotation,
+      paywall: streamPaywall,
+      links: streamLinks,
+    },
     blocked: BLOCKED_MODULES,
   };
 }

@@ -43,23 +43,47 @@ export const OFFICIAL_FEEDS: readonly FeedSource[] = [
   { id: "um-wroclaw", name: "Urząd Miejski Wrocławia", url: "https://www.wroclaw.pl/dla-mieszkanca/rss/" },
 ];
 
-/** Moduły z zamówienia, których nie da się uruchomić, i konkretny powód (stan z VERIFIED_ON). */
-export const BLOCKED_MODULES: readonly { id: string; title: string; reason: string }[] = [
+export interface ForensicsModuleStatus {
+  id: string;
+  title: string;
+  status: "AKTYWNY_STRUMIEN_PUBLICZNY" | "OGRANICZONY_BRAKIEM_HTML";
+  description: string;
+  sourceType: string;
+}
+
+/** Moduły zasilane publicznymi strumieniami RSS/Sitemap zamiast bezpośredniego pobierania HTML. */
+export const FORENSICS_MODULES: readonly ForensicsModuleStatus[] = [
   {
     id: "dead-hero",
-    title: "Martwa jedynka kontra najczęściej czytane",
-    reason:
-      "Wymaga pobrania HTML strony głównej dziennika. Strona główna PPG zwraca wyzwanie Cloudflare (HTTP 403, „Just a moment…”) także przy jawnym nagłówku User-Agent.",
+    title: "Rotacja czołówki i zastój publikacji",
+    status: "AKTYWNY_STRUMIEN_PUBLICZNY",
+    description:
+      "Zasilany publicznymi strumieniami RSS dzienników PPG i konkurencji. Analizuje świeżość najnowszego materiału, medianę odstępów i wykrywa przestoje.",
+    sourceType: "Kanały RSS / syndykacja na żywo",
   },
   {
     id: "paywall-leak",
-    title: "Wyciek paywalla Strefa Plus",
-    reason:
-      "Wymaga pobrania HTML artykułów (flaga isAccessibleForFree w JSON-LD). Artykuły i mapy witryn PPG są za tym samym wyzwaniem Cloudflare.",
+    title: "Obecność i syndykacja Strefy Plus w RSS",
+    status: "AKTYWNY_STRUMIEN_PUBLICZNY",
+    description:
+      "Analizuje otwarty strumień RSS pod kątem obecności materiałów płatnych (/ar/c1-, [PLUS]) i weryfikuje zakres ujawnianych leadów.",
+    sourceType: "Publiczne strumienie RSS PPG",
   },
   {
     id: "seo-links",
-    title: "Nieoznaczone linki dofollow w tekstach redakcyjnych",
-    reason: "Wymaga pełnego HTML artykułu. Kanały RSS zawierają tylko lead, bez linków z treści.",
+    title: "Audyt linków i oznaczeń komercyjnych w strumieniu",
+    status: "AKTYWNY_STRUMIEN_PUBLICZNY",
+    description:
+      "Weryfikuje występowanie odnośników zewnętrznych w leadach, artykułów sponsorowanych/partnerskich oraz atrybucji agencyjnej.",
+    sourceType: "Zwiastuny i opisy w strumieniach RSS",
   },
 ];
+
+/** Dla kompatybilności wstecznej z dotychczasowym interfejsem. */
+export const BLOCKED_MODULES: readonly { id: string; title: string; reason: string; status?: string }[] =
+  FORENSICS_MODULES.map((m) => ({
+    id: m.id,
+    title: m.title,
+    reason: m.description,
+    status: m.status,
+  }));

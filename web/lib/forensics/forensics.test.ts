@@ -5,6 +5,11 @@ import { detectBlindspots, DEFAULT_BLINDSPOT_OPTIONS, type PpgIndexedItem } from
 import { parseFeed, type FeedItem } from "./feed.ts";
 import { analyzeNewsroom } from "./newsroom.ts";
 import { buildGoogleNewsQuery, cleanGoogleNewsItem, limitToVerified } from "./coverage.ts";
+import {
+  analyzeStreamRotation,
+  analyzeStreamPaywall,
+  analyzeStreamLinks,
+} from "./streams.ts";
 import { compareWithVerification, MAX_VERIFIED_PER_COMPETITOR } from "./run.ts";
 import type { FeedFetchResult } from "./feed.ts";
 import type { CompetitorFeedSource } from "./sources.ts";
@@ -301,5 +306,153 @@ describe("compareWithVerification", () => {
     const result = await compareWithVerification(competitor, failed, ppg, NOW, async () => []);
     assert.equal(result.feedOk, false);
     assert.equal(result.rows.length, 0);
+  });
+});
+
+describe("analyzeStreamRotation", () => {
+  const ppgSources = [
+    { id: "gk", name: "Gazeta Krakowska", url: "https://gk.test/rss", region: "Małopolskie" },
+    { id: "gw", name: "Gazeta Wrocławska", url: "https://gw.test/rss", region: "Dolnośląskie" },
+  ];
+  const competitors = [
+    { id: "lk", name: "LoveKraków", url: "https://lk.test/rss", region: "Małopolskie", ppgIds: ["gk"] },
+  ];
+
+  it("wylicza status AKTYWNA_ROTACJA, medianę przerw i porównuje z konkurentem", () => {
+    const ppgResults: FeedFetchResult[] = [
+      {
+        sourceId: "gk",
+        sourceName: "Gazeta Krakowska",
+        url: "https://gk.test/rss",
+        ok: true,
+        httpStatus: 200,
+        latencyMs: 50,
+        error: null,
+        items: [
+          item({ title: "Świeży news", publishedAt: minutesAgo(30) }),
+          item({ title: "Wcześniejszy news", publishedAt: minutesAgo(90) }),
+          item({ title: "Poranny news", publishedAt: minutesAgo(150) }),
+        ],
+      },
+      {
+        sourceId: "gw",
+        sourceName: "Gazeta Wrocławska",
+        url: "https://gw.test/rss",
+        ok: true,
+        httpStatus: 200,
+        latencyMs: 40,
+        error: null,
+        items: [
+          item({ title: "Stary news", publishedAt: minutesAgo(400) }),
+        ],
+      },
+    ];
+
+    const competitorResults: FeedFetchResult[] = [
+      {
+        sourceId: "lk",
+        sourceName: "LoveKraków",
+        url: "https://lk.test/rss",
+        ok: true,
+        httpStatus: 200,
+        latencyMs: 60,
+        error: null,
+        items: [
+          item({ title: "Konkurent news", publishedAt: minutesAgo(60) }),
+        ],
+      },
+    ];
+
+    const report = analyzeStreamRotation(ppgResults, competitorResults, ppgSources, competitors, NOW);
+
+    assert.equal(report.sampleSize, 4);
+    assert.equal(report.activeFeedsCount, 1);
+    assert.equal(report.staleFeedsCount, 1);
+
+    const gkMetric = report.sources.find((s) => s.sourceId === "gk");
+    assert.ok(gkMetric);
+    assert.equal(gkMetric.status, "AKTYWNA_ROTACJA");
+    assert.equal(gkMetric.ageMinutes, 30);
+    assert.equal(gkMetric.medianIntervalMinutes, 60);
+
+    const gwMetric = report.sources.find((s) => s.sourceId === "gw");
+    assert.ok(gwMetric);
+    assert.equal(gwMetric.status, "ZASTYGLA_CZOLOWKA");
+    assert.equal(gwMetric.ageMinutes, 400);
+
+    const regional = report.regionalComparisons[0];
+    assert.ok(regional);
+    assert.equal(regional.region, "Małopolskie");
+    assert.equal(regional.fasterMedium, "PPG");
+    assert.equal(regional.freshnessGapMinutes, 30); // konkurent 60 min temu, PPG 30 min temu
+  });
+});
+
+describe("analyzeStreamPaywall", () => {
+  it("wykrywa artykuły ze ścieżką /ar/c1- oraz oznaczeniem [PLUS]", () => {
+    const items = [
+      {
+        portalName: "Gazeta Krakowska",
+        item: {
+          title: "[PLUS] Kulisy głośnego śledztwa w magistracie",
+          link: "https://gazetakrakowska.pl/kulisy/ar/c1-12345",
+          publishedAt: minutesAgo(60),
+          author: "Jan Kowalski",
+          summary: "Pełny zwiastun artykułu dla subskrybentów o szczegółach postępowania prokuratury.",
+        },
+      },
+      {
+        portalName: "Gazeta Krakowska",
+        item: {
+          title: "Zwykły artykuł otwarty",
+          link: "https://gazetakrakowska.pl/zwykly/ar/c3-99999",
+          publishedAt: minutesAgo(30),
+          author: "Anna Nowak",
+          summary: "Zwykły lead.",
+        },
+      },
+    ];
+
+    const report = analyzeStreamPaywall(items);
+    assert.equal(report.checkedCount, 2);
+    assert.equal(report.paywallCount, 1);
+    assert.equal(report.paywallSharePct, 50);
+    assert.equal(report.items[0].title, "[PLUS] Kulisy głośnego śledztwa w magistracie");
+    assert.ok(report.items[0].indicators.length >= 2);
+  });
+});
+
+describe("analyzeStreamLinks", () => {
+  it("wykrywa linki zewnętrzne, materiały sponsorowane i agencje prasowe", () => {
+    const items = [
+      {
+        portalName: "Dziennik Bałtycki",
+        item: {
+          title: "Materiał partnera: Nowe rozwiązania dla przemysłu morskiego",
+          link: "https://dziennikbaltycki.pl/artykul/ar/c3-1",
+          publishedAt: minutesAgo(50),
+          author: "Redakcja",
+          summary: "Zapraszamy do odwiedzenia portalu partnera.",
+          rawSummary: 'Zapraszamy do odwiedzenia portalu <a href="https://zewnetrzny-sklep.pl/oferta">sklep</a>.',
+        },
+      },
+      {
+        portalName: "Gazeta Krakowska",
+        item: {
+          title: "Wypadek na autostradzie A4",
+          link: "https://gazetakrakowska.pl/wypadek/ar/c3-2",
+          publishedAt: minutesAgo(20),
+          author: "PAP",
+          summary: "Utrudnienia potrwają do wieczora. (PAP)",
+        },
+      },
+    ];
+
+    const report = analyzeStreamLinks(items);
+    assert.equal(report.checkedCount, 2);
+    assert.equal(report.externalLinksCount, 1);
+    assert.equal(report.sponsoredCount, 1);
+    assert.equal(report.agencyCount, 1);
+    assert.equal(report.items.length, 3);
   });
 });

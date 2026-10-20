@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   AlertTriangle,
-  BarChart3,
   Bell,
   CheckCircle2,
   Clock3,
@@ -11,7 +10,6 @@ import {
   FileText,
   Globe2,
   Link2,
-  LockKeyhole,
   MapPin,
   Radio,
   RefreshCw,
@@ -164,7 +162,6 @@ export default function ForensicsPanel() {
   const onlineSources = data?.sources.filter((source) => source.ok).length ?? 0;
   const outageCount = data?.sources.filter((source) => !source.ok).length ?? 0;
   const sourceCount = data?.sources.length ?? 0;
-  const topSignal = alerts[0] ?? null;
   const maxCompetitorSignals = Math.max(...(data?.blindspot.map((comparison) => comparison.rows.length) ?? []), 1);
   const regions = useMemo(() => (data?.blindspot ?? []).map((comparison) => ({ ...comparison, unresolved: comparison.rows.filter((row) => row.status === "NIEROZSTRZYGALNE").length })).sort((a, b) => b.rows.length - a.rows.length), [data]);
 
@@ -200,10 +197,104 @@ export default function ForensicsPanel() {
             {visibleAlerts.length > 9 ? <p className="mt-4 text-center text-[10px] text-slate-500">Pokazano 9 najnowszych. Zawęź filtr, aby przejść do szczegółów.</p> : null}
           </PanelCard>
 
-          <PanelCard title="Aktywność konkurencji" subtitle="Liczba wykrytych publikacji w monitorowanej próbce" icon={<BarChart3 className="h-4 w-4" />} action={<span>24 h</span>}>
-            <div className="rounded-xl border border-rose-300/20 bg-rose-300/[0.07] p-4"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-300" /><div><p className="text-sm font-bold uppercase tracking-[0.08em] text-rose-200">Nie porównujemy „top czytane”</p><p className="mt-1 text-[11px] leading-5 text-slate-400">{data.blocked.find((item) => item.id === "dead-hero")?.reason ?? "Brak dostępu do pełnego HTML strony głównej."}</p></div></div></div>
-            <div className="mt-5 space-y-4">{data.blindspot.map((comparison) => { const width = Math.max(8, Math.round((comparison.rows.length / maxCompetitorSignals) * 100)); return <div key={comparison.competitorId}><div className="mb-1.5 flex justify-between gap-3 text-xs"><span className="truncate font-medium text-slate-300">{comparison.competitorName}</span><span className="font-mono text-slate-500">{comparison.rows.length}</span></div><div className="h-2 overflow-hidden rounded-full bg-white/[0.06]"><div className="h-full rounded-full bg-sky-400/80" style={{ width: `${width}%` }} /></div><div className="mt-1 flex justify-between text-[10px] text-slate-600"><span>{comparison.region}</span><span>{comparison.feedOk ? "kanał OK" : "kanał niedostępny"}</span></div></div>; })}</div>
-            <div className="mt-5 border-t border-white/[0.07] pt-4">{topSignal ? <><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">najświeższy sygnał</p><p className="mt-2 line-clamp-2 text-sm font-semibold text-white">{topSignal.title}</p><div className="mt-2 flex items-center gap-2 text-[10px] text-slate-500"><Clock3 className="h-3.5 w-3.5" />{formatClock(topSignal.publishedAt)} · {topSignal.competitorName}</div></> : <EmptyState icon={<Radio className="h-4 w-4" />} text="Brak aktualnych sygnałów." />}</div>
+          <PanelCard title="Rotacja i świeżość czołówki" subtitle="Analiza odstępów publikacyjnych i przestojów w strumieniach RSS" icon={<Clock3 className="h-4 w-4" />} action={<span>{data.streamIntelligence?.rotation.activeFeedsCount ?? 0} aktywnych</span>}>
+            {data.streamIntelligence?.rotation ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <MetricTile
+                    label="aktywne redakcje"
+                    value={`${data.streamIntelligence.rotation.activeFeedsCount}`}
+                    detail="świeży news < 2 h"
+                    tone="emerald"
+                  />
+                  <MetricTile
+                    label="zastygła czołówka"
+                    value={`${data.streamIntelligence.rotation.staleFeedsCount}`}
+                    detail="brak newsa > 6 h"
+                    tone={data.streamIntelligence.rotation.staleFeedsCount > 0 ? "rose" : "sky"}
+                  />
+                </div>
+
+                <div className="space-y-2.5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">Świeżość wydań dzienników PPG</p>
+                  {data.streamIntelligence.rotation.sources.map((source) => {
+                    const statusColor =
+                      source.status === "AKTYWNA_ROTACJA"
+                        ? "text-emerald-300 border-emerald-400/20 bg-emerald-400/10"
+                        : source.status === "SPOWOLNIONA"
+                        ? "text-amber-200 border-amber-300/20 bg-amber-300/10"
+                        : "text-rose-300 border-rose-400/20 bg-rose-400/10";
+                    const statusText =
+                      source.status === "AKTYWNA_ROTACJA"
+                        ? "aktywna rotacja"
+                        : source.status === "SPOWOLNIONA"
+                        ? "spowolniony rytm"
+                        : source.status === "ZASTYGLA_CZOLOWKA"
+                        ? "zastygła czołówka"
+                        : "brak danych";
+                    return (
+                      <div key={source.sourceId} className="rounded-xl border border-white/[0.07] bg-black/20 p-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate text-xs font-semibold text-slate-200">{source.sourceName}</span>
+                          <span className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${statusColor}`}>
+                            {statusText}
+                          </span>
+                        </div>
+                        <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-500">
+                          <span>
+                            ostatnia: {source.ageMinutes !== null ? formatAge(source.ageMinutes) + " temu" : "brak daty"}
+                          </span>
+                          <span>
+                            {source.medianIntervalMinutes !== null ? `mediana: co ${source.medianIntervalMinutes} min` : "1 materiał"}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {data.streamIntelligence.rotation.regionalComparisons.length > 0 ? (
+                  <div className="border-t border-white/[0.07] pt-3">
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">Tempo: PPG vs Konkurencja</p>
+                    <div className="space-y-1.5">
+                      {data.streamIntelligence.rotation.regionalComparisons.map((c) => (
+                        <div key={c.competitorSourceId} className="flex items-center justify-between rounded-lg bg-white/[0.02] px-2.5 py-1.5 text-[11px]">
+                          <span className="text-slate-400">{c.region}</span>
+                          <span className={c.fasterMedium === "PPG" ? "font-semibold text-emerald-300" : c.fasterMedium === "KONKURENT" ? "font-semibold text-rose-300" : "text-slate-400"}>
+                            {c.fasterMedium === "PPG"
+                              ? `PPG szybsze o ${c.freshnessGapMinutes !== null ? formatAge(Math.abs(c.freshnessGapMinutes)) : ""}`
+                              : c.fasterMedium === "KONKURENT"
+                              ? `${c.competitorSourceName} szybsze o ${c.freshnessGapMinutes !== null ? formatAge(Math.abs(c.freshnessGapMinutes)) : ""}`
+                              : "remis"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="mt-5 space-y-4">
+                {data.blindspot.map((comparison) => {
+                  const width = Math.max(8, Math.round((comparison.rows.length / maxCompetitorSignals) * 100));
+                  return (
+                    <div key={comparison.competitorId}>
+                      <div className="mb-1.5 flex justify-between gap-3 text-xs">
+                        <span className="truncate font-medium text-slate-300">{comparison.competitorName}</span>
+                        <span className="font-mono text-slate-500">{comparison.rows.length}</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                        <div className="h-full rounded-full bg-sky-400/80" style={{ width: `${width}%` }} />
+                      </div>
+                      <div className="mt-1 flex justify-between text-[10px] text-slate-600">
+                        <span>{comparison.region}</span>
+                        <span>{comparison.feedOk ? "kanał OK" : "kanał niedostępny"}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </PanelCard>
 
           <PanelCard title="Dowody" subtitle="Źródła, dopasowanie i granice wniosku" icon={<Link2 className="h-4 w-4" />} action={<span>ślad audytowy</span>}>
@@ -225,12 +316,115 @@ export default function ForensicsPanel() {
           </PanelCard>
         </div>
 
-        <div className="grid items-start gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="grid items-start gap-5 lg:grid-cols-3">
           <PanelCard title="Lead ↔ komunikat instytucji" subtitle="Dosłowne podobieństwo leadu PPG do kanałów oficjalnych" icon={<FileText className="h-4 w-4" />} action={<span>{data.verbatim.rows.length} trafień</span>}>
-            <div className="mb-4 flex items-center justify-between rounded-xl border border-white/[0.08] bg-black/20 px-3 py-3 text-[11px]"><span className="text-slate-500">sprawdzone leady</span><span className="font-mono text-slate-200">{data.verbatim.checkedLeads} <span className="text-slate-600">/ pominięte {data.verbatim.skippedShortLeads}</span></span></div><div className="space-y-2">{data.verbatim.rows.slice(0, 5).map((row) => <div key={`${row.link}-${row.officialLink}`} className="rounded-xl border border-white/[0.07] p-3"><div className="flex items-start justify-between gap-3"><p className="line-clamp-2 text-xs font-semibold leading-5 text-slate-200">{row.title}</p><span className={`shrink-0 rounded px-2 py-1 text-[9px] font-bold ${row.level === "PRZEPISANY_KOMUNIKAT" ? "bg-rose-400/10 text-rose-300" : "bg-amber-300/10 text-amber-200"}`}>{row.verbatimPct}%</span></div><div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-500"><InlineLink href={row.link}>{row.portalName}</InlineLink><span>↔</span><InlineLink href={row.officialLink}>{row.institutionName}</InlineLink></div></div>)}{data.verbatim.rows.length === 0 ? <EmptyState icon={<FileText className="h-4 w-4" />} text="Brak wystarczająco długich leadów z podobieństwem powyżej progu." /> : null}</div>
+            <div className="mb-4 flex items-center justify-between rounded-xl border border-white/[0.08] bg-black/20 px-3 py-3 text-[11px]"><span className="text-slate-500">sprawdzone leady</span><span className="font-mono text-slate-200">{data.verbatim.checkedLeads} <span className="text-slate-600">/ pominięte {data.verbatim.skippedShortLeads}</span></span></div>
+            <div className="space-y-2">{data.verbatim.rows.slice(0, 5).map((row) => <div key={`${row.link}-${row.officialLink}`} className="rounded-xl border border-white/[0.07] p-3"><div className="flex items-start justify-between gap-3"><p className="line-clamp-2 text-xs font-semibold leading-5 text-slate-200">{row.title}</p><span className={`shrink-0 rounded px-2 py-1 text-[9px] font-bold ${row.level === "PRZEPISANY_KOMUNIKAT" ? "bg-rose-400/10 text-rose-300" : "bg-amber-300/10 text-amber-200"}`}>{row.verbatimPct}%</span></div><div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-500"><InlineLink href={row.link}>{row.portalName}</InlineLink><span>↔</span><InlineLink href={row.officialLink}>{row.institutionName}</InlineLink></div></div>)}{data.verbatim.rows.length === 0 ? <EmptyState icon={<FileText className="h-4 w-4" />} text="Brak wystarczająco długich leadów z podobieństwem powyżej progu." /> : null}</div>
           </PanelCard>
-          <PanelCard title="Moduły zablokowane przez brak danych" subtitle="Zakres, którego nie udajemy na podstawie samego RSS" icon={<LockKeyhole className="h-4 w-4" />} action={<span>jawne ograniczenia</span>}>
-            <div className="grid gap-3 sm:grid-cols-3">{data.blocked.map((module) => <div key={module.id} className="rounded-xl border border-white/[0.08] bg-black/20 p-4"><div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400"><LockKeyhole className="h-3.5 w-3.5 text-slate-500" /> niedostępne</div><h3 className="mt-3 text-sm font-semibold leading-5 text-slate-200">{module.title}</h3><p className="mt-2 text-[11px] leading-5 text-slate-500">{module.reason}</p></div>)}</div>
+
+          <PanelCard
+            title="Strefa Plus w RSS"
+            subtitle="Syndykacja materiałów płatnych w otwartym strumieniu"
+            icon={<Radio className="h-4 w-4" />}
+            action={<span>{data.streamIntelligence?.paywall.paywallCount ?? 0} tekstów</span>}
+          >
+            {data.streamIntelligence?.paywall ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <MetricTile
+                    label="materiały płatne"
+                    value={`${data.streamIntelligence.paywall.paywallCount}`}
+                    detail="oznaczone /ar/c1- lub [PLUS]"
+                    tone={data.streamIntelligence.paywall.paywallCount > 0 ? "rose" : "emerald"}
+                  />
+                  <MetricTile
+                    label="udział w strumieniu"
+                    value={`${data.streamIntelligence.paywall.paywallSharePct}%`}
+                    detail={`z ${data.streamIntelligence.paywall.checkedCount} zbadanych`}
+                    tone="sky"
+                  />
+                </div>
+                <div className="space-y-2">
+                  {data.streamIntelligence.paywall.items.slice(0, 4).map((item) => (
+                    <div key={item.link} className="rounded-xl border border-white/[0.07] p-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="line-clamp-2 text-xs font-semibold leading-4 text-slate-200">{item.title}</p>
+                        <span className="shrink-0 rounded bg-rose-400/10 px-1.5 py-0.5 text-[8px] font-bold text-rose-300 border border-rose-400/20">PLUS</span>
+                      </div>
+                      <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-500">
+                        <InlineLink href={item.link}>{item.portalName}</InlineLink>
+                        <span>lead: {item.leadLength} znaków</span>
+                      </div>
+                    </div>
+                  ))}
+                  {data.streamIntelligence.paywall.items.length === 0 ? (
+                    <div className="py-4 text-center text-xs text-slate-500">
+                      Brak artykułów ze Strefy Plus w aktualnym strumieniu publicznym (syndykacja czysta).
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : (
+              <div className="py-4 text-xs text-slate-500">Brak danych strumieniowych.</div>
+            )}
+          </PanelCard>
+
+          <PanelCard
+            title="Audyt linków i agencji"
+            subtitle="Linki zewnętrzne, teksty partnerskie i agencje"
+            icon={<Link2 className="h-4 w-4" />}
+            action={<span>{data.streamIntelligence?.links.items.length ?? 0} sygnałów</span>}
+          >
+            {data.streamIntelligence?.links ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-1.5">
+                  <MetricTile
+                    label="linki zewn."
+                    value={`${data.streamIntelligence.links.externalLinksCount}`}
+                    detail="w leadach"
+                    tone="sky"
+                  />
+                  <MetricTile
+                    label="sponsorowane"
+                    value={`${data.streamIntelligence.links.sponsoredCount}`}
+                    detail="artykuły partnera"
+                    tone="amber"
+                  />
+                  <MetricTile
+                    label="agencje"
+                    value={`${data.streamIntelligence.links.agencyCount}`}
+                    detail="PAP / IAR"
+                    tone="emerald"
+                  />
+                </div>
+                <div className="space-y-2">
+                  {data.streamIntelligence.links.items.slice(0, 4).map((item, idx) => (
+                    <div key={`${item.link}-${idx}`} className="rounded-xl border border-white/[0.07] p-2.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="line-clamp-1 text-xs font-semibold text-slate-200">{item.title}</p>
+                        <span className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-bold border ${
+                          item.type === "LINK_ZEWNETRZNY" ? "border-sky-400/20 bg-sky-400/10 text-sky-300" :
+                          item.type === "SPONSOROWANY" ? "border-amber-400/20 bg-amber-400/10 text-amber-300" :
+                          "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                        }`}>{item.type === "LINK_ZEWNETRZNY" ? "LINK" : item.type === "SPONSOROWANY" ? "REKLAMA" : "AGENCJA"}</span>
+                      </div>
+                      <p className="mt-1 text-[10px] text-slate-400">{item.detail}</p>
+                      <div className="mt-1 flex items-center justify-between text-[9px] text-slate-500">
+                        <InlineLink href={item.link}>{item.portalName}</InlineLink>
+                        {item.targetUrl ? <span className="truncate max-w-[120px]">{item.targetUrl}</span> : null}
+                      </div>
+                    </div>
+                  ))}
+                  {data.streamIntelligence.links.items.length === 0 ? (
+                    <div className="py-4 text-center text-xs text-slate-500">
+                      Brak odnośników komercyjnych ani oznaczeń partnerskich w zbadanych leadach.
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : (
+              <div className="py-4 text-xs text-slate-500">Brak danych strumieniowych.</div>
+            )}
           </PanelCard>
         </div>
 
