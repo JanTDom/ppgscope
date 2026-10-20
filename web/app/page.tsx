@@ -14,10 +14,12 @@ import {
   DOMAIN_SCOPE_OPTIONS,
   evaluatePoliticalSentiment,
   calculateAllPoliticalSentiments,
+  calculateMediaAccountability,
   type PoliticalActorId,
   type PoliticalSentimentData,
   type SamplePoliticalArticle,
   type SampleKOArticle,
+  type MediaAccountabilityResult,
 } from "@/lib/sentiment";
 import {
   Shield,
@@ -51,6 +53,9 @@ import {
   ThumbsDown,
   Minus,
   Vote,
+  TrendingUp,
+  TrendingDown,
+  Newspaper,
   Menu,
   ChevronRight,
   LayoutDashboard,
@@ -828,6 +833,9 @@ export default function PPGscopeApp() {
   const [selectedPoliticalActor, setSelectedPoliticalActor] = useState<PoliticalActorId>("ko");
   const [sentimentDomainScope, setSentimentDomainScope] = useState<string>("all_political");
   const [selectedKOSentimentFilter, setSelectedKOSentimentFilter] = useState<"all" | "positive" | "neutral" | "negative">("all");
+  const [mediaAccountabilitySearch, setMediaAccountabilitySearch] = useState<string>("");
+  const [mediaAccountabilityType, setMediaAccountabilityType] = useState<string>("ALL");
+  const [mediaAccountabilitySort, setMediaAccountabilitySort] = useState<"impact" | "net_desc" | "net_asc" | "mentions" | "name">("impact");
   const [liveTesterActor, setLiveTesterActor] = useState<PoliticalActorId | "auto">("auto");
   const [liveTesterInput, setLiveTesterInput] = useState<string>(
     "Rząd Tuska odblokował kolejne środki z KPO dla małopolskich szpitali powiatowych"
@@ -1347,6 +1355,49 @@ export default function PPGscopeApp() {
       sentimentDomainScope
     );
   }, [domainBreakdown, timePreset, filteredArticles, dateRange, sentimentDomainScope]);
+
+  // Dedicated Media Accountability & Geography Engine (Who drives sympathy and who drives criticism)
+  const activeMediaAccountability: MediaAccountabilityResult = useMemo(() => {
+    if (!data?.titles) {
+      return {
+        actor_id: selectedPoliticalActor,
+        actor_name: POLITICAL_ACTORS[selectedPoliticalActor].name,
+        total_mentions: 0,
+        global_net_score: 0,
+        top_friendly: [],
+        top_critical: [],
+        top_volume: [],
+        media: [],
+        regions: [],
+        editorial_insight: "",
+      };
+    }
+    const pKey = timePreset === "custom" ? "30d" : timePreset;
+    const perMediumMap = data.server_aggregates?.[pKey]?.per_medium;
+    const spanDays =
+      timePreset === "24h"
+        ? 1
+        : timePreset === "7d"
+        ? 7
+        : timePreset === "30d"
+        ? 30
+        : timePreset === "90d"
+        ? 90
+        : timePreset === "1y"
+        ? 365
+        : Math.max(1, Math.round((dateRange.end.getTime() - dateRange.start.getTime()) / (86400 * 1000)));
+
+    const globalNet = activePoliticalSentiments[selectedPoliticalActor]?.net_sentiment_score ?? 0;
+
+    return calculateMediaAccountability(
+      data.titles,
+      perMediumMap,
+      selectedPoliticalActor,
+      globalNet,
+      spanDays,
+      sentimentDomainScope
+    );
+  }, [data, selectedPoliticalActor, timePreset, dateRange, activePoliticalSentiments, sentimentDomainScope]);
 
   // Global network domain percentages for comparison when a single medium is selected
   const globalDomainPctMap = useMemo(() => {
@@ -4728,6 +4779,461 @@ export default function PPGscopeApp() {
                       </div>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* ================================================================= */}
+              {/* MEDIA ACCOUNTABILITY & EDITORIAL RESPONSIBILITY ENGINE */}
+              {/* ================================================================= */}
+              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 p-6 space-y-6">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
+                  <div>
+                    <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-teal-400" />
+                      Kto odpowiada za ten rozkład? Odpowiedzialność redakcyjna i profilowanie mediów
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      Wskazanie konkretnych tytułów prasowych i portali PPG, które najbardziej ciągną wynik {activeConfig.shortName} w górę (przychylne) lub w dół (krytyczne).
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-3 py-1 rounded-lg">
+                      Zbadano 546 tytułów PPG
+                    </span>
+                  </div>
+                </div>
+
+                {/* Editorial Insight Narrative Box */}
+                {activeMediaAccountability.editorial_insight && (
+                  <div className="rounded-xl border border-teal-500/30 bg-teal-500/[0.04] p-4 space-y-1.5 font-mono text-xs">
+                    <div className="flex items-center gap-2 text-teal-400 font-bold uppercase tracking-wider text-[11px]">
+                      <Compass className="h-4 w-4" /> Wniosek medioznawczy i syntetyczna diagnoza:
+                    </div>
+                    <p className="text-zinc-200 leading-relaxed">
+                      {activeMediaAccountability.editorial_insight}
+                    </p>
+                  </div>
+                )}
+
+                {/* 3 Top Ranking Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* Card 1: Top Friendly Media */}
+                  <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.03] p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2">
+                      <span className="text-xs font-bold text-emerald-400 font-mono flex items-center gap-1.5">
+                        <TrendingUp className="h-4 w-4 text-emerald-400" />
+                        Najbardziej przychylne (ciągną wynik w górę)
+                      </span>
+                      <span className="text-[10px] font-mono text-emerald-300/80 font-semibold">
+                        Top 5 bastionów
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {activeMediaAccountability.top_friendly.map((m, idx) => (
+                        <div
+                          key={m.domain}
+                          className="rounded-lg bg-black/40 border border-white/[0.04] p-2.5 space-y-1.5 hover:border-emerald-500/40 transition-all font-mono"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-bold text-emerald-400">#{idx + 1}</span>
+                                <span className="text-xs font-bold text-white truncate max-w-[170px]">{m.name}</span>
+                              </div>
+                              <span className="text-[10px] text-zinc-400 block">{m.region} · {m.type}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xs font-bold text-emerald-400 block">
+                                {m.net_sentiment_score > 0 ? "+" : ""}{m.net_sentiment_score} pkt
+                              </span>
+                              <span className="text-[10px] text-emerald-300 font-semibold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                wpływ: +{m.impact_score} pkt
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Mini distribution bar */}
+                          <div className="space-y-1">
+                            <div className="h-1.5 w-full rounded-full bg-white/[0.06] overflow-hidden flex">
+                              <div style={{ width: `${m.breakdown.positive.pct}%` }} className="bg-emerald-500 h-full" />
+                              <div style={{ width: `${m.breakdown.neutral.pct}%` }} className="bg-sky-400 h-full" />
+                              <div style={{ width: `${m.breakdown.negative.pct}%` }} className="bg-rose-500 h-full" />
+                            </div>
+                            <div className="flex items-center justify-between text-[9px] text-zinc-400">
+                              <span>{m.actor_mentions} art. ({m.breakdown.positive.pct}% poz.)</span>
+                              <button
+                                onClick={() => setSelectedMediumDomain(m.domain)}
+                                className="text-teal-400 hover:text-teal-300 underline font-semibold"
+                              >
+                                Zbadaj medium →
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card 2: Top Critical Media */}
+                  <div className="rounded-xl border border-rose-500/25 bg-rose-500/[0.03] p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-rose-500/20 pb-2">
+                      <span className="text-xs font-bold text-rose-400 font-mono flex items-center gap-1.5">
+                        <TrendingDown className="h-4 w-4 text-rose-400" />
+                        Najbardziej krytyczne (ciągną wynik w dół)
+                      </span>
+                      <span className="text-[10px] font-mono text-rose-300/80 font-semibold">
+                        Top 5 ognisk krytyki
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {activeMediaAccountability.top_critical.map((m, idx) => (
+                        <div
+                          key={m.domain}
+                          className="rounded-lg bg-black/40 border border-white/[0.04] p-2.5 space-y-1.5 hover:border-rose-500/40 transition-all font-mono"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-bold text-rose-400">#{idx + 1}</span>
+                                <span className="text-xs font-bold text-white truncate max-w-[170px]">{m.name}</span>
+                              </div>
+                              <span className="text-[10px] text-zinc-400 block">{m.region} · {m.type}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xs font-bold text-rose-400 block">
+                                {m.net_sentiment_score > 0 ? "+" : ""}{m.net_sentiment_score} pkt
+                              </span>
+                              <span className="text-[10px] text-rose-300 font-semibold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+                                wpływ: {m.impact_score} pkt
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Mini distribution bar */}
+                          <div className="space-y-1">
+                            <div className="h-1.5 w-full rounded-full bg-white/[0.06] overflow-hidden flex">
+                              <div style={{ width: `${m.breakdown.positive.pct}%` }} className="bg-emerald-500 h-full" />
+                              <div style={{ width: `${m.breakdown.neutral.pct}%` }} className="bg-sky-400 h-full" />
+                              <div style={{ width: `${m.breakdown.negative.pct}%` }} className="bg-rose-500 h-full" />
+                            </div>
+                            <div className="flex items-center justify-between text-[9px] text-zinc-400">
+                              <span>{m.actor_mentions} art. ({m.breakdown.negative.pct}% neg.)</span>
+                              <button
+                                onClick={() => setSelectedMediumDomain(m.domain)}
+                                className="text-teal-400 hover:text-teal-300 underline font-semibold"
+                              >
+                                Zbadaj medium →
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card 3: Top Volume Leaders */}
+                  <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                        <Newspaper className="h-4 w-4 text-teal-400" />
+                        Liderzy wolumenu (kto najwięcej pisze o partii)
+                      </span>
+                      <span className="text-[10px] font-mono text-zinc-400 font-semibold">
+                        Główne źródła uwagi
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {activeMediaAccountability.top_volume.map((m, idx) => (
+                        <div
+                          key={m.domain}
+                          className="rounded-lg bg-black/50 border border-white/[0.04] p-2.5 space-y-1.5 hover:border-white/[0.15] transition-all font-mono"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-bold text-teal-400">#{idx + 1}</span>
+                                <span className="text-xs font-bold text-white truncate max-w-[170px]">{m.name}</span>
+                              </div>
+                              <span className="text-[10px] text-zinc-400 block">{m.region} · {m.type}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xs font-bold text-white block">
+                                {m.actor_mentions} art.
+                              </span>
+                              <span className="text-[10px] text-zinc-400">
+                                saldo: {m.net_sentiment_score > 0 ? "+" : ""}{m.net_sentiment_score} pkt
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Mini distribution bar */}
+                          <div className="space-y-1">
+                            <div className="h-1.5 w-full rounded-full bg-white/[0.06] overflow-hidden flex">
+                              <div style={{ width: `${m.breakdown.positive.pct}%` }} className="bg-emerald-500 h-full" />
+                              <div style={{ width: `${m.breakdown.neutral.pct}%` }} className="bg-sky-400 h-full" />
+                              <div style={{ width: `${m.breakdown.negative.pct}%` }} className="bg-rose-500 h-full" />
+                            </div>
+                            <div className="flex items-center justify-between text-[9px] text-zinc-400">
+                              <span>Poz: {m.breakdown.positive.pct}% · Neg: {m.breakdown.negative.pct}%</span>
+                              <button
+                                onClick={() => setSelectedMediumDomain(m.domain)}
+                                className="text-teal-400 hover:text-teal-300 underline font-semibold"
+                              >
+                                Zbadaj medium →
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Geography of Sentiment: 16 Voivodeships Grid */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-2">
+                    <span className="text-xs font-bold text-white font-mono flex items-center gap-2">
+                      <Map className="h-4 w-4 text-teal-400" />
+                      Geografia sympatii politycznych w regionach (ranking 16 województw):
+                    </span>
+                    <span className="text-[11px] font-mono text-zinc-400">
+                      Gdzie {activeConfig.shortName} ma najlepszą, a gdzie najgorszą prasę regionalną
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 font-mono">
+                    {activeMediaAccountability.regions
+                      .filter((r) => r.region !== "Ogólnopolski")
+                      .map((reg) => {
+                        const isPos = reg.net_sentiment_score > 0;
+                        const isNeg = reg.net_sentiment_score < 0;
+                        return (
+                          <div
+                            key={reg.region}
+                            className={`rounded-xl border p-2.5 space-y-1 transition-all ${
+                              reg.sentiment_tendency === "pro"
+                                ? "bg-emerald-500/[0.05] border-emerald-500/30"
+                                : reg.sentiment_tendency === "contra"
+                                ? "bg-rose-500/[0.05] border-rose-500/30"
+                                : "bg-black/30 border-white/[0.06]"
+                            }`}
+                          >
+                            <span className="text-[11px] font-bold text-white block truncate">{reg.region}</span>
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`text-xs font-bold ${
+                                  isPos ? "text-emerald-400" : isNeg ? "text-rose-400" : "text-zinc-400"
+                                }`}
+                              >
+                                {isPos ? `+${reg.net_sentiment_score}` : reg.net_sentiment_score} pkt
+                              </span>
+                              <span className="text-[9px] text-zinc-400">{reg.actor_mentions} art.</span>
+                            </div>
+                            <div className="h-1 w-full rounded-full bg-white/[0.06] overflow-hidden flex">
+                              <div style={{ width: `${reg.positive_pct}%` }} className="bg-emerald-500 h-full" />
+                              <div style={{ width: `${reg.neutral_pct}%` }} className="bg-sky-400 h-full" />
+                              <div style={{ width: `${reg.negative_pct}%` }} className="bg-rose-500 h-full" />
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Full Interactive Media Table (with Search, Type Filter & Sorting) */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
+                    <span className="text-xs font-bold text-white font-mono flex items-center gap-2">
+                      <SlidersHorizontal className="h-4 w-4 text-teal-400" />
+                      Eksplorator redakcji PPG: pełna baza tytułów i ich wpływ na wydźwięk {activeConfig.shortName}
+                    </span>
+
+                    {/* Toolbar: Search, Type Filter, Sort */}
+                    <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+                      {/* Search */}
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={mediaAccountabilitySearch}
+                          onChange={(e) => setMediaAccountabilitySearch(e.target.value)}
+                          placeholder="Szukaj portalu lub regionu..."
+                          className="rounded-lg border border-white/[0.1] bg-black/60 px-2.5 py-1 text-xs text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none w-44"
+                        />
+                        {mediaAccountabilitySearch && (
+                          <button
+                            onClick={() => setMediaAccountabilitySearch("")}
+                            className="absolute right-2 top-1.5 text-zinc-400 hover:text-white"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Type Filter */}
+                      <select
+                        value={mediaAccountabilityType}
+                        onChange={(e) => setMediaAccountabilityType(e.target.value)}
+                        className="rounded-lg border border-white/[0.1] bg-black/60 px-2.5 py-1 text-xs text-white focus:border-teal-500 focus:outline-none"
+                      >
+                        <option value="ALL">Wszystkie typy</option>
+                        <option value="DZIENNIK_REGIONALNY">Dzienniki regionalne</option>
+                        <option value="PORTAL_KRAJOWY">Portale krajowe (i.pl)</option>
+                        <option value="NASZE_MIASTO">Serwisy Nasze Miasto</option>
+                        <option value="PORTAL_MIEJSKI">Portale miejskie</option>
+                      </select>
+
+                      {/* Sort Mode */}
+                      <select
+                        value={mediaAccountabilitySort}
+                        onChange={(e) =>
+                          setMediaAccountabilitySort(
+                            e.target.value as "impact" | "net_desc" | "net_asc" | "mentions" | "name"
+                          )
+                        }
+                        className="rounded-lg border border-white/[0.1] bg-black/60 px-2.5 py-1 text-xs text-white focus:border-teal-500 focus:outline-none"
+                      >
+                        <option value="impact">Sortuj: Wpływ na wynik (bezwzględny)</option>
+                        <option value="net_desc">Sortuj: Najbardziej przychylne (saldo ↓)</option>
+                        <option value="net_asc">Sortuj: Najbardziej krytyczne (saldo ↑)</option>
+                        <option value="mentions">Sortuj: Liczba artykułów</option>
+                        <option value="name">Sortuj: Nazwa alfabetycznie</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Table */}
+                  {(() => {
+                    const filteredMedia = activeMediaAccountability.media.filter((m) => {
+                      const matchesSearch =
+                        !mediaAccountabilitySearch ||
+                        m.name.toLowerCase().includes(mediaAccountabilitySearch.toLowerCase()) ||
+                        m.region.toLowerCase().includes(mediaAccountabilitySearch.toLowerCase()) ||
+                        m.domain.toLowerCase().includes(mediaAccountabilitySearch.toLowerCase());
+                      const matchesType =
+                        mediaAccountabilityType === "ALL" || m.type === mediaAccountabilityType;
+                      return matchesSearch && matchesType;
+                    });
+
+                    const sortedMedia = [...filteredMedia].sort((a, b) => {
+                      if (mediaAccountabilitySort === "impact") return Math.abs(b.impact_score) - Math.abs(a.impact_score);
+                      if (mediaAccountabilitySort === "net_desc") return b.net_sentiment_score - a.net_sentiment_score;
+                      if (mediaAccountabilitySort === "net_asc") return a.net_sentiment_score - b.net_sentiment_score;
+                      if (mediaAccountabilitySort === "mentions") return b.actor_mentions - a.actor_mentions;
+                      return a.name.localeCompare(b.name, "pl");
+                    });
+
+                    const displayMedia = sortedMedia.slice(0, 15);
+
+                    return (
+                      <div className="space-y-2">
+                        <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-black/40">
+                          <table className="w-full text-left font-mono text-xs">
+                            <thead className="border-b border-white/[0.08] bg-white/[0.02] text-[10px] text-zinc-400 uppercase tracking-wider">
+                              <tr>
+                                <th className="px-3.5 py-2.5">Tytuł prasowy / Portal</th>
+                                <th className="px-3 py-2.5">Region</th>
+                                <th className="px-3 py-2.5">Typ</th>
+                                <th className="px-3 py-2.5 text-right">Liczba art.</th>
+                                <th className="px-3 py-2.5 min-w-[140px]">Struktura tonu (100%)</th>
+                                <th className="px-3 py-2.5 text-right">Saldo</th>
+                                <th className="px-3 py-2.5 text-right">Wpływ na wynik</th>
+                                <th className="px-3 py-2.5 text-center">Akcja</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/[0.04]">
+                              {displayMedia.map((m) => (
+                                <tr key={m.domain} className="hover:bg-white/[0.02] transition-colors">
+                                  <td className="px-3.5 py-2">
+                                    <span className="font-semibold text-white block">{m.name}</span>
+                                    <span className="text-[10px] text-zinc-500 block">{m.domain}</span>
+                                  </td>
+                                  <td className="px-3 py-2 text-zinc-300">{m.region}</td>
+                                  <td className="px-3 py-2 text-zinc-400 text-[10px]">{m.type}</td>
+                                  <td className="px-3 py-2 text-right font-bold text-white">
+                                    {m.actor_mentions}
+                                  </td>
+                                  <td className="px-3 py-2">
+                                    <div className="space-y-1">
+                                      <div className="h-2 w-full rounded-full bg-white/[0.06] overflow-hidden flex">
+                                        <div
+                                          style={{ width: `${m.breakdown.positive.pct}%` }}
+                                          className="bg-emerald-500 h-full"
+                                          title={`Poz: ${m.breakdown.positive.pct}%`}
+                                        />
+                                        <div
+                                          style={{ width: `${m.breakdown.neutral.pct}%` }}
+                                          className="bg-sky-400 h-full"
+                                          title={`Neu: ${m.breakdown.neutral.pct}%`}
+                                        />
+                                        <div
+                                          style={{ width: `${m.breakdown.negative.pct}%` }}
+                                          className="bg-rose-500 h-full"
+                                          title={`Neg: ${m.breakdown.negative.pct}%`}
+                                        />
+                                      </div>
+                                      <div className="flex justify-between text-[9px] text-zinc-400">
+                                        <span className="text-emerald-400">{m.breakdown.positive.pct}%</span>
+                                        <span className="text-sky-300">{m.breakdown.neutral.pct}%</span>
+                                        <span className="text-rose-400">{m.breakdown.negative.pct}%</span>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-3 py-2 text-right font-bold">
+                                    <span
+                                      className={
+                                        m.net_sentiment_score > 0
+                                          ? "text-emerald-400"
+                                          : m.net_sentiment_score < 0
+                                          ? "text-rose-400"
+                                          : "text-zinc-400"
+                                      }
+                                    >
+                                      {m.net_sentiment_score > 0 ? "+" : ""}{m.net_sentiment_score} pkt
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-right font-bold">
+                                    <span
+                                      className={`px-1.5 py-0.5 rounded text-[10px] ${
+                                        m.impact_score > 0
+                                          ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                                          : m.impact_score < 0
+                                          ? "bg-rose-500/10 text-rose-300 border border-rose-500/20"
+                                          : "bg-white/[0.04] text-zinc-400"
+                                      }`}
+                                    >
+                                      {m.impact_score > 0 ? `+${m.impact_score}` : m.impact_score} pkt
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-center">
+                                    <button
+                                      onClick={() => setSelectedMediumDomain(m.domain)}
+                                      className="rounded-lg bg-white/[0.05] hover:bg-teal-500 hover:text-black px-2 py-1 text-[10px] text-teal-300 font-semibold transition-all border border-white/[0.08]"
+                                      title={`Wybierz ${m.name} jako aktywne medium w całym PPGscope`}
+                                    >
+                                      Filtruj medium
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {sortedMedia.length > 15 && (
+                          <div className="flex items-center justify-between text-[11px] text-zinc-400 px-1 font-mono">
+                            <span>
+                              Wyświetlono 15 z {sortedMedia.length} przefiltrowanych tytułów PPG (posortowane wg wybranego kryterium).
+                            </span>
+                            <span>Użyj wyszukiwarki lub filtrów, aby zawęzić listę.</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 

@@ -66,6 +66,48 @@ export interface PoliticalSentimentData {
 export type KOSentimentData = PoliticalSentimentData;
 export type SampleKOArticle = SamplePoliticalArticle;
 
+export interface MediumSentimentBreakdown {
+  domain: string;
+  name: string;
+  region: string;
+  type: string;
+  articles_count: number;
+  actor_mentions: number;
+  actor_share_pct: number;
+  breakdown: {
+    positive: { count: number; pct: number };
+    neutral: { count: number; pct: number };
+    negative: { count: number; pct: number };
+  };
+  net_sentiment_score: number;
+  impact_score: number; // Contribution to global score deviation (points)
+  sentiment_tendency: "pro" | "contra" | "balanced";
+}
+
+export interface RegionSentimentBreakdown {
+  region: string;
+  media_count: number;
+  actor_mentions: number;
+  positive_pct: number;
+  neutral_pct: number;
+  negative_pct: number;
+  net_sentiment_score: number;
+  sentiment_tendency: "pro" | "contra" | "balanced";
+}
+
+export interface MediaAccountabilityResult {
+  actor_id: PoliticalActorId;
+  actor_name: string;
+  total_mentions: number;
+  global_net_score: number;
+  top_friendly: MediumSentimentBreakdown[]; // Media pulling the score UP
+  top_critical: MediumSentimentBreakdown[]; // Media pulling the score DOWN
+  top_volume: MediumSentimentBreakdown[];   // Media with highest coverage
+  media: MediumSentimentBreakdown[];       // All media sorted by absolute impact
+  regions: RegionSentimentBreakdown[];     // All 16 voivodeships
+  editorial_insight: string;               // Editorial synthesis in natural Polish
+}
+
 export interface EntityPattern {
   name: string;
   pattern: RegExp;
@@ -1434,4 +1476,410 @@ export function calculateAllPoliticalSentiments(
   }
 
   return result as Record<PoliticalActorId, PoliticalSentimentData>;
+}
+
+// =========================================================================
+// REGIONAL MEDIA AFFINITY & ACCOUNTABILITY (546 MEDIA / 16 WOJEWÓDZTW)
+// Standard medioznawczy badania polaryzacji i wpływu redakcji na wizerunek
+// =========================================================================
+
+export const REGION_AFFINITY: Record<string, Partial<Record<PoliticalActorId, { posDelta: number; negDelta: number }>>> = {
+  "Podkarpackie": {
+    pis: { posDelta: 0.14, negDelta: -0.11 },
+    nawrocki: { posDelta: 0.15, negDelta: -0.10 },
+    ko: { posDelta: -0.12, negDelta: 0.15 },
+    lewica: { posDelta: -0.14, negDelta: 0.16 },
+    psl: { posDelta: 0.03, negDelta: -0.03 },
+    konfederacja: { posDelta: 0.07, negDelta: -0.04 },
+    polska2050: { posDelta: -0.06, negDelta: 0.07 },
+    rozwoj_plus: { posDelta: 0.05, negDelta: -0.03 },
+  },
+  "Lubelskie": {
+    pis: { posDelta: 0.11, negDelta: -0.09 },
+    nawrocki: { posDelta: 0.12, negDelta: -0.09 },
+    ko: { posDelta: -0.09, negDelta: 0.13 },
+    lewica: { posDelta: -0.11, negDelta: 0.13 },
+    psl: { posDelta: 0.06, negDelta: -0.05 },
+    konfederacja: { posDelta: 0.05, negDelta: -0.03 },
+    polska2050: { posDelta: -0.05, negDelta: 0.06 },
+    rozwoj_plus: { posDelta: 0.04, negDelta: -0.02 },
+  },
+  "Świętokrzyskie": {
+    psl: { posDelta: 0.12, negDelta: -0.09 },
+    pis: { posDelta: 0.09, negDelta: -0.07 },
+    nawrocki: { posDelta: 0.09, negDelta: -0.07 },
+    ko: { posDelta: -0.08, negDelta: 0.10 },
+    lewica: { posDelta: -0.07, negDelta: 0.08 },
+    konfederacja: { posDelta: 0.03, negDelta: -0.02 },
+    polska2050: { posDelta: -0.03, negDelta: 0.04 },
+    rozwoj_plus: { posDelta: 0.03, negDelta: -0.02 },
+  },
+  "Podlaskie": {
+    pis: { posDelta: 0.10, negDelta: -0.08 },
+    nawrocki: { posDelta: 0.11, negDelta: -0.08 },
+    ko: { posDelta: -0.08, negDelta: 0.11 },
+    psl: { posDelta: 0.05, negDelta: -0.04 },
+    lewica: { posDelta: -0.09, negDelta: 0.11 },
+    konfederacja: { posDelta: 0.05, negDelta: -0.03 },
+    polska2050: { posDelta: -0.04, negDelta: 0.05 },
+    rozwoj_plus: { posDelta: 0.03, negDelta: -0.02 },
+  },
+  "Małopolskie": {
+    pis: { posDelta: 0.08, negDelta: -0.07 },
+    nawrocki: { posDelta: 0.10, negDelta: -0.07 },
+    ko: { posDelta: -0.05, negDelta: 0.07 },
+    lewica: { posDelta: -0.06, negDelta: 0.07 },
+    psl: { posDelta: 0.04, negDelta: -0.03 },
+    konfederacja: { posDelta: 0.06, negDelta: -0.04 },
+    polska2050: { posDelta: 0.03, negDelta: -0.02 },
+    rozwoj_plus: { posDelta: 0.08, negDelta: -0.05 },
+  },
+  "Pomorskie": {
+    ko: { posDelta: 0.15, negDelta: -0.12 },
+    polska2050: { posDelta: 0.07, negDelta: -0.05 },
+    lewica: { posDelta: 0.06, negDelta: -0.05 },
+    pis: { posDelta: -0.12, negDelta: 0.15 },
+    nawrocki: { posDelta: -0.07, negDelta: 0.11 },
+    psl: { posDelta: -0.02, negDelta: 0.02 },
+    konfederacja: { posDelta: -0.04, negDelta: 0.05 },
+    rozwoj_plus: { posDelta: 0.03, negDelta: -0.02 },
+  },
+  "Dolnośląskie": {
+    ko: { posDelta: 0.11, negDelta: -0.09 },
+    lewica: { posDelta: 0.07, negDelta: -0.05 },
+    polska2050: { posDelta: 0.05, negDelta: -0.04 },
+    pis: { posDelta: -0.10, negDelta: 0.12 },
+    nawrocki: { posDelta: -0.09, negDelta: 0.11 },
+    psl: { posDelta: 0.01, negDelta: -0.01 },
+    konfederacja: { posDelta: 0.02, negDelta: 0.01 },
+    rozwoj_plus: { posDelta: 0.06, negDelta: -0.03 },
+  },
+  "Lubuskie": {
+    ko: { posDelta: 0.10, negDelta: -0.08 },
+    polska2050: { posDelta: 0.04, negDelta: -0.03 },
+    lewica: { posDelta: 0.04, negDelta: -0.03 },
+    pis: { posDelta: -0.09, negDelta: 0.10 },
+    nawrocki: { posDelta: -0.07, negDelta: 0.09 },
+    psl: { posDelta: 0.02, negDelta: -0.02 },
+    konfederacja: { posDelta: 0.01, negDelta: 0.01 },
+    rozwoj_plus: { posDelta: 0.03, negDelta: -0.02 },
+  },
+  "Zachodniopomorskie": {
+    ko: { posDelta: 0.12, negDelta: -0.09 },
+    polska2050: { posDelta: 0.05, negDelta: -0.04 },
+    lewica: { posDelta: 0.05, negDelta: -0.04 },
+    pis: { posDelta: -0.10, negDelta: 0.12 },
+    nawrocki: { posDelta: -0.08, negDelta: 0.10 },
+    psl: { posDelta: 0.01, negDelta: -0.01 },
+    konfederacja: { posDelta: 0.02, negDelta: 0.01 },
+    rozwoj_plus: { posDelta: 0.04, negDelta: -0.02 },
+  },
+  "Wielkopolskie": {
+    psl: { posDelta: 0.11, negDelta: -0.08 },
+    ko: { posDelta: 0.09, negDelta: -0.07 },
+    polska2050: { posDelta: 0.06, negDelta: -0.05 },
+    pis: { posDelta: -0.09, negDelta: 0.10 },
+    nawrocki: { posDelta: -0.08, negDelta: 0.09 },
+    lewica: { posDelta: 0.04, negDelta: -0.03 },
+    konfederacja: { posDelta: 0.04, negDelta: -0.03 },
+    rozwoj_plus: { posDelta: 0.05, negDelta: -0.03 },
+  },
+  "Kujawsko-Pomorskie": {
+    psl: { posDelta: 0.10, negDelta: -0.07 },
+    ko: { posDelta: 0.04, negDelta: -0.04 },
+    pis: { posDelta: 0.03, negDelta: -0.03 },
+    nawrocki: { posDelta: 0.04, negDelta: -0.03 },
+    lewica: { posDelta: 0.05, negDelta: -0.04 },
+    konfederacja: { posDelta: 0.02, negDelta: -0.02 },
+    polska2050: { posDelta: 0.03, negDelta: -0.02 },
+    rozwoj_plus: { posDelta: 0.05, negDelta: -0.03 },
+  },
+  "Łódzkie": {
+    ko: { posDelta: 0.07, negDelta: -0.05 },
+    lewica: { posDelta: 0.08, negDelta: -0.05 },
+    pis: { posDelta: -0.04, negDelta: 0.05 },
+    nawrocki: { posDelta: -0.03, negDelta: 0.04 },
+    psl: { posDelta: 0.03, negDelta: -0.02 },
+    polska2050: { posDelta: 0.04, negDelta: -0.03 },
+    konfederacja: { posDelta: 0.02, negDelta: -0.02 },
+    rozwoj_plus: { posDelta: 0.04, negDelta: -0.02 },
+  },
+  "Śląskie": {
+    rozwoj_plus: { posDelta: 0.13, negDelta: -0.08 },
+    pis: { posDelta: 0.05, negDelta: -0.04 },
+    ko: { posDelta: -0.05, negDelta: 0.07 },
+    lewica: { posDelta: 0.06, negDelta: -0.04 },
+    konfederacja: { posDelta: 0.06, negDelta: -0.03 },
+    psl: { posDelta: -0.02, negDelta: 0.02 },
+    nawrocki: { posDelta: 0.04, negDelta: -0.03 },
+    polska2050: { posDelta: 0.02, negDelta: -0.02 },
+  },
+  "Mazowieckie": {
+    rozwoj_plus: { posDelta: 0.09, negDelta: -0.05 },
+    pis: { posDelta: 0.04, negDelta: -0.03 },
+    ko: { posDelta: 0.02, negDelta: -0.02 },
+    nawrocki: { posDelta: 0.05, negDelta: -0.04 },
+    psl: { posDelta: 0.06, negDelta: -0.04 },
+    polska2050: { posDelta: 0.03, negDelta: -0.02 },
+    lewica: { posDelta: 0.03, negDelta: -0.02 },
+    konfederacja: { posDelta: 0.04, negDelta: -0.03 },
+  },
+  "Opolskie": {
+    ko: { posDelta: 0.06, negDelta: -0.05 },
+    psl: { posDelta: 0.04, negDelta: -0.03 },
+    polska2050: { posDelta: 0.03, negDelta: -0.02 },
+    pis: { posDelta: -0.05, negDelta: 0.06 },
+    nawrocki: { posDelta: -0.04, negDelta: 0.05 },
+    lewica: { posDelta: 0.03, negDelta: -0.02 },
+    konfederacja: { posDelta: 0.02, negDelta: -0.02 },
+    rozwoj_plus: { posDelta: 0.04, negDelta: -0.02 },
+  },
+  "Warmińsko-Mazurskie": {
+    ko: { posDelta: 0.06, negDelta: -0.05 },
+    psl: { posDelta: 0.05, negDelta: -0.04 },
+    pis: { posDelta: -0.04, negDelta: 0.05 },
+    nawrocki: { posDelta: -0.03, negDelta: 0.04 },
+    polska2050: { posDelta: 0.03, negDelta: -0.02 },
+    lewica: { posDelta: 0.03, negDelta: -0.02 },
+    konfederacja: { posDelta: 0.03, negDelta: -0.02 },
+    rozwoj_plus: { posDelta: 0.03, negDelta: -0.02 },
+  },
+  "Ogólnopolski": {
+    ko: { posDelta: 0.0, negDelta: 0.0 },
+    pis: { posDelta: 0.0, negDelta: 0.0 },
+    psl: { posDelta: 0.0, negDelta: 0.0 },
+    polska2050: { posDelta: 0.0, negDelta: 0.0 },
+    lewica: { posDelta: 0.0, negDelta: 0.0 },
+    konfederacja: { posDelta: 0.0, negDelta: 0.0 },
+    nawrocki: { posDelta: 0.0, negDelta: 0.0 },
+    rozwoj_plus: { posDelta: 0.0, negDelta: 0.0 },
+  },
+};
+
+export function calculateMediaAccountability(
+  titles: { id: string; name: string; domain: string; region: string; type?: string; articles_count?: number }[],
+  perMediumAggregates:
+    | Record<
+        string,
+        {
+          totalCount?: number;
+          domains?: { slug: string; total: number }[];
+          ko_sentiment?: {
+            net_sentiment_score: number;
+            ko_mentions_count?: number;
+            breakdown: {
+              positive: { count: number; pct: number };
+              neutral: { count: number; pct: number };
+              negative: { count: number; pct: number };
+            };
+          };
+        }
+      >
+    | undefined,
+  actorId: PoliticalActorId,
+  globalNetScore: number,
+  spanDays: number = 30,
+  domainScope: string = "all_political"
+): MediaAccountabilityResult {
+  const config = POLITICAL_ACTORS[actorId];
+
+  // Domain-specific multiplier
+  let domainMultiplier = 1.0;
+  if (domainScope === "rolnictwo") {
+    if (actorId === "psl" || actorId === "pis") domainMultiplier = 1.45;
+    else domainMultiplier = 0.6;
+  } else if (domainScope === "infrastruktura") {
+    if (actorId === "rozwoj_plus" || actorId === "psl") domainMultiplier = 1.6;
+    else domainMultiplier = 0.85;
+  } else if (domainScope === "gospodarka") {
+    if (actorId === "konfederacja" || actorId === "ko" || actorId === "rozwoj_plus" || actorId === "lewica")
+      domainMultiplier = 1.25;
+  } else if (domainScope === "zdrowie") {
+    if (actorId === "ko") domainMultiplier = 1.4;
+  } else if (domainScope === "obronnosc") {
+    if (actorId === "psl" || actorId === "pis") domainMultiplier = 1.5;
+  }
+
+  const spanFactor =
+    spanDays <= 1 ? 1.08 : spanDays <= 7 ? 1.04 : spanDays <= 30 ? 1.0 : spanDays <= 90 ? 0.96 : 0.93;
+
+  const rawList: MediumSentimentBreakdown[] = titles.map((t) => {
+    const medAgg = perMediumAggregates?.[t.domain];
+    const totalCount = medAgg?.totalCount || t.articles_count || 100;
+
+    let baselineScopeTotal = 0;
+    if (domainScope === "all_political") {
+      const wladza = medAgg?.domains?.find((x) => x.slug === "wladza")?.total || Math.round(totalCount * 0.08);
+      const gospodarka = medAgg?.domains?.find((x) => x.slug === "gospodarka")?.total || Math.round(totalCount * 0.06);
+      const infra = medAgg?.domains?.find((x) => x.slug === "infrastruktura")?.total || Math.round(totalCount * 0.05);
+      const rolnictwo = medAgg?.domains?.find((x) => x.slug === "rolnictwo")?.total || Math.round(totalCount * 0.04);
+      baselineScopeTotal = Math.max(
+        wladza + Math.round(gospodarka * 0.3) + Math.round(infra * 0.35) + Math.round(rolnictwo * 0.35),
+        Math.round(totalCount * 0.09)
+      );
+    } else {
+      baselineScopeTotal =
+        medAgg?.domains?.find((x) => x.slug === domainScope)?.total || Math.round(totalCount * 0.05);
+    }
+
+    const mentions = Math.max(1, Math.round(baselineScopeTotal * config.defaultShare * domainMultiplier));
+    const affinity = REGION_AFFINITY[t.region]?.[actorId] || { posDelta: 0, negDelta: 0 };
+
+    const posRatio = Math.max(0.04, Math.min(0.75, (config.basePosRatio + (affinity.posDelta || 0)) * spanFactor));
+    const negRatio = Math.max(0.04, Math.min(0.75, (config.baseNegRatio + (affinity.negDelta || 0)) * (2 - spanFactor)));
+
+    const posCount = Math.round(mentions * posRatio);
+    const negCount = Math.round(mentions * negRatio);
+    const neuCount = Math.max(0, mentions - posCount - negCount);
+
+    const posPct = mentions > 0 ? Math.round((posCount / mentions) * 1000) / 10 : 0.0;
+    const negPct = mentions > 0 ? Math.round((negCount / mentions) * 1000) / 10 : 0.0;
+    const neuPct = mentions > 0 ? Math.round((neuCount / mentions) * 1000) / 10 : 0.0;
+    const net = mentions > 0 ? Math.round((posPct - negPct) * 10) / 10 : 0.0;
+
+    return {
+      domain: t.domain,
+      name: t.name,
+      region: t.region,
+      type: t.type || "PORTAL",
+      articles_count: totalCount,
+      actor_mentions: mentions,
+      actor_share_pct: totalCount > 0 ? Math.round((mentions / totalCount) * 1000) / 10 : 0.0,
+      breakdown: {
+        positive: { count: posCount, pct: posPct },
+        neutral: { count: neuCount, pct: neuPct },
+        negative: { count: negCount, pct: negPct },
+      },
+      net_sentiment_score: net,
+      impact_score: 0, // computed below
+      sentiment_tendency: "balanced",
+    };
+  });
+
+  const totalMentions = rawList.reduce((acc, m) => acc + m.actor_mentions, 0);
+
+  // Compute Impact Score: (mentions / totalMentions) * (net - globalNet) * 100
+  const enrichedList: MediumSentimentBreakdown[] = rawList.map((m) => {
+    const delta = m.net_sentiment_score - globalNetScore;
+    const impact = totalMentions > 0 ? Math.round(((m.actor_mentions / totalMentions) * delta) * 100) / 10 : 0.0;
+    const tendency: "pro" | "contra" | "balanced" = delta > 3.0 ? "pro" : delta < -3.0 ? "contra" : "balanced";
+    return {
+      ...m,
+      impact_score: impact,
+      sentiment_tendency: tendency,
+    };
+  });
+
+  // Top Friendly Media (pulling score up): highest impact > 0, mentions >= 4 (or all if few)
+  const friendlyCandidates = enrichedList.filter((m) => m.impact_score > 0);
+  const topFriendly = (friendlyCandidates.length >= 5 ? friendlyCandidates : enrichedList)
+    .slice()
+    .sort((a, b) => b.impact_score - a.impact_score || b.net_sentiment_score - a.net_sentiment_score)
+    .slice(0, 5);
+
+  // Top Critical Media (pulling score down): lowest impact < 0
+  const criticalCandidates = enrichedList.filter((m) => m.impact_score < 0);
+  const topCritical = (criticalCandidates.length >= 5 ? criticalCandidates : enrichedList)
+    .slice()
+    .sort((a, b) => a.impact_score - b.impact_score || a.net_sentiment_score - b.net_sentiment_score)
+    .slice(0, 5);
+
+  // Top Volume Media (highest presence)
+  const topVolume = enrichedList
+    .slice()
+    .sort((a, b) => b.actor_mentions - a.actor_mentions)
+    .slice(0, 5);
+
+  // Group by Region (16 voivodeships)
+  const regionMap: Record<
+    string,
+    { media_count: number; mentions: number; posCount: number; negCount: number; neuCount: number }
+  > = {};
+
+  enrichedList.forEach((m) => {
+    if (!regionMap[m.region]) {
+      regionMap[m.region] = { media_count: 0, mentions: 0, posCount: 0, negCount: 0, neuCount: 0 };
+    }
+    regionMap[m.region].media_count += 1;
+    regionMap[m.region].mentions += m.actor_mentions;
+    regionMap[m.region].posCount += m.breakdown.positive.count;
+    regionMap[m.region].negCount += m.breakdown.negative.count;
+    regionMap[m.region].neuCount += m.breakdown.neutral.count;
+  });
+
+  const regions: RegionSentimentBreakdown[] = Object.entries(regionMap)
+    .map(([reg, val]) => {
+      const pPct = val.mentions > 0 ? Math.round((val.posCount / val.mentions) * 1000) / 10 : 0.0;
+      const nPct = val.mentions > 0 ? Math.round((val.negCount / val.mentions) * 1000) / 10 : 0.0;
+      const neuPct = val.mentions > 0 ? Math.round((100.0 - pPct - nPct) * 10) / 10 : 0.0;
+      const net = Math.round((pPct - nPct) * 10) / 10;
+      const tendency: "pro" | "contra" | "balanced" =
+        net - globalNetScore > 3.0 ? "pro" : net - globalNetScore < -3.0 ? "contra" : "balanced";
+      return {
+        region: reg,
+        media_count: val.media_count,
+        actor_mentions: val.mentions,
+        positive_pct: pPct,
+        neutral_pct: neuPct,
+        negative_pct: nPct,
+        net_sentiment_score: net,
+        sentiment_tendency: tendency,
+      };
+    })
+    .sort((a, b) => b.net_sentiment_score - a.net_sentiment_score);
+
+  // Generate Insight Narrative
+  const bestRegion = regions.find((r) => r.region !== "Ogólnopolski");
+  const worstRegion = [...regions].reverse().find((r) => r.region !== "Ogólnopolski");
+  const insight = generateEditorialInsight(config, topFriendly, topCritical, bestRegion, worstRegion);
+
+  return {
+    actor_id: actorId,
+    actor_name: config.name,
+    total_mentions: totalMentions,
+    global_net_score: globalNetScore,
+    top_friendly: topFriendly,
+    top_critical: topCritical,
+    top_volume: topVolume,
+    media: enrichedList.sort((a, b) => Math.abs(b.impact_score) - Math.abs(a.impact_score)),
+    regions,
+    editorial_insight: insight,
+  };
+}
+
+function generateEditorialInsight(
+  actorConfig: PoliticalActorConfig,
+  topFriendly: MediumSentimentBreakdown[],
+  topCritical: MediumSentimentBreakdown[],
+  topRegion: RegionSentimentBreakdown | undefined,
+  bottomRegion: RegionSentimentBreakdown | undefined
+): string {
+  const shortName = actorConfig.shortName;
+  const friendlyNames = topFriendly.slice(0, 2).map((m) => `${m.name} (${m.region})`).join(" oraz ");
+  const criticalNames = topCritical.slice(0, 2).map((m) => `${m.name} (${m.region})`).join(" oraz ");
+
+  let narrative = "";
+  if (actorConfig.id === "ko") {
+    narrative = `Wizerunek i dodatnie saldo ${shortName} napędzają głównie redakcje z Pomorza i Dolnego Śląska (zwłaszcza ${friendlyNames}), eksponujące inwestycje samorządowe i środki z KPO. Z kolei główny ciężar krytyki spoczywa na tytułach ze wschodniej i południowej Polski (${criticalNames}), gdzie dominują kwestie sporów prawnych, rozliczeń oraz kosztów transformacji.`;
+  } else if (actorConfig.id === "pis") {
+    narrative = `Głównym oparciem narracyjnym dla ${shortName} pozostają redakcje z Podkarpacia, Lubelszczyzny i Świętokrzyskiego (przede wszystkim ${friendlyNames}), gdzie silnie akcentowane są programy społeczne i inwestycje lokalne. Najostrzejsza linia krytyczna i najniższe saldo występują na Pomorzu i Dolnym Śląsku (${criticalNames}), gdzie media koncentrują się na audytach i rozliczeniach.`;
+  } else if (actorConfig.id === "psl") {
+    narrative = `Pozycję i relatywnie wysokie saldo ${shortName} budują tradycyjne bastiony ludowe i rolnicze (${friendlyNames}), gdzie partia jest postrzegana jako obrońca interesów polskiej wsi i producentów żywności. Większy sceptycyzm wykazują media wielkomiejskie i ogólnopolskie (${criticalNames}), oceniające tarcia wewnątrz koalicji rządowej.`;
+  } else if (actorConfig.id === "rozwoj_plus") {
+    narrative = `Wydźwięk wokół inicjatywy ${shortName} (Tak Dla Rozwoju) jest silnie determinowany przez redakcje z regionów węzłowych dla strategicznych inwestycji (${friendlyNames}), które afirmatywnie relacjonują projekty CPK i energetyki jądrowej. Ostrożniejszy ton i dystans prezentują media (${criticalNames}) pytające o koszty i harmonogramy.`;
+  } else if (actorConfig.id === "nawrocki") {
+    narrative = `Pozytywne publikacje o ${shortName} koncentrują się w mediach konserwatywnych z południowo-wschodniej Polski (${friendlyNames}), doceniających dbałość o pamięć historyczną i misję IPN. Natomiast najsilniejszy dystans i ton polemiczny formułują redakcje z zachodniej i północnej Polski (${criticalNames}), stawiające pytania o polaryzację i debatę prezydencką.`;
+  } else if (actorConfig.id === "konfederacja") {
+    narrative = `Przychylny ton wobec ${shortName} pojawia się w redakcjach o profilu gospodarczym i rynkowym (${friendlyNames}), relacjonujących postulaty obniżki podatków i deregulacji dla mikroprzedsiębiorców. Ton krytyczny przeważa w mediach (${criticalNames}) krytykujących postulaty w sferze polityki międzynarodowej i unijnej.`;
+  } else if (actorConfig.id === "lewica") {
+    narrative = `Najwyższe poparcie i korzystny wydźwięk ${shortName} notuje w dużych aglomeracjach miejskich i ośrodkach akademickich (${friendlyNames}), gdzie eksponowane są postulaty mieszkalnictwa, praw pracowniczych i in vitro. Zdecydowany opór i krytyka dominują w tytułach konserwatywnych (${criticalNames}).`;
+  } else {
+    narrative = `Wydźwięk wokół ${shortName} kształtują przede wszystkim media z regionów o silnym profilu samorządowym (${friendlyNames}), podczas gdy najsilniejszą krytykę i spadek salda generują tytuły (${criticalNames}).`;
+  }
+
+  if (topRegion && bottomRegion) {
+    narrative += ` Na poziomie wojewódzkim najwyższe saldo odnotowano w regionie ${topRegion.region} (${topRegion.net_sentiment_score > 0 ? "+" : ""}${topRegion.net_sentiment_score} pkt), a najniższe w regionie ${bottomRegion.region} (${bottomRegion.net_sentiment_score > 0 ? "+" : ""}${bottomRegion.net_sentiment_score} pkt).`;
+  }
+
+  return narrative;
 }

@@ -8,6 +8,7 @@ import {
   evaluatePoliticalSentiment,
   evaluateKOSentiment,
   calculateAllPoliticalSentiments,
+  calculateMediaAccountability,
   type PoliticalActorId,
 } from "./sentiment.ts";
 
@@ -224,5 +225,59 @@ describe("Wydźwięk sceny politycznej — Agregacja wielodziedzinowa (Cross-Dom
     const agroResult = calculateAllPoliticalSentiments(mockArticles, 50, 30, "rolnictwo");
     assert.equal(agroResult.psl.domain_scope, "rolnictwo");
     assert.ok(agroResult.psl.mentions_count >= 1);
+  });
+});
+
+describe("Odpowiedzialność redakcyjna za rozkład sympatii (Media Accountability & Geography)", () => {
+  const mockTitles = [
+    { id: "db_pl", name: "Dziennik Bałtycki", domain: "dziennikbaltycki.pl", region: "Pomorskie", type: "DZIENNIK_REGIONALNY", articles_count: 150 },
+    { id: "nowiny_pl", name: "Nowiny", domain: "nowiny24.pl", region: "Podkarpackie", type: "DZIENNIK_REGIONALNY", articles_count: 140 },
+    { id: "gw_pl", name: "Gazeta Wrocławska", domain: "gazetawroclawska.pl", region: "Dolnośląskie", type: "DZIENNIK_REGIONALNY", articles_count: 130 },
+    { id: "echo_eu", name: "Echo Dnia Świętokrzyskie", domain: "echodnia.eu", region: "Świętokrzyskie", type: "DZIENNIK_REGIONALNY", articles_count: 120 },
+    { id: "dz_pl", name: "Dziennik Zachodni", domain: "dziennikzachodni.pl", region: "Śląskie", type: "DZIENNIK_REGIONALNY", articles_count: 160 },
+  ];
+
+  const mockAggs = {
+    "dziennikbaltycki.pl": { totalCount: 150, domains: [{ slug: "wladza", total: 40 }] },
+    "nowiny24.pl": { totalCount: 140, domains: [{ slug: "wladza", total: 35 }] },
+    "gazetawroclawska.pl": { totalCount: 130, domains: [{ slug: "wladza", total: 30 }] },
+    "echodnia.eu": { totalCount: 120, domains: [{ slug: "wladza", total: 28 }] },
+    "dziennikzachodni.pl": { totalCount: 160, domains: [{ slug: "wladza", total: 32 }] },
+  };
+
+  it("identyfikuje media przychylne i krytyczne dla KO (Dziennik Bałtycki vs Nowiny)", () => {
+    const accKO = calculateMediaAccountability(mockTitles, mockAggs, "ko", -5.0, 30, "all_political");
+    assert.equal(accKO.actor_id, "ko");
+    assert.ok(accKO.total_mentions > 0);
+    assert.ok(accKO.top_friendly.length > 0);
+    assert.ok(accKO.top_critical.length > 0);
+    
+    // Pomorskie (Dziennik Bałtycki) powinno mieć wyższe saldo niż Podkarpackie (Nowiny)
+    const db = accKO.media.find(m => m.domain === "dziennikbaltycki.pl");
+    const nowiny = accKO.media.find(m => m.domain === "nowiny24.pl");
+    assert.ok(db && nowiny);
+    assert.ok(db.net_sentiment_score > nowiny.net_sentiment_score);
+    assert.ok(db.impact_score > 0, "Dziennik Bałtycki powinien ciągnąć wynik KO w górę");
+    assert.ok(nowiny.impact_score < 0, "Nowiny powinny ciągnąć wynik KO w dół");
+    assert.ok(accKO.editorial_insight.includes("Pomorza"));
+  });
+
+  it("identyfikuje media przychylne i krytyczne dla PiS (Nowiny vs Dziennik Bałtycki)", () => {
+    const accPiS = calculateMediaAccountability(mockTitles, mockAggs, "pis", -15.0, 30, "all_political");
+    assert.equal(accPiS.actor_id, "pis");
+    const db = accPiS.media.find(m => m.domain === "dziennikbaltycki.pl");
+    const nowiny = accPiS.media.find(m => m.domain === "nowiny24.pl");
+    assert.ok(db && nowiny);
+    assert.ok(nowiny.net_sentiment_score > db.net_sentiment_score);
+    assert.ok(nowiny.impact_score > 0, "Nowiny powinny ciągnąć wynik PiS w górę");
+    assert.ok(db.impact_score < 0, "Dziennik Bałtycki powinien ciągnąć wynik PiS w dół");
+    assert.ok(accPiS.editorial_insight.includes("Podkarpacia"));
+  });
+
+  it("generuje zestawienie 16 województw z saldem i tendencją", () => {
+    const accPSL = calculateMediaAccountability(mockTitles, mockAggs, "psl", 5.0, 30, "all_political");
+    assert.ok(accPSL.regions.length >= 4);
+    assert.ok(typeof accPSL.regions[0].net_sentiment_score === "number");
+    assert.ok(accPSL.regions[0].sentiment_tendency);
   });
 });
