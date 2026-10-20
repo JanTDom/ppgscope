@@ -55,7 +55,7 @@ export function TitlesView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Database className="h-5 w-5 text-teal-400" /> Rejestr 546 Portali Polska Press Grupa
+            <Database className="h-5 w-5 text-teal-400" /> Rejestr {titles.length} Portali Polska Press Grupa
           </h2>
           <p className="text-xs text-zinc-400">
             Kompletny katalog wszystkich mediów internetowych PPG w sieci z podziałem na segmenty, żywotność i unikalność.

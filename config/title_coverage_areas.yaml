@@ -110,6 +110,48 @@ to_com_pl:
   cities: ["Ostrołęka", "Ostrów Mazowiecka", "Wyszków", "Maków Mazowiecki", "Przasnysz", "Pułtusk", "Ciechanów"]
   counties: ["ostrołęcki", "ostrowski", "wyszkowski", "makowski", "przasnyski", "pułtuski", "ciechanowski"]
 
+expressbydgoski_pl:
+  name: "Express Bydgoski"
+  voivodeships: ["Kujawsko-Pomorskie"]
+  cities: ["Bydgoszcz", "Toruń", "Inowrocław", "Grudziądz", "Włocławek", "Solec Kujawski", "Nakło nad Notecią", "Żnin", "Świecie", "Chełmno", "Koronowo", "Szubin"]
+  counties: ["bydgoski", "toruński", "inowrocławski", "grudziądzki", "włocławski", "nakielski", "żniński", "świecki", "chełmiński"]
+
+expressilustrowany_pl:
+  name: "Express Ilustrowany"
+  voivodeships: ["Łódzkie"]
+  cities: ["Łódź", "Zgierz", "Pabianice", "Piotrków Trybunalski", "Konstantynów Łódzki", "Aleksandrów Łódzki", "Tomaszów Mazowiecki", "Bełchatów", "Skierniewice", "Radomsko", "Kutno", "Sieradz", "Zduńska Wola", "Łowicz"]
+  counties: ["łódzki wschodni", "zgierski", "pabianicki", "piotrkowski", "tomaszowski", "bełchatowski", "skierniewicki", "radomszczański"]
+
+strefaobrony_pl:
+  name: "Strefa Obrony"
+  voivodeships: ["Polska", "Mazowieckie", "Małopolskie", "Śląskie", "Wielkopolskie", "Dolnośląskie", "Pomorskie", "Łódzkie", "Kujawsko-Pomorskie", "Lubelskie", "Podkarpackie", "Świętokrzyskie", "Podlaskie", "Zachodniopomorskie", "Warmińsko-Mazurskie", "Lubuskie", "Opolskie"]
+  cities: ["Warszawa", "Kraków", "Gdańsk", "Gdynia", "Bydgoszcz", "Wrocław", "Poznań", "Rzeszów", "Szczecin", "Lublin", "Radom", "Toruń", "Kielce"]
+  counties: ["ogólnopolski"]
+
+strefabiznesu_pl:
+  name: "Strefa Biznesu"
+  voivodeships: ["Polska", "Mazowieckie", "Małopolskie", "Śląskie", "Wielkopolskie", "Dolnośląskie", "Pomorskie", "Łódzkie", "Kujawsko-Pomorskie", "Lubelskie", "Podkarpackie", "Świętokrzyskie", "Podlaskie", "Zachodniopomorskie", "Warmińsko-Mazurskie", "Lubuskie", "Opolskie"]
+  cities: ["Warszawa", "Kraków", "Wrocław", "Poznań", "Gdańsk", "Katowice", "Łódź", "Szczecin", "Bydgoszcz", "Lublin", "Rzeszów"]
+  counties: ["ogólnopolski"]
+
+strefaagro_pl:
+  name: "Strefa Agro"
+  voivodeships: ["Polska", "Mazowieckie", "Wielkopolskie", "Lubelskie", "Kujawsko-Pomorskie", "Łódzkie", "Podlaskie", "Małopolskie", "Dolnośląskie", "Świętokrzyskie", "Podkarpackie", "Zachodniopomorskie", "Warmińsko-Mazurskie", "Opolskie", "Lubuskie", "Pomorskie", "Śląskie"]
+  cities: ["Warszawa", "Poznań", "Lublin", "Bydgoszcz", "Białystok", "Kielce", "Olsztyn", "Opole", "Rzeszów"]
+  counties: ["ogólnopolski"]
+
+strefaedukacji_pl:
+  name: "Strefa Edukacji"
+  voivodeships: ["Polska", "Mazowieckie", "Małopolskie", "Śląskie", "Wielkopolskie", "Dolnośląskie", "Pomorskie", "Łódzkie", "Kujawsko-Pomorskie", "Lubelskie", "Podkarpackie", "Świętokrzyskie", "Podlaskie", "Zachodniopomorskie", "Warmińsko-Mazurskie", "Lubuskie", "Opolskie"]
+  cities: ["Warszawa", "Kraków", "Wrocław", "Poznań", "Gdańsk", "Łódź", "Lublin", "Katowice"]
+  counties: ["ogólnopolski"]
+
+polskatimes_pl:
+  name: "Polska Times"
+  voivodeships: ["Polska", "Mazowieckie", "Małopolskie", "Śląskie", "Wielkopolskie", "Dolnośląskie", "Pomorskie", "Łódzkie", "Kujawsko-Pomorskie", "Lubelskie", "Podkarpackie", "Świętokrzyskie", "Podlaskie", "Zachodniopomorskie", "Warmińsko-Mazurskie", "Lubuskie", "Opolskie"]
+  cities: ["Warszawa", "Kraków", "Łódź", "Wrocław", "Poznań", "Gdańsk", "Szczecin", "Bydgoszcz", "Lublin", "Białystok", "Katowice"]
+  counties: ["ogólnopolski"]
+
 i_pl:
   name: "i.pl"
   voivodeships: ["Polska", "Mazowieckie", "Małopolskie", "Śląskie", "Wielkopolskie", "Dolnośląskie", "Pomorskie", "Łódzkie", "Kujawsko-Pomorskie", "Lubelskie", "Podkarpackie", "Świętokrzyskie", "Podlaskie", "Zachodniopomorskie", "Warmińsko-Mazurskie", "Lubuskie", "Opolskie"]

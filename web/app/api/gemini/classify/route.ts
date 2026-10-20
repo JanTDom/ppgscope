@@ -79,7 +79,8 @@ Lead: ${lead || ""}
 Fragment treści: ${(body || "").substring(0, 1500)}
 `;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${effectiveKey}`;
+    const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${effectiveKey}`;
 
     const response = await fetch(url, {
       method: "POST",
@@ -150,7 +151,7 @@ Fragment treści: ${(body || "").substring(0, 1500)}
         // Backward-compatibility deprecated fields
         primary_topic: LEGACY_MAP[parsedResult.domain] || "INNE/NIEOKREŚLONE",
         secondary_topics: parsedResult.domain_secondary ? [LEGACY_MAP[parsedResult.domain_secondary] || "INNE/NIEOKREŚLONE"] : [],
-        model_version: "gemini-3.8-flash",
+        model_version: model,
         taxonomy_version: "2.0.0",
         classified_at: new Date().toISOString(),
       },

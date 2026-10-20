@@ -153,6 +153,8 @@ REGIONAL_DAILIES = [
     {"name": "Dziennik Polski", "domain": "dziennikpolski24.pl", "region": "Małopolskie"},
     {"name": "Dziennik Zachodni", "domain": "dziennikzachodni.pl", "region": "Śląskie"},
     {"name": "Echo Dnia Świętokrzyskie", "domain": "echodnia.eu", "region": "Świętokrzyskie"},
+    {"name": "Express Bydgoski", "domain": "expressbydgoski.pl", "region": "Kujawsko-Pomorskie"},
+    {"name": "Express Ilustrowany", "domain": "expressilustrowany.pl", "region": "Łódzkie"},
     {"name": "Gazeta Krakowska", "domain": "gazetakrakowska.pl", "region": "Małopolskie"},
     {"name": "Gazeta Lubuska", "domain": "gazetalubuska.pl", "region": "Lubuskie"},
     {"name": "Gazeta Pomorska", "domain": "pomorska.pl", "region": "Kujawsko-Pomorskie"},
@@ -172,15 +174,20 @@ REGIONAL_DAILIES = [
 
 THEMATIC_PORTALS = [
     {"name": "i.pl - Ogólnopolski Portal Informacyjny", "domain": "i.pl", "region": "Ogólnopolski", "type": "PORTAL_KRAJOWY"},
+    {"name": "Polska Times", "domain": "polskatimes.pl", "region": "Ogólnopolski", "type": "PORTAL_KRAJOWY"},
     {"name": "Motofakty.pl", "domain": "motofakty.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Telemagazyn.pl", "domain": "telemagazyn.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Gol24.pl", "domain": "gol24.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Strefa Biznesu", "domain": "strefabiznesu.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Strefa Agro", "domain": "strefaagro.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Strefa Edukacji", "domain": "strefaedukacji.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
-    {"name": "Strefa Obronności", "domain": "strefaobronnosci.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
+    {"name": "Strefa Obrony", "domain": "strefaobrony.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Strona Kobiet", "domain": "stronakobiet.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Strona Zdrowia", "domain": "stronazdrowia.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
+    {"name": "Strona Kuchni", "domain": "stronakuchni.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
+    {"name": "Strona Podróży", "domain": "stronapodrozy.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
+    {"name": "ShowNews.pl", "domain": "shownews.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
+    {"name": "Gotujmy.pl", "domain": "gotujmy.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Regiodom.pl", "domain": "regiodom.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Regiomoto.pl", "domain": "regiomoto.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
     {"name": "Gra.pl", "domain": "gra.pl", "region": "Ogólnopolski", "type": "PORTAL_TEMATYCZNY"},
@@ -259,6 +266,11 @@ def generate_registry():
     with open(output_path, "w", encoding="utf-8") as f:
         yaml.dump(entries, f, allow_unicode=True, sort_keys=False)
     print(f"Saved to {output_path}")
+
+    json_path = Path("config/verified_domains.json")
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(entries, f, ensure_ascii=False, indent=2)
+    print(f"Saved to {json_path}")
     return entries
 
 if __name__ == "__main__":

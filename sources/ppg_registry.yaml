@@ -198,6 +198,26 @@
   sitemap_url: https://to.com.pl/sitemapa/
   rss_url: https://to.com.pl/rss
   primary_source_url: https://polskapress.pl/o-nas
+- id: expressbydgoski_pl
+  name: Express Bydgoski
+  domain: expressbydgoski.pl
+  region: Kujawsko-Pomorskie
+  type: DZIENNIK_REGIONALNY
+  status: DZIAŁA
+  robots_url: https://expressbydgoski.pl/robots.txt
+  sitemap_url: https://expressbydgoski.pl/sitemapa/
+  rss_url: https://expressbydgoski.pl/rss
+  primary_source_url: https://polskapress.pl/o-nas
+- id: expressilustrowany_pl
+  name: Express Ilustrowany
+  domain: expressilustrowany.pl
+  region: Łódzkie
+  type: DZIENNIK_REGIONALNY
+  status: DZIAŁA
+  robots_url: https://expressilustrowany.pl/robots.txt
+  sitemap_url: https://expressilustrowany.pl/sitemapa/
+  rss_url: https://expressilustrowany.pl/rss
+  primary_source_url: https://polskapress.pl/o-nas
 - id: i_pl
   name: i.pl - Ogólnopolski Portal Informacyjny
   domain: i.pl
@@ -268,15 +288,15 @@
   sitemap_url: https://strefaedukacji.pl/sitemap.xml
   rss_url: https://strefaedukacji.pl/rss
   primary_source_url: https://mediappg.pl/oferta
-- id: strefaobronnosci_pl
-  name: Strefa Obronności
-  domain: strefaobronnosci.pl
+- id: strefaobrony_pl
+  name: Strefa Obrony
+  domain: strefaobrony.pl
   region: Ogólnopolski
   type: PORTAL_TEMATYCZNY
   status: DZIAŁA
-  robots_url: https://strefaobronnosci.pl/robots.txt
-  sitemap_url: https://strefaobronnosci.pl/sitemap.xml
-  rss_url: https://strefaobronnosci.pl/rss
+  robots_url: https://strefaobrony.pl/robots.txt
+  sitemap_url: https://strefaobrony.pl/sitemap.xml
+  rss_url: https://strefaobrony.pl/rss
   primary_source_url: https://mediappg.pl/oferta
 - id: stronakobiet_pl
   name: Strona Kobiet
@@ -357,6 +377,56 @@
   robots_url: https://sportowy24.pl/robots.txt
   sitemap_url: https://sportowy24.pl/sitemap.xml
   rss_url: https://sportowy24.pl/rss
+  primary_source_url: https://mediappg.pl/oferta
+- id: polskatimes_pl
+  name: Polska Times
+  domain: polskatimes.pl
+  region: Ogólnopolski
+  type: PORTAL_KRAJOWY
+  status: DZIAŁA
+  robots_url: https://polskatimes.pl/robots.txt
+  sitemap_url: https://polskatimes.pl/sitemap.xml
+  rss_url: https://polskatimes.pl/rss
+  primary_source_url: https://polskapress.pl/o-nas
+- id: shownews_pl
+  name: ShowNews.pl
+  domain: shownews.pl
+  region: Ogólnopolski
+  type: PORTAL_TEMATYCZNY
+  status: DZIAŁA
+  robots_url: https://shownews.pl/robots.txt
+  sitemap_url: https://shownews.pl/sitemap.xml
+  rss_url: https://shownews.pl/rss
+  primary_source_url: https://mediappg.pl/oferta
+- id: stronakuchni_pl
+  name: Strona Kuchni
+  domain: stronakuchni.pl
+  region: Ogólnopolski
+  type: PORTAL_TEMATYCZNY
+  status: DZIAŁA
+  robots_url: https://stronakuchni.pl/robots.txt
+  sitemap_url: https://stronakuchni.pl/sitemap.xml
+  rss_url: https://stronakuchni.pl/rss
+  primary_source_url: https://mediappg.pl/oferta
+- id: stronapodrozy_pl
+  name: Strona Podróży
+  domain: stronapodrozy.pl
+  region: Ogólnopolski
+  type: PORTAL_TEMATYCZNY
+  status: DZIAŁA
+  robots_url: https://stronapodrozy.pl/robots.txt
+  sitemap_url: https://stronapodrozy.pl/sitemap.xml
+  rss_url: https://stronapodrozy.pl/rss
+  primary_source_url: https://mediappg.pl/oferta
+- id: gotujmy_pl
+  name: Gotujmy.pl
+  domain: gotujmy.pl
+  region: Ogólnopolski
+  type: PORTAL_TEMATYCZNY
+  status: DZIAŁA
+  robots_url: https://gotujmy.pl/robots.txt
+  sitemap_url: https://gotujmy.pl/sitemap.xml
+  rss_url: https://gotujmy.pl/rss
   primary_source_url: https://mediappg.pl/oferta
 - id: naszemiasto_pl
   name: Nasze Miasto - Portal Główny Sieci

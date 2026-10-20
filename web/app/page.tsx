@@ -708,7 +708,7 @@ const NAV_GROUPS: {
       { id: "forensics", label: "Szyba śledcza", icon: Shield },
       { id: "compare", label: "Porównywarka mediów", meta: "A / B", icon: Scale },
       { id: "ko_sentiment", label: "Wydźwięk polityczny", meta: "8 sił", icon: Vote },
-      { id: "vitality_audit", label: "Żywotność i unikalność", meta: "546", icon: Activity },
+      { id: "vitality_audit", label: "Żywotność i unikalność", meta: "553", icon: Activity },
       { id: "charts", label: "Centrum wykresów", icon: PieChart },
       { id: "intelligence", label: "Wskaźniki wywiadu", icon: Zap },
       { id: "cross_sections", label: "Przekroje regionalne", meta: "16", icon: Map },
@@ -718,7 +718,7 @@ const NAV_GROUPS: {
     label: "Biblioteka",
     icon: BookOpen,
     items: [
-      { id: "titles", label: "Serwisy PPG", meta: "546", icon: Database },
+      { id: "titles", label: "Serwisy PPG", meta: "553", icon: Database },
       { id: "articles", label: "Baza artykułów", icon: FileText },
       { id: "methodology", label: "Metodologia", meta: "v2.0", icon: Info },
     ],
@@ -867,6 +867,7 @@ export default function PPGscopeApp() {
   // Table & directory filters
   const [selectedDomainFilter, setSelectedDomainFilter] = useState("wszystkie");
   const [selectedLocalityFilter, setSelectedLocalityFilter] = useState("wszystkie");
+  const totalTitlesCount = data?.titles?.length || 553;
 
   // Settings Modal State (secrets remain server-side)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -1157,7 +1158,16 @@ export default function PPGscopeApp() {
       };
     }
 
-    const now = clientNow ? new Date(clientNow) : new Date(data.generated_at || "2026-03-31T20:00:00Z");
+    let referenceTimeMs = clientNow || (data.generated_at ? new Date(data.generated_at).getTime() : staticBase.getTime());
+    if (data.recent_articles && data.recent_articles.length > 0) {
+      const latestArticleMs = Math.max(
+        ...data.recent_articles.map((a) => new Date(a.published_at).getTime())
+      );
+      if (!clientNow || clientNow - latestArticleMs > 36 * 3600 * 1000) {
+        referenceTimeMs = latestArticleMs;
+      }
+    }
+    const now = new Date(referenceTimeMs);
     let start: Date;
     let end = new Date(now);
 
@@ -1588,7 +1598,7 @@ export default function PPGscopeApp() {
     const buildSide = (dom: string) => {
       const isGroup = dom === "ALL";
       const titleObj = isGroup
-        ? { id: "ALL", name: "Cała grupa PPG (546 mediów)", domain: "ALL", region: "Ogólnopolski", type: "GRUPA_PPG", status: "DZIAŁA" }
+        ? { id: "ALL", name: `Cała grupa PPG (${totalTitlesCount} mediów)`, domain: "ALL", region: "Ogólnopolski", type: "GRUPA_PPG", status: "DZIAŁA" }
         : data.titles.find((t) => t.domain === dom) || {
             id: dom,
             name: dom,
@@ -1716,7 +1726,7 @@ export default function PPGscopeApp() {
       strongestA,
       strongestB,
     };
-  }, [data, timePreset, selectedMediumDomain, compareMediumDomain]);
+  }, [data, timePreset, selectedMediumDomain, compareMediumDomain, totalTitlesCount]);
 
   // Chart Center data products: each visualisation uses the same live payload,
   // but the derived collections keep the rendering layer readable and fast.
@@ -1732,6 +1742,12 @@ export default function PPGscopeApp() {
     }
     if (timePreset === "30d") {
       return raw.slice(-30);
+    }
+    if (timePreset === "90d") {
+      return raw.slice(-90);
+    }
+    if (timePreset === "1y") {
+      return raw.slice(-365);
     }
     if (timePreset === "custom") {
       const filtered = raw.filter((p) => p.date >= customStartDate && p.date <= customEndDate);
@@ -2015,7 +2031,7 @@ export default function PPGscopeApp() {
                   v2.0 · 18 dziedzin
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">
-                  <CheckCircle2 className="h-2.5 w-2.5" /> 546 portali
+                  <CheckCircle2 className="h-2.5 w-2.5" /> {totalTitlesCount} portali
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400 hidden sm:block mt-0.5">
@@ -2288,7 +2304,7 @@ export default function PPGscopeApp() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap">
               <div className="flex items-center gap-2 text-xs font-semibold text-white">
                 <Building2 className="h-4 w-4 text-teal-400" />
-                <span>Wybierz medium (z 546):</span>
+                <span>Wybierz medium (z {totalTitlesCount}):</span>
               </div>
 
               <div className="relative">
@@ -2297,7 +2313,7 @@ export default function PPGscopeApp() {
                   type="text"
                   value={mediumSearchQuery}
                   onChange={(e) => setMediumSearchQuery(e.target.value)}
-                  placeholder="Filtruj 546 mediów (np. kraków, sopot, biznes)..."
+                  placeholder={`Filtruj ${totalTitlesCount} mediów (np. kraków, obrona, biznes)...`}
                   className="w-full sm:w-64 rounded-xl border border-white/[0.1] bg-black/60 py-1.5 pl-8 pr-6 text-xs font-mono text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none"
                 />
                 {mediumSearchQuery && (
@@ -2317,7 +2333,7 @@ export default function PPGscopeApp() {
                   onChange={(e) => setSelectedMediumDomain(e.target.value)}
                   className="w-full sm:w-80 rounded-xl border border-teal-500/40 bg-black/80 py-2 pl-3 pr-8 text-xs font-mono text-white focus:border-teal-400 focus:outline-none"
                 >
-                  <option value="ALL">Cała grupa PPG (wszystkie 546 mediów)</option>
+                  <option value="ALL">Cała grupa PPG (wszystkie {totalTitlesCount} mediów)</option>
                   <optgroup label={`Dzienniki regionalne (${filteredTitlesForSelector.filter(t => t.type === "DZIENNIK_REGIONALNY" || t.type === "Dziennik regionalny").length})`}>
                     {filteredTitlesForSelector
                       .filter(t => t.type === "DZIENNIK_REGIONALNY" || t.type === "Dziennik regionalny")
@@ -2340,7 +2356,7 @@ export default function PPGscopeApp() {
                   onClick={() => setSelectedMediumDomain("ALL")}
                   className="rounded-xl border border-white/[0.1] bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-mono text-zinc-300 hover:bg-white/[0.1] hover:text-white transition-all flex items-center gap-1"
                 >
-                  <X className="h-3 w-3 text-teal-400" /> Pokaż całą grupę (546)
+                  <X className="h-3 w-3 text-teal-400" /> Pokaż całą grupę ({totalTitlesCount})
                 </button>
               )}
 
@@ -3728,7 +3744,7 @@ export default function PPGscopeApp() {
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] font-mono uppercase bg-teal-500 text-black font-bold px-2 py-0.5 rounded">
-                        Tryb porównawczy A vs B (546 mediów)
+                        Tryb porównawczy A vs B ({totalTitlesCount} mediów)
                       </span>
                       <h2 className="text-lg font-bold text-white flex items-center gap-2">
                         <Scale className="h-5 w-5 text-teal-400" />
@@ -3736,7 +3752,7 @@ export default function PPGscopeApp() {
                       </h2>
                     </div>
                     <p className="text-xs text-zinc-400 mt-1">
-                      Zestawienie bezpośrednie dowolnych dwóch portali (lub pojedynczego portalu ze średnią całej grupy 546 mediów) według wszystkich 7 kryteriów badawczych w wybranym oknie czasu.
+                      Zestawienie bezpośrednie dowolnych dwóch portali (lub pojedynczego portalu ze średnią całej grupy {totalTitlesCount} mediów) według wszystkich 7 kryteriów badawczych w wybranym oknie czasu.
                     </p>
                   </div>
 
@@ -3793,7 +3809,7 @@ export default function PPGscopeApp() {
                         onChange={(e) => setSelectedMediumDomain(e.target.value)}
                         className="sm:w-72 rounded-xl border border-teal-500/40 bg-black/90 py-1.5 px-3 text-xs font-mono text-white focus:border-teal-400 focus:outline-none"
                       >
-                        <option value="ALL">Cała grupa PPG (benchmark 546 mediów)</option>
+                        <option value="ALL">Cała grupa PPG (benchmark {totalTitlesCount} mediów)</option>
                         <optgroup label="Dzienniki regionalne (20)">
                           {filteredTitlesForSelector
                             .filter((t) => t.type === "DZIENNIK_REGIONALNY" || t.type === "Dziennik regionalny")
@@ -3857,7 +3873,7 @@ export default function PPGscopeApp() {
                         onChange={(e) => setCompareMediumDomain(e.target.value)}
                         className="sm:w-72 rounded-xl border border-sky-500/40 bg-black/90 py-1.5 px-3 text-xs font-mono text-white focus:border-sky-400 focus:outline-none"
                       >
-                        <option value="ALL">Cała grupa PPG (benchmark 546 mediów)</option>
+                        <option value="ALL">Cała grupa PPG (benchmark {totalTitlesCount} mediów)</option>
                         <optgroup label="Dzienniki regionalne (20)">
                           {filteredTitlesForCompareSelector
                             .filter((t) => t.type === "DZIENNIK_REGIONALNY" || t.type === "Dziennik regionalny")

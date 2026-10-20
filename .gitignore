@@ -47,3 +47,7 @@ data/*.db
 data/*.log
 data/*.backup*.json
 data/*.backup.json
+
+# Local exports
+*.docx
+*.png

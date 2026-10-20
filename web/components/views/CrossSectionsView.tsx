@@ -23,7 +23,7 @@ export function CrossSectionsView({ crossSections }: CrossSectionsViewProps) {
           <Layers className="h-5 w-5 text-teal-400" /> Analityka Regionalna 16 Województw
         </h2>
         <p className="text-xs text-zinc-400">
-          Rozkład 546 serwisów według województw z udziałem treści lokalnej i syndykacji.
+          Rozkład serwisów sieci PPG według województw z udziałem treści lokalnej i syndykacji.
         </p>
       </div>
 
