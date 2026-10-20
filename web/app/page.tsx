@@ -1012,6 +1012,7 @@ function evaluateKOSentiment(text: string): {
 }
 
 const INTERNAL_CSV_MAX_BYTES = 1_000_000;
+const INTERNAL_CSV_HEADER = "url,pageviews,engaged_time_sec,strefa_plus_conversions";
 
 export default function PPGscopeApp() {
   // Session Authentication State (server-issued HttpOnly cookie)
@@ -1061,17 +1062,8 @@ export default function PPGscopeApp() {
   const [selectedCompetitorRegion, setSelectedCompetitorRegion] = useState<string>("Małopolskie");
 
   // Internal Data Adapter (URL Matcher for GA4 / GSC / Strefa Plus)
-  const [internalCsvInput, setInternalCsvInput] = useState<string>(
-    [
-      "url,pageviews,engaged_time_sec,strefa_plus_conversions",
-      "https://gazetakrakowska.pl/budzet-krakowa-sesja-rady-miasta,48200,142,19",
-      "https://dziennikbaltycki.pl/przetarg-tereny-postoczniowe-gdansk,39400,168,24",
-      "https://dziennikzachodni.pl/kopalnie-slask-rozmowy-pgg-katowice,54100,154,28",
-      "https://gloswielkopolski.pl/przebudowa-centrum-poznania-mpk-objazdy,61800,118,11",
-      "https://pomorska.pl/kiedy-wyplata-14-emerytury-zus-harmonogram,194000,14,1",
-      "https://i.pl/spor-w-koalicji-budzet-skladka-zdrowotna,82500,88,6",
-    ].join("\n")
-  );
+  const [internalCsvInput, setInternalCsvInput] = useState<string>(INTERNAL_CSV_HEADER);
+
 
   // KO Political Sentiment States
   const [selectedKOSentimentFilter, setSelectedKOSentimentFilter] = useState<"all" | "positive" | "neutral" | "negative">("all");
@@ -3794,6 +3786,13 @@ export default function PPGscopeApp() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/[0.05]">
+                        {parsedInternalRows.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="py-8 px-2.5 text-center text-zinc-400">
+                              Brak danych wewnętrznych. Wklej wiersze CSV obok albo wczytaj plik w Ustawieniach.
+                            </td>
+                          </tr>
+                        )}
                         {parsedInternalRows.map((r, idx) => (
                           <tr key={idx} className="hover:bg-white/[0.03]">
                             <td className="py-2.5 px-2.5">
@@ -7088,7 +7087,7 @@ export default function PPGscopeApp() {
                   <button
                     type="button"
                     onClick={() => {
-                      setInternalCsvInput("url,pageviews,engaged_time_sec,strefa_plus_conversions");
+                      setInternalCsvInput(INTERNAL_CSV_HEADER);
                       setInternalCsvNotice({ kind: "ok", text: "Dane wewnętrzne wyczyszczone." });
                     }}
                     className="rounded border border-white/[0.12] px-2.5 py-1 text-[11px] font-medium text-zinc-300 hover:text-white"
