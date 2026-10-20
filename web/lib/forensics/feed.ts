@@ -150,7 +150,8 @@ export async function fetchFeed(source: FeedSource): Promise<FeedFetchResult> {
     const response = await fetch(source.url, {
       headers: {
         "User-Agent": FORENSICS_USER_AGENT,
-        Accept: "application/rss+xml, application/xml, text/xml",
+        Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
+        "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
       },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       redirect: "follow",

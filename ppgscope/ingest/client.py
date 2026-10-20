@@ -44,7 +44,11 @@ class PoliteHttpClient:
         domain = urlparse(url).netloc
         self._throttle(domain)
 
-        req_headers = {"User-Agent": self.user_agent, "Accept": "*/*"}
+        req_headers = {
+            "User-Agent": self.user_agent,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
+        }
         if headers:
             req_headers.update(headers)
 
