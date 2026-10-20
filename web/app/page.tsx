@@ -3,6 +3,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import ForensicsPanel from "./forensics-panel";
+import { DataTrustBadge } from "@/components/DataTrustBadge";
+import { PresentationWall, type WallScene } from "@/components/PresentationWall";
+import { MethodologyView } from "@/components/views/MethodologyView";
+import { CrossSectionsView } from "@/components/views/CrossSectionsView";
+import { TitlesView } from "@/components/views/TitlesView";
 import {
   Shield,
   Lock,
@@ -43,8 +48,6 @@ import {
   SlidersHorizontal,
   Monitor,
   Radio,
-  ArrowLeft,
-  Maximize2
 } from "lucide-react";
 
 // =========================================================================
@@ -600,20 +603,6 @@ interface IngestStatusPayload {
   }>;
 }
 
-function DataTrustBadge({ provenance, compact = false }: { provenance: DataProvenance | null; compact?: boolean }) {
-  const isLive = provenance?.mode === "live";
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border font-mono uppercase tracking-[0.08em] ${
-        compact ? "px-2 py-1 text-[9px]" : "px-2.5 py-1.5 text-[10px]"
-      } ${isLive ? "border-teal-400/30 bg-teal-400/10 text-teal-200" : "border-amber-400/30 bg-amber-400/10 text-amber-200"}`}
-      title={provenance?.source_summary || "Status źródła danych jest ładowany."}
-    >
-      <span className={`h-1.5 w-1.5 rounded-full ${isLive ? "bg-teal-300" : "bg-amber-300"}`} />
-      {provenance?.trust_label || "STATUS ŹRÓDŁA: WERYFIKACJA"}
-    </span>
-  );
-}
 
 function DataTrustNotice({ provenance }: { provenance: DataProvenance | null }) {
   if (!provenance) return null;
@@ -674,122 +663,6 @@ function IngestStatusCard({ status }: { status: IngestStatusPayload | null }) {
   );
 }
 
-type WallScene = "network" | "editorial" | "forensics";
-
-function PresentationWall({
-  data,
-  provenance,
-  domainBreakdown,
-  chartTimeseries,
-  chartDomains,
-  chartRegions,
-  chartStatusBuckets,
-  scene,
-  onSceneChange,
-  onExit,
-}: {
-  data: DashboardPayload;
-  provenance: DataProvenance | null;
-  domainBreakdown: DomainBreakdownResult;
-  chartTimeseries: DailyTimeseriesItem[];
-  chartDomains: DomainStatItem[];
-  chartRegions: VoivodeshipCrossSection[];
-  chartStatusBuckets: (VitalityStatusBucket & { key: string })[];
-  scene: WallScene;
-  onSceneChange: (scene: WallScene) => void;
-  onExit: () => void;
-}) {
-  useEffect(() => {
-    if (scene !== "network") return;
-    const timer = window.setInterval(() => onSceneChange("editorial"), 14000);
-    return () => window.clearInterval(timer);
-  }, [scene, onSceneChange]);
-
-  const latestPoint = chartTimeseries[chartTimeseries.length - 1];
-  const topDomains = chartDomains.slice(0, 5);
-  const topRegions = chartRegions.slice(0, 12);
-  const activePortals = chartStatusBuckets.find((bucket) => bucket.key === "AKTYWNY_UNIKALNY")?.count || 0;
-  const syntheticNotice = provenance?.mode !== "live";
-  const signalItems = topDomains.map((domain, index) => ({
-    label: `${String(index + 1).padStart(2, "0")} · ${domain.name}`,
-    value: `${domain.total.toLocaleString("pl-PL")} publikacji`,
-    detail: `${domain.pct}% strumienia · C / CL / L`,
-  }));
-
-  return (
-    <div className="ppg-wall-mode" aria-label="PPGscope The Wall">
-      <div className="ppg-wall-grid" />
-      <header className="ppg-wall-header">
-        <div className="flex items-center gap-4">
-          <div className="ppg-wall-wordmark"><span>PPG</span><span>scope</span></div>
-          <div className="hidden border-l border-white/10 pl-4 sm:block">
-            <p className="ppg-wall-eyebrow">MEDIA INTELLIGENCE CONTROL ROOM</p>
-            <p className="mt-1 text-sm text-zinc-300">The Wall / sygnał sieciowy</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <DataTrustBadge provenance={provenance} />
-          <button type="button" onClick={onExit} className="ppg-wall-exit" aria-label="Wróć do trybu analitycznego">
-            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Tryb analityczny</span>
-          </button>
-        </div>
-      </header>
-
-      <main className="ppg-wall-content">
-        <section className="ppg-wall-hero">
-          <div className="ppg-wall-hero-copy">
-            <p className="ppg-wall-eyebrow">{scene === "network" ? "NETWORK PULSE" : scene === "editorial" ? "EDITORIAL INTELLIGENCE" : "FORENSICS LAYER"}</p>
-            <h1>{scene === "network" ? "Jedna sieć. Setki sygnałów. Jedna decyzja." : scene === "editorial" ? "Widzisz nie tylko wolumen — widzisz kierunek." : "Każdy sygnał ma ślad, źródło i poziom pewności."}</h1>
-            <p className="ppg-wall-lede">{syntheticNotice ? "Prezentacja na snapshotcie demonstracyjnym — status źródła pozostaje widoczny przy każdym ujęciu." : "Prezentacja oparta na aktualnym pomiarze z podłączonych źródeł."}</p>
-            <div className="ppg-wall-scenes" role="tablist" aria-label="Sceny prezentacji">
-              {(["network", "editorial", "forensics"] as WallScene[]).map((item) => (
-                <button key={item} type="button" role="tab" aria-selected={scene === item} onClick={() => onSceneChange(item)} className={scene === item ? "is-active" : ""}>
-                  {item === "network" ? "Network Pulse" : item === "editorial" ? "Editorial Intelligence" : "Forensics"}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="ppg-wall-pulse" aria-label="Wizualizacja sieci regionów">
-            <div className="ppg-wall-pulse-ring ring-a" />
-            <div className="ppg-wall-pulse-ring ring-b" />
-            <div className="ppg-wall-pulse-core"><span>{data.titles.length}</span><small>serwisów</small></div>
-            {topRegions.map((region, index) => {
-              const angle = (index / Math.max(1, topRegions.length)) * Math.PI * 2 - Math.PI / 2;
-              const radius = 37 + (index % 3) * 8;
-              const x = 50 + Math.cos(angle) * radius;
-              const y = 50 + Math.sin(angle) * radius;
-              return <span key={region.region} className="ppg-wall-node" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${index * 110}ms` }} title={`${region.region}: ${region.articles_count.toLocaleString("pl-PL")} publikacji`} />;
-            })}
-          </div>
-        </section>
-
-        <section className="ppg-wall-kpis" aria-label="Kluczowe wskaźniki snapshotu">
-          <div><span>STRUMIEŃ 30D</span><strong>{domainBreakdown.totalCount.toLocaleString("pl-PL")}</strong><small>zaklasyfikowanych publikacji</small></div>
-          <div><span>LOKALNOŚĆ L + CL</span><strong>{domainBreakdown.localContentShare.toFixed(1)}%</strong><small>udział treści lokalnych</small></div>
-          <div><span>AKTYWNE UNIKALNE</span><strong>{activePortals.toLocaleString("pl-PL")}</strong><small>portali w audycie żywotności</small></div>
-          <div><span>OSTATNI PUNKT CZASU</span><strong>{latestPoint?.total > 0 ? latestPoint.total.toLocaleString("pl-PL") : "—"}</strong><small>{latestPoint?.label || "brak szeregu"}</small></div>
-        </section>
-
-        <section className="ppg-wall-lower-grid">
-          <div className="ppg-wall-panel ppg-wall-signal-panel">
-            <div className="ppg-wall-panel-head"><div><p className="ppg-wall-eyebrow">SIGNAL RAIL · SNAPSHOT</p><h2>Co właśnie widać w sieci</h2></div><Maximize2 className="h-4 w-4 text-zinc-600" /></div>
-            <div className="ppg-wall-signal-list">{signalItems.map((signal) => <div key={signal.label} className="ppg-wall-signal"><span className="ppg-wall-signal-dot" /><div><strong>{signal.label}</strong><small>{signal.detail}</small></div><b>{signal.value}</b></div>)}</div>
-          </div>
-          <div className="ppg-wall-panel">
-            <div className="ppg-wall-panel-head"><div><p className="ppg-wall-eyebrow">REGIONAL PULSE</p><h2>Gdzie rośnie napięcie informacyjne</h2></div><Map className="h-4 w-4 text-teal-300" /></div>
-            <div className="ppg-wall-region-bars">{topRegions.slice(0, 7).map((region) => <div key={region.region}><div><span>{region.region}</span><b>{region.articles_count.toLocaleString("pl-PL")}</b></div><span className="ppg-wall-bar"><i style={{ width: `${Math.min(100, (region.articles_count / Math.max(1, topRegions[0]?.articles_count || 1)) * 100)}%` }} /></span></div>)}</div>
-          </div>
-        </section>
-
-        <footer className="ppg-wall-footer">
-          <span><span className="ppg-live-dot" /> PPGscope Intelligence v2.0</span>
-          <span>{syntheticNotice ? "Snapshot demonstracyjny · nie jest pomiarem live" : "Live measurement"}</span>
-          <span>Źródło: {provenance?.source_class || "status nieznany"}</span>
-        </footer>
-      </main>
-    </div>
-  );
-}
 
 function ChartPanel({
   title,
@@ -1093,7 +966,6 @@ export default function PPGscopeApp() {
   const [clientNow, setClientNow] = useState<number | null>(null);
 
   // Table & directory filters
-  const [titleSearch, setTitleSearch] = useState("");
   const [selectedDomainFilter, setSelectedDomainFilter] = useState("wszystkie");
   const [selectedLocalityFilter, setSelectedLocalityFilter] = useState("wszystkie");
 
@@ -6641,144 +6513,25 @@ export default function PPGscopeApp() {
         {/* ================================================================= */}
         {/* TAB: 16 WOJEWÓDZTW */}
         {/* ================================================================= */}
-        {activeTab === "cross_sections" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-2">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Layers className="h-5 w-5 text-teal-400" /> Analityka Regionalna 16 Województw
-              </h2>
-              <p className="text-xs text-zinc-400">
-                Rozkład 546 serwisów według województw z udziałem treści lokalnej i syndykacji.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {(data.cross_sections?.by_voivodeship || []).map((v) => (
-                <div key={v.region} className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-3">
-                  <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-                    <span className="font-semibold text-white capitalize">{v.region}</span>
-                    <span className="text-xs font-mono text-teal-400 font-bold">{v.portals_count} portali</span>
-                  </div>
-                  <div className="space-y-1 text-xs font-mono">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Publikacje:</span>
-                      <span className="text-white">{v.articles_count.toLocaleString("pl-PL")} art.</span>
-                    </div>
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Autonomia:</span>
-                      <span className="text-emerald-400">{v.autonomy_index_pct}%</span>
-                    </div>
-                    <div className="flex justify-between text-zinc-400">
-                      <span>Syndykacja:</span>
-                      <span className="text-amber-400">{v.syndicated_pct}%</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {activeTab === "cross_sections" && <CrossSectionsView crossSections={data.cross_sections} />}
 
         {/* ================================================================= */}
         {/* TAB: PORTALE PPG (546 TITLES DIRECTORY) */}
         {/* ================================================================= */}
         {activeTab === "titles" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
-              <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Database className="h-5 w-5 text-teal-400" /> Rejestr 546 Portali Polska Press Grupa
-                </h2>
-                <p className="text-xs text-zinc-400">
-                  Kompletny katalog wszystkich mediów internetowych PPG w sieci z podziałem na segmenty, żywotność i unikalność.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="text"
-                  value={titleSearch}
-                  onChange={(e) => setTitleSearch(e.target.value)}
-                  placeholder="Szukaj portalu lub miasta..."
-                  className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none font-mono"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {data.titles
-                .filter((t) => t.name.toLowerCase().includes(titleSearch.toLowerCase()) || t.domain.toLowerCase().includes(titleSearch.toLowerCase()) || (t.region && t.region.toLowerCase().includes(titleSearch.toLowerCase())))
-                .map((t) => {
-                  const vit = data.portal_vitality_audit?.portals.find((p) => p.domain === t.domain);
-                  return (
-                    <div
-                      key={t.id}
-                      className={`rounded-xl border p-3.5 space-y-2 transition-all ${
-                        selectedMediumDomain === t.domain
-                          ? "border-teal-400 bg-teal-500/[0.08]"
-                          : "border-white/[0.06] bg-[#0c0e12]/80 hover:border-white/[0.12]"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-xs font-semibold text-white truncate">{t.name}</span>
-                        <a href={`https://${t.domain}`} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-teal-400">
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
-                        <span className="text-teal-400 truncate max-w-[180px]">{t.domain}</span>
-                        <span className="capitalize">{t.region}</span>
-                      </div>
-                      {vit && (
-                        <div className="flex items-center justify-between text-[10px] font-mono pt-1">
-                          <span
-                            className={`px-1.5 py-0.5 rounded font-bold ${
-                              vit.vitality_status === "AKTYWNY_UNIKALNY"
-                                ? "bg-emerald-500/20 text-emerald-300"
-                                : vit.vitality_status === "AKTYWNY_SYNDYKAT"
-                                ? "bg-sky-500/20 text-sky-300"
-                                : vit.vitality_status === "LEDWO_ZYWY"
-                                ? "bg-amber-500/20 text-amber-300"
-                                : "bg-rose-500/20 text-rose-300"
-                            }`}
-                          >
-                            {vit.vitality_label}
-                          </span>
-                          <span className="text-zinc-300">
-                            Unikalne: <strong>{vit.uniqueness_pct}%</strong> ({vit.unique_articles_count}/{vit.daily_articles_count}/d)
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 pt-1.5 border-t border-white/[0.04]">
-                        <span className="truncate max-w-[110px]">{t.type}</span>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => {
-                              setSelectedMediumDomain(t.domain);
-                              setActiveTab("domain_stats");
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }}
-                            className="rounded-lg bg-teal-500/15 border border-teal-500/30 px-2 py-1 text-teal-300 hover:bg-teal-500 hover:text-black font-bold transition-all"
-                          >
-                            Audyt 360°
-                          </button>
-                          <button
-                            onClick={() => {
-                              setCompareMediumDomain(t.domain);
-                              setActiveTab("compare");
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }}
-                            className="rounded-lg bg-sky-500/15 border border-sky-500/30 px-2 py-1 text-sky-300 hover:bg-sky-500 hover:text-black font-bold transition-all"
-                          >
-                            Porównaj
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
+          <TitlesView
+            titles={data.titles}
+            portalVitalityAudit={data.portal_vitality_audit}
+            selectedMediumDomain={selectedMediumDomain}
+            onSelectMediumDomain={(domain) => {
+              setSelectedMediumDomain(domain);
+              setActiveTab("domain_stats");
+            }}
+            onCompareMediumDomain={(domain) => {
+              setCompareMediumDomain(domain);
+              setActiveTab("compare");
+            }}
+          />
         )}
 
         {/* ================================================================= */}
@@ -6974,31 +6727,7 @@ export default function PPGscopeApp() {
         {/* ================================================================= */}
         {/* TAB: METODOLOGIA V2.0 */}
         {/* ================================================================= */}
-        {activeTab === "methodology" && (
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4 text-xs font-mono leading-relaxed text-zinc-300">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Info className="h-4 w-4 text-teal-400" /> Standard Kategoryzacji Tematycznej i Lokalności v2.0
-            </h2>
-
-            <div className="space-y-3">
-              <p>
-                <strong>1. 18 Dziedzin tematycznych:</strong> Zamknięta taksonomia 18 dziedzin (od 01 wladza do 18 swiat). Każdy artykuł otrzymuje dokładnie jedną domenę główną (domain) oraz opcjonalnie maksymalnie jedną domenę poboczną (domain_secondary).
-              </p>
-              <p>
-                <strong>2. Warianty lokalności:</strong>
-                <br />• <strong>L (lokalne):</strong> Podmiotem w tytule lub leadzie jest miejscowość, osoba albo instytucja z obszaru danego tytułu prasowego, a sprawa ma źródło lokalne.
-                <br />• <strong>CL (centralne z rozwinięciem lokalnym):</strong> Sprawa ogólnokrajowa lub światowa (np. ustawa, decyzje rządu, inflacja, stopy NBP) zilustrowana przykładem, danymi lub mieszkańcami z obszaru tytułu.
-                <br />• <strong>C (centralne):</strong> Brak lokalnego podmiotu z obszaru tytułu.
-                <br />• <strong>other_region = true:</strong> Tekst o sprawie z regionu innego tytułu PPG (np. sprawa ze Śląska w Gazecie Pomorskiej) otrzymuje wariant C oraz znacznik innego regionu.
-              </p>
-              <p>
-                <strong>3. Dwa kluczowe wskaźniki pod wykresem:</strong>
-                <br />• <strong>Udział treści lokalnej = (L + CL) / wszystkie</strong> – odsetek materiałów posiadających jakikolwiek wymiar lokalny.
-                <br />• <strong>Wskaźnik lokalizacji = CL / (C + CL)</strong> – zdolność redakcji do przekładania spraw centralnych na poziom lokalny.
-              </p>
-            </div>
-          </div>
-        )}
+        {activeTab === "methodology" && <MethodologyView />}
 
       </main>
 
