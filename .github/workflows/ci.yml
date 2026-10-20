@@ -1,0 +1,63 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches: [main, feat/*]
+  pull_request:
+    branches: [main]
+
+jobs:
+  web-quality:
+    name: Frontend Quality & Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit & regression tests
+        run: npm test
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Type check (TypeScript)
+        run: npx tsc --noEmit
+
+      - name: Production Next.js build
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+  python-engine:
+    name: Python Analytical Engine Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run Pytest suite
+        run: pytest -v
