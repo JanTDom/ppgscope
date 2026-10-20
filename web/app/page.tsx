@@ -11,6 +11,7 @@ import { TitlesView } from "@/components/views/TitlesView";
 import {
   POLITICAL_ACTORS,
   ALL_POLITICAL_ACTOR_IDS,
+  DOMAIN_SCOPE_OPTIONS,
   evaluatePoliticalSentiment,
   calculateAllPoliticalSentiments,
   type PoliticalActorId,
@@ -825,6 +826,7 @@ export default function PPGscopeApp() {
 
   // Political Sentiment States (KO, PiS, PSL, Polska 2050, Lewica, Konfederacja, Karol Nawrocki, Rozwój Plus)
   const [selectedPoliticalActor, setSelectedPoliticalActor] = useState<PoliticalActorId>("ko");
+  const [sentimentDomainScope, setSentimentDomainScope] = useState<string>("all_political");
   const [selectedKOSentimentFilter, setSelectedKOSentimentFilter] = useState<"all" | "positive" | "neutral" | "negative">("all");
   const [liveTesterActor, setLiveTesterActor] = useState<PoliticalActorId | "auto">("auto");
   const [liveTesterInput, setLiveTesterInput] = useState<string>(
@@ -1277,6 +1279,74 @@ export default function PPGscopeApp() {
       political_sentiments: politicalSentiments,
     };
   }, [data, timePreset, selectedMediumDomain, filteredArticles, dateRange]);
+
+  // Dedicated Dynamic Political Sentiments Engine (8 Actors, Cross-Domain & Sectorial)
+  const activePoliticalSentiments = useMemo(() => {
+    const spanDays =
+      timePreset === "24h"
+        ? 1
+        : timePreset === "7d"
+        ? 7
+        : timePreset === "30d"
+        ? 30
+        : timePreset === "90d"
+        ? 90
+        : timePreset === "1y"
+        ? 365
+        : Math.max(1, Math.round((dateRange.end.getTime() - dateRange.start.getTime()) / (86400 * 1000)));
+
+    const getDomainCount = (slug: string) => {
+      const found = domainBreakdown.domains?.find((d) => d.slug === slug);
+      if (found && found.total > 0) return found.total;
+      return filteredArticles.filter((a) => (a.domain || "spolecznosc") === slug).length;
+    };
+
+    const wladzaCount = getDomainCount("wladza");
+    const gospodarkaCount = getDomainCount("gospodarka");
+    const infraCount = getDomainCount("infrastruktura");
+    const rolnictwoCount = getDomainCount("rolnictwo");
+    const zdrowieCount = getDomainCount("zdrowie");
+    const edukacjaCount = getDomainCount("edukacja");
+    const obronnoscCount = getDomainCount("obronnosc");
+
+    let baselineTotal = wladzaCount;
+    if (sentimentDomainScope === "all_political") {
+      baselineTotal = Math.max(
+        wladzaCount + Math.round(gospodarkaCount * 0.35) + Math.round(infraCount * 0.4) + Math.round(rolnictwoCount * 0.4),
+        Math.round(domainBreakdown.totalCount * 0.09)
+      );
+    } else if (sentimentDomainScope === "wladza") {
+      baselineTotal = wladzaCount;
+    } else if (sentimentDomainScope === "gospodarka") {
+      baselineTotal = gospodarkaCount;
+    } else if (sentimentDomainScope === "infrastruktura") {
+      baselineTotal = infraCount;
+    } else if (sentimentDomainScope === "rolnictwo") {
+      baselineTotal = rolnictwoCount;
+    } else if (sentimentDomainScope === "zdrowie") {
+      baselineTotal = zdrowieCount;
+    } else if (sentimentDomainScope === "edukacja") {
+      baselineTotal = edukacjaCount;
+    } else if (sentimentDomainScope === "obronnosc") {
+      baselineTotal = obronnoscCount;
+    }
+
+    if (baselineTotal <= 0) {
+      baselineTotal = Math.max(10, Math.round(domainBreakdown.totalCount * 0.08));
+    }
+
+    const candidateArticles =
+      sentimentDomainScope === "all_political"
+        ? filteredArticles
+        : filteredArticles.filter((a) => (a.domain || "spolecznosc") === sentimentDomainScope);
+
+    return calculateAllPoliticalSentiments(
+      candidateArticles.map((a) => ({ title: a.title, lead: a.lead, domain: a.domain })),
+      baselineTotal,
+      spanDays,
+      sentimentDomainScope
+    );
+  }, [domainBreakdown, timePreset, filteredArticles, dateRange, sentimentDomainScope]);
 
   // Global network domain percentages for comparison when a single medium is selected
   const globalDomainPctMap = useMemo(() => {
@@ -2070,7 +2140,7 @@ export default function PPGscopeApp() {
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               }`}
             >
-              <Vote className="h-3.5 w-3.5 text-teal-400" /> Wydźwięk KO / PO
+              <Vote className="h-3.5 w-3.5 text-teal-400" /> Wydźwięk polityczny (8 sił)
             </button>
 
             <button
@@ -4310,10 +4380,10 @@ export default function PPGscopeApp() {
         {activeTab === "ko_sentiment" && (() => {
           const activeConfig = POLITICAL_ACTORS[selectedPoliticalActor];
           const activeSentimentData: PoliticalSentimentData =
-            domainBreakdown.political_sentiments?.[selectedPoliticalActor] || {
+            activePoliticalSentiments[selectedPoliticalActor] || {
               actor_id: selectedPoliticalActor,
               actor_name: activeConfig.name,
-              scope: `01 Władza i polityka (artykuły z obecnością ${activeConfig.shortName})`,
+              scope: `${DOMAIN_SCOPE_OPTIONS.find((o) => o.id === sentimentDomainScope)?.label || "Dziedziny polityczne"} (artykuły z obecnością ${activeConfig.shortName})`,
               total_political_articles: 0,
               mentions_count: 0,
               mentions_pct: 0,
@@ -4327,11 +4397,13 @@ export default function PPGscopeApp() {
             };
 
           const rawArticles: SamplePoliticalArticle[] =
-            selectedPoliticalActor === "ko" && (data?.sample_ko_articles?.length ?? 0) > 0
+            selectedPoliticalActor === "ko" && (data?.sample_ko_articles?.length ?? 0) > 0 && sentimentDomainScope === "all_political"
               ? (data?.sample_ko_articles || []).map((a) => ({
                   ...a,
                   actor_id: "ko" as PoliticalActorId,
                   sentiment: (a.sentiment_ko || a.sentiment || "neutral") as "positive" | "neutral" | "negative",
+                  domain: "wladza",
+                  domain_label: "01 Władza i polityka",
                 }))
               : activeSentimentData.sample_articles && activeSentimentData.sample_articles.length > 0
               ? activeSentimentData.sample_articles
@@ -4355,7 +4427,7 @@ export default function PPGscopeApp() {
           return (
             <div className="space-y-6">
               {/* 8-Actor Multi-Entity Selector Bar */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 p-4 space-y-3">
+              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 p-4 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-2.5">
                   <div className="flex items-center gap-2">
                     <Vote className="h-4 w-4 text-teal-400" />
@@ -4371,7 +4443,7 @@ export default function PPGscopeApp() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                   {ALL_POLITICAL_ACTOR_IDS.map((actorId) => {
                     const cfg = POLITICAL_ACTORS[actorId];
-                    const actorData = domainBreakdown.political_sentiments?.[actorId];
+                    const actorData = activePoliticalSentiments[actorId];
                     const isSelected = selectedPoliticalActor === actorId;
                     const net = actorData?.net_sentiment_score ?? 0;
                     return (
@@ -4402,11 +4474,43 @@ export default function PPGscopeApp() {
                           {cfg.shortName}
                         </span>
                         <span className="text-[10px] text-zinc-400 truncate w-full">
-                          {actorData?.mentions_count ? `${actorData.mentions_count.toLocaleString("pl-PL")} art.` : "—"}
+                          {actorData?.mentions_count ? `${actorData.mentions_count.toLocaleString("pl-PL")} art.` : "0 art."}
                         </span>
                       </button>
                     );
                   })}
+                </div>
+
+                {/* Domain Scope Filter (Cross-domain sectorial breakdown) */}
+                <div className="pt-3 border-t border-white/[0.06] space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                    <span className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                      <Layers className="h-3.5 w-3.5 text-teal-400" />
+                      Zakres dziedzinowy (obecność polityki w sektorach tematycznych):
+                    </span>
+                    <span className="text-[11px] text-zinc-400 font-mono">
+                      Wybierz sektor tematyczny lub badaj wszystkie działy łącznie (Cross-domain)
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {DOMAIN_SCOPE_OPTIONS.map((opt) => {
+                      const isSel = sentimentDomainScope === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => setSentimentDomainScope(opt.id)}
+                          className={`rounded-lg px-2.5 py-1 text-xs font-mono transition-all ${
+                            isSel
+                              ? "bg-teal-500/20 text-teal-300 font-bold border border-teal-500/40 shadow-sm shadow-teal-500/20"
+                              : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200 border border-transparent"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -4421,13 +4525,16 @@ export default function PPGscopeApp() {
                     <span className="text-[11px] font-mono bg-teal-500/15 text-teal-300 border border-teal-500/30 px-2.5 py-0.5 rounded-lg font-semibold">
                       Okres: {periodLabelMap[timePreset] || timePreset}
                     </span>
+                    <span className="text-[11px] font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg font-semibold">
+                      Dział: {DOMAIN_SCOPE_OPTIONS.find((o) => o.id === sentimentDomainScope)?.label.split("(")[0].trim() || "Wszystkie działy"}
+                    </span>
                     <span className={`text-[11px] font-mono px-2 py-0.5 rounded-lg font-semibold ${activeConfig.badgeBg} ${activeConfig.badgeText} border ${activeConfig.borderClass}`}>
                       {activeConfig.badge}
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400 mt-1 max-w-3xl">
                     {activeConfig.description} 100% zbadanej bazy w tym widoku stanowią
-                    wyłącznie teksty z obecnością {activeConfig.shortName} (badanie nie rozwadnia wyniku artykułami bez ich udziału).
+                    wyłącznie teksty z obecnością {activeConfig.shortName} w wybranym filtrze dziedzinowym.
                   </p>
                 </div>
 
@@ -4435,10 +4542,10 @@ export default function PPGscopeApp() {
                   <div className="rounded-xl border border-teal-500/30 bg-teal-500/10 px-3.5 py-2 text-right font-mono">
                     <span className="text-[10px] uppercase text-teal-400 block font-bold">Teksty z obecnością {activeConfig.badge}</span>
                     <span className="text-sm font-bold text-white">
-                      {activeSentimentData.mentions_count.toLocaleString("pl-PL")} z {activeSentimentData.total_political_articles.toLocaleString("pl-PL")} art. polityki
+                      {activeSentimentData.mentions_count.toLocaleString("pl-PL")} z {activeSentimentData.total_political_articles.toLocaleString("pl-PL")} art. w dziale
                     </span>
                     <span className="text-[10px] text-zinc-400 block">
-                      ({activeSentimentData.mentions_pct}% całej polityki PPG)
+                      ({activeSentimentData.mentions_pct}% analizowanej bazy)
                     </span>
                   </div>
                 </div>
@@ -4816,6 +4923,11 @@ export default function PPGscopeApp() {
                           >
                             {art.sentiment_label}
                           </span>
+                          {art.domain_label && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white/[0.06] text-teal-300 border border-white/[0.1]">
+                              {art.domain_label}
+                            </span>
+                          )}
                           <span className="text-zinc-400">Podmioty: </span>
                           <span className="text-white font-semibold">
                             {art.politicians.join(", ")}

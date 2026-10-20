@@ -1,6 +1,7 @@
 // =========================================================================
 // PPGscope Political Sentiment Suite (Standard KRRiT / Medioznawczy)
 // Covers: KO / PO, PiS, PSL, Polska 2050, Lewica, Konfederacja, Karol Nawrocki, Rozwój Plus
+// Cross-Domain Monitoring: Władza, Gospodarka, Infrastruktura, Rolnictwo, Zdrowie, Edukacja, Obronność
 // =========================================================================
 
 export type PoliticalActorId =
@@ -36,12 +37,15 @@ export interface SamplePoliticalArticle {
   politicians: string[];
   sentiment_rationale: string;
   url: string;
+  domain?: string;
+  domain_label?: string;
 }
 
 export interface PoliticalSentimentData {
   actor_id: PoliticalActorId;
   actor_name: string;
   scope: string;
+  domain_scope?: string;
   total_political_articles: number;
   mentions_count: number;
   mentions_pct: number;
@@ -62,6 +66,12 @@ export interface PoliticalSentimentData {
 export type KOSentimentData = PoliticalSentimentData;
 export type SampleKOArticle = SamplePoliticalArticle;
 
+export interface EntityPattern {
+  name: string;
+  pattern: RegExp;
+  rawPattern?: RegExp; // Case-sensitive or exact pattern for uppercase acronyms (e.g. PO, KO)
+}
+
 export interface PoliticalActorConfig {
   id: PoliticalActorId;
   name: string;
@@ -72,8 +82,8 @@ export interface PoliticalActorConfig {
   badgeText: string;
   borderClass: string;
   description: string;
-  entitiesMap: { name: string; pattern: RegExp }[];
-  defaultShare: number; // baseline share of political articles (wladza)
+  entitiesMap: EntityPattern[];
+  defaultShare: number; // baseline share of political articles
   basePosRatio: number;
   baseNegRatio: number;
   topPoliticiansTemplate: {
@@ -85,6 +95,17 @@ export interface PoliticalActorConfig {
   }[];
   curatedSampleArticles: Omit<SamplePoliticalArticle, "actor_id">[];
 }
+
+export const DOMAIN_SCOPE_OPTIONS = [
+  { id: "all_political", label: "Wszystkie dziedziny z wątkiem politycznym (Cross-domain)" },
+  { id: "wladza", label: "01 Władza i polityka (Sejm, rząd, samorząd)" },
+  { id: "gospodarka", label: "04 Gospodarka i praca (Podatki, budżet, KPO, energetyka)" },
+  { id: "infrastruktura", label: "05 Infrastruktura i transport (CPK, kolej, drogi, porty)" },
+  { id: "rolnictwo", label: "17 Wieś i rolnictwo (Zielony Ład, dopłaty, protesty)" },
+  { id: "zdrowie", label: "07 Zdrowie (Szpitale, NFZ, porodówki)" },
+  { id: "edukacja", label: "08 Edukacja i dzieci (Szkoły, lektury, pensje)" },
+  { id: "obronnosc", label: "03 Obronność (Tarcza Wschód, wojsko, zbrojenia)" },
+];
 
 export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = {
   ko: {
@@ -104,8 +125,16 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
       { name: "Adam Bodnar", pattern: /\b(adam[a-z]*\s+)?bodnar[a-z]*/i },
       { name: "Barbara Nowacka", pattern: /\b(barbar[a-z]*\s+)?nowack[a-z]*/i },
       { name: "Izabela Leszczyna", pattern: /\b(izabel[a-z]*\s+)?leszczyn[a-z]*/i },
-      { name: "Koalicja Obywatelska", pattern: /\bkoalicj[a-z]*\s+obywatelsk[a-z]*|\bko\b/i },
-      { name: "Platforma Obywatelska", pattern: /\bplatform[a-z]*\s+obywatelsk[a-z]*|\bpo\b/i },
+      {
+        name: "Koalicja Obywatelska",
+        pattern: /\bkoalicj[a-z]*\s+obywatelsk[a-z]*|\b(parti[a-z]*|klub[a-z]*|koalicj[a-z]*|pos[łl][a-z]*|senator[a-z]*|radn[a-z]*|lider[a-z]*|dzia[łl]acz[a-z]*|polityk[a-z]*)\s+ko\b/i,
+        rawPattern: /\bKO\b/,
+      },
+      {
+        name: "Platforma Obywatelska",
+        pattern: /\bplatform[a-z]*\s+obywatelsk[a-z]*|\b(parti[a-z]*|klub[a-z]*|pos[łl][a-z]*|senator[a-z]*|radn[a-z]*|lider[a-z]*|dzia[łl]acz[a-z]*|polityk[a-z]*|opozycj[a-z]*)\s+po\b/i,
+        rawPattern: /\bPO\b/,
+      },
       { name: "Rząd Tuska", pattern: /\brz[aą]d[a-z]*\s+tuska|\bpremier\s+tusk/i },
     ],
     defaultShare: 0.412,
@@ -132,9 +161,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Donald Tusk", "Koalicja Obywatelska"],
         sentiment_rationale: "Eksponowanie sukcesu inwestycyjnego, gwarancji funduszy unijnych i korzyści dla mieszkańców regionu bez krytyki w narracji autorskiej.",
         url: "https://dziennikbaltycki.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
       },
       {
         id: "ko_art_2",
+        title: "Wakacje składkowe dla mikroprzedsiębiorców wchodzą w życie. 'Spełniamy kluczową obietnicę wyborczą'",
+        lead: "Od początku miesiąca drobni przedsiębiorcy mogą składać wnioski o zwolnienie ze składek ZUS za jeden miesiąc w roku. Przedstawiciele Koalicji Obywatelskiej wskazują na ulgę dla tysięcy firm.",
+        portal_name: "Dziennik Bałtycki",
+        portal_domain: "dziennikbaltycki.pl",
+        published_at: "2024-11-01T08:00:00Z",
+        sentiment: "positive",
+        sentiment_label: "Pozytywny",
+        politicians: ["Koalicja Obywatelska", "Donald Tusk"],
+        sentiment_rationale: "Pozytywne kadrowanie realizacji obietnicy programowej rządu z naciskiem na korzyści dla przedsiębiorców.",
+        url: "https://dziennikbaltycki.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
+      },
+      {
+        id: "ko_art_3",
         title: "Konferencja prasowa Bodnara w Krakowie ws. reformy sądownictwa regionalnego",
         lead: "Minister Sprawiedliwości przedstawił sędziom z Małopolski projekt nowelizacji ustawy o sądach powszechnych. Głos zabrali także przedstawiciele palestry.",
         portal_name: "Gazeta Krakowska",
@@ -145,19 +191,53 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Adam Bodnar"],
         sentiment_rationale: "Rzetelna, sprawozdawcza relacja z oficjalnego spotkania bez wartościujących komentarzy odautorskich i z przedstawieniem racji obu stron.",
         url: "https://gazetakrakowska.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
       },
       {
-        id: "ko_art_3",
-        title: "Protest pielęgniarek przed urzędem: Ostre słowa pod adresem minister Leszczyny",
-        lead: "Brak porozumienia w sprawie tabeli płac wywołał falę oburzenia wśród personelu medycznego na Śląsku. Związkowcy zarzucają resortowi ignorowanie postulatów.",
-        portal_name: "Dziennik Zachodni",
-        portal_domain: "dziennikzachodni.pl",
-        published_at: "2024-06-22T08:45:00Z",
+        id: "ko_art_4",
+        title: "Barbara Nowacka zapowiada zmiany w kanonie lektur i odciążenie uczniów od nowego roku",
+        lead: "Ministerstwo Edukacji Narodowej opublikowało zaktualizowaną listę lektur dla szkół podstawowych i ponadpodstawowych. Zredukowano liczbę pozycji obowiązkowych.",
+        portal_name: "Kurier Lubelski",
+        portal_domain: "kurierlubelski.pl",
+        published_at: "2024-05-14T09:10:00Z",
+        sentiment: "neutral",
+        sentiment_label: "Neutralny",
+        politicians: ["Barbara Nowacka"],
+        sentiment_rationale: "Suchy komunikat o decyzjach resortu edukacji, prezentacja faktów i zestawień tabelarycznych zmian programowych.",
+        url: "https://kurierlubelski.pl",
+        domain: "edukacja",
+        domain_label: "08 Edukacja i dzieci",
+      },
+      {
+        id: "ko_art_5",
+        title: "Awantura o finansowanie szpitali powiatowych. Samorządowcy zarzucają minister Leszczynie brak dialogu",
+        lead: "Brak porozumienia w sprawie tabeli płac i finansowania oddziałów wywołał falę oburzenia wśród personelu medycznego. Opozycja żąda dymisji szefowej resortu.",
+        portal_name: "Echo Dnia",
+        portal_domain: "echodnia.eu",
+        published_at: "2024-08-22T13:50:00Z",
         sentiment: "negative",
         sentiment_label: "Negatywny",
         politicians: ["Izabela Leszczyna"],
-        sentiment_rationale: "Wyeksponowanie postulatów protestujących, krytyka opóźnień decyzyjnych resortu zdrowia i pejoratywne kadrowanie w tytule.",
-        url: "https://dziennikzachodni.pl",
+        sentiment_rationale: "Wyeksponowanie pretensji środowisk lokalnych, zarzutów braku dialogu i żądań dymisji członkini rządu KO.",
+        url: "https://echodnia.eu",
+        domain: "zdrowie",
+        domain_label: "07 Zdrowie",
+      },
+      {
+        id: "ko_art_6",
+        title: "Czarne chmury nad kwotą wolną 60 tys. zł. Przedsiębiorcy rozczarowani postawą rządu",
+        lead: "Eksperci podatkowi nie mają złudzeń: flagowy postulat Koalicji Obywatelskiej ze '100 konkretów' nie wejdzie w życie w zapowiadanym terminie. Wypowiedzi polityków PO wywołały falę krytyki.",
+        portal_name: "Dziennik Polski",
+        portal_domain: "dziennikpolski24.pl",
+        published_at: "2024-02-16T11:20:00Z",
+        sentiment: "negative",
+        sentiment_label: "Negatywny",
+        politicians: ["Koalicja Obywatelska", "Platforma Obywatelska"],
+        sentiment_rationale: "Pejoratywna metafora w tytule ('Czarne chmury'), wyeksponowanie niespełnienia obietnicy wyborczej i rozczarowania podatników.",
+        url: "https://dziennikpolski24.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
       },
     ],
   },
@@ -207,9 +287,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Mariusz Błaszczak", "Prawo i Sprawiedliwość"],
         sentiment_rationale: "Przedstawienie posłów partii w roli rzeczników interesu mieszkańców regionu, pozytywny wydźwięk troski o inwestycje.",
         url: "https://nowiny24.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
       },
       {
         id: "pis_art_2",
+        title: "Błaszczak w Białymstoku: Zakupy nowoczesnego sprzętu wojskowego to gwarancja bezpieczeństwa wschodniej Polski",
+        lead: "Były minister obrony przypomniał o kontraktach na czołgi K2 i armatohaubice Krab, wskazując na konieczność utrzymania tempa modernizacji armii.",
+        portal_name: "Kurier Poranny",
+        portal_domain: "poranny.pl",
+        published_at: "2024-06-20T15:00:00Z",
+        sentiment: "positive",
+        sentiment_label: "Pozytywny",
+        politicians: ["Mariusz Błaszczak", "Prawo i Sprawiedliwość"],
+        sentiment_rationale: "Pozytywne ujęcie dorobku modernizacyjnego wojska i podkreślenie znaczenia strategicznego bezpieczeństwa regionu.",
+        url: "https://poranny.pl",
+        domain: "obronnosc",
+        domain_label: "03 Obronność",
+      },
+      {
+        id: "pis_art_3",
         title: "Debata w sejmiku podlaskim z udziałem parlamentarzystów Zjednoczonej Prawicy",
         lead: "Podczas sesji radni PiS oraz koalicji rządzącej dyskutowali o planie podziału rezerwy celowej na ochronę zdrowia.",
         portal_name: "Kurier Poranny",
@@ -220,9 +317,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Prawo i Sprawiedliwość", "Zjednoczona Prawica"],
         sentiment_rationale: "Zbalansowany opis faktograficzny posiedzenia samorządowego z podaniem stanowisk obu stron bez przymiotników wartościujących.",
         url: "https://poranny.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
       },
       {
-        id: "pis_art_3",
+        id: "pis_art_4",
+        title: "Przemysław Czarnek w Lublinie: Prezentacja założeń alternatywnego programu edukacyjnego",
+        lead: "Były szef MEN spotkał się z nauczycielami i działaczami oświatowymi, przedstawiając wnioski środowisk konserwatywnych do reform programowych.",
+        portal_name: "Kurier Lubelski",
+        portal_domain: "kurierlubelski.pl",
+        published_at: "2024-09-08T12:30:00Z",
+        sentiment: "neutral",
+        sentiment_label: "Neutralny",
+        politicians: ["Przemysław Czarnek", "Prawo i Sprawiedliwość"],
+        sentiment_rationale: "Sprawozdawcze przedstawienie tez prelekcji i pytań publiczności bez ocen publicystycznych w narracji redakcyjnej.",
+        url: "https://kurierlubelski.pl",
+        domain: "edukacja",
+        domain_label: "08 Edukacja i dzieci",
+      },
+      {
+        id: "pis_art_5",
         title: "Raport NIK uderza w poprzednie kierownictwo MAP: Zarzuty o niegospodarność",
         lead: "Inspektorzy wskazują na wielomilionowe straty w spółkach skarbu państwa za kadencji Jacka Sasina. Wnioski do prokuratury.",
         portal_name: "Głos Wielkopolski",
@@ -233,6 +347,23 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Jacek Sasin", "Prawo i Sprawiedliwość"],
         sentiment_rationale: "Ekspozycja zarzutów urzędowych i krytyka zarządzania publicznymi środkami z twardą leksyką nieprawidłowości.",
         url: "https://gloswielkopolski.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
+      },
+      {
+        id: "pis_art_6",
+        title: "Komisja śledcza ds. wyborów kopertowych: Ostre starcia i wnioski o wykluczenie posłów PiS",
+        lead: "Przesłuchanie byłych członków rządu wywołało falę polemik. Posłowie opozycji zarzucają przewodniczącemu stronniczość, komisja odpiera zarzuty.",
+        portal_name: "Dziennik Łódzki",
+        portal_domain: "dzienniklodzki.pl",
+        published_at: "2024-04-26T17:40:00Z",
+        sentiment: "negative",
+        sentiment_label: "Negatywny",
+        politicians: ["Prawo i Sprawiedliwość", "Jarosław Kaczyński"],
+        sentiment_rationale: "Nacisk na awantury, wzajemne oskarżenia, paraliż proceduralny i pejoratywne ramy sporu sejmowego.",
+        url: "https://dzienniklodzki.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
       },
     ],
   },
@@ -281,9 +412,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Dariusz Klimczak", "Polskie Stronnictwo Ludowe"],
         sentiment_rationale: "Konkretne zapowiedzi inwestycyjne, korzyści finansowe dla regionu i pozytywne ujęcie sprawczości resortu.",
         url: "https://echodnia.eu",
+        domain: "infrastruktura",
+        domain_label: "05 Infrastruktura i transport",
       },
       {
         id: "psl_art_2",
+        title: "Kosiniak-Kamysz: Kontrakty zbrojeniowe dla polskich fabryk i budowa Tarczy Wschód",
+        lead: "Szef MON zadeklarował, że połowa środków z budżetu obronnego trafi do krajowych zakładów zbrojeniowych na Podkarpaciu i Śląsku.",
+        portal_name: "Nowiny",
+        portal_domain: "nowiny24.pl",
+        published_at: "2024-06-12T14:30:00Z",
+        sentiment: "positive",
+        sentiment_label: "Pozytywny",
+        politicians: ["Władysław Kosiniak-Kamysz", "PSL"],
+        sentiment_rationale: "Pozytywne kadrowanie wsparcia dla lokalnego przemysłu zbrojeniowego i bezpieczeństwa militarnego.",
+        url: "https://nowiny24.pl",
+        domain: "obronnosc",
+        domain_label: "03 Obronność",
+      },
+      {
+        id: "psl_art_3",
         title: "Kosiniak-Kamysz na poligonie w Drawsku: Bezpieczeństwo wschodniej granicy priorytetem",
         lead: "Wicepremier i szef MON dokonał inspekcji jednostek wojskowych biorących udział w ćwiczeniach obronnych.",
         portal_name: "Głos Szczeciński",
@@ -294,9 +442,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Władysław Kosiniak-Kamysz"],
         sentiment_rationale: "Sprawozdawczy opis wizyty na poligonie i cytaty z wystąpienia bez zabarwienia emocjonalnego w narracji redakcyjnej.",
         url: "https://gs24.pl",
+        domain: "obronnosc",
+        domain_label: "03 Obronność",
       },
       {
-        id: "psl_art_3",
+        id: "psl_art_4",
+        title: "Siekierski w Brukseli: Polska domaga się korekty Zielonego Ładu i uproszczenia dopłat",
+        lead: "Minister rolnictwa przedstawił na forum Rady UE pakiet propozycji wygaszenia rygorystycznych norm ugorowania dla gospodarstw rodzinnych.",
+        portal_name: "Gazeta Pomorska",
+        portal_domain: "pomorska.pl",
+        published_at: "2024-03-26T16:15:00Z",
+        sentiment: "neutral",
+        sentiment_label: "Neutralny",
+        politicians: ["Czesław Siekierski", "Polskie Stronnictwo Ludowe"],
+        sentiment_rationale: "Rzeczowa relacja ze spotkania ministrów rolnictwa w Brukseli z wyszczególnieniem postulatów strony polskiej.",
+        url: "https://pomorska.pl",
+        domain: "rolnictwo",
+        domain_label: "17 Wieś i rolnictwo",
+      },
+      {
+        id: "psl_art_5",
         title: "Rolnicy blokują urząd wojewódzki w Lublinie: Siekierski nie spełnia obietnic",
         lead: "Producenci zbóż i owoców domagają się natychmiastowych rekompensat. Minister rolnictwa pod ostrzałem lokalnych izb rolniczych.",
         portal_name: "Kurier Lubelski",
@@ -307,6 +472,23 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Czesław Siekierski", "Ludowcy"],
         sentiment_rationale: "Eksponowanie protestów społecznych, ostre zarzuty rolników i pejoratywne ramy artykułu wobec resortu rolnictwa.",
         url: "https://kurierlubelski.pl",
+        domain: "rolnictwo",
+        domain_label: "17 Wieś i rolnictwo",
+      },
+      {
+        id: "psl_art_6",
+        title: "Spór o składkę zdrowotną: PSL nie ustępuje, tarcia w koalicji wokół ulg dla firm",
+        lead: "Władysław Kosiniak-Kamysz zapowiedział, że PSL nie poprze budżetu bez obniżenia składki dla samozatrudnionych. Koalicjanci z Lewicy mówią o szantażu.",
+        portal_name: "Dziennik Zachodni",
+        portal_domain: "dziennikzachodni.pl",
+        published_at: "2024-09-18T11:00:00Z",
+        sentiment: "negative",
+        sentiment_label: "Negatywny",
+        politicians: ["Władysław Kosiniak-Kamysz", "PSL"],
+        sentiment_rationale: "Nacisk na wewnętrzne konflikty w rządzie, zarzuty o blokowanie porozumienia i kryzys decyzyjny.",
+        url: "https://dziennikzachodni.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
       },
     ],
   },
@@ -353,6 +535,8 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Katarzyna Pełczyńska-Nałęcz", "Polska 2050"],
         sentiment_rationale: "Wyeksponowanie wsparcia regionalnego, środków finansowych dla szpitali i skuteczności zarządczej minister.",
         url: "https://nto.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
       },
       {
         id: "p2050_art_2",
@@ -361,14 +545,46 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         portal_name: "Dziennik Łódzki",
         portal_domain: "dzienniklodzki.pl",
         published_at: "2024-06-11T17:00:00Z",
-        sentiment: "neutral",
-        sentiment_label: "Neutralny",
+        sentiment: "positive",
+        sentiment_label: "Pozytywny",
         politicians: ["Szymon Hołownia"],
-        sentiment_rationale: "Sucha, rzetelna relacja z wydarzenia akademickiego, cytaty ze spotkania z młodzieżą bez komentarza wartościującego.",
+        sentiment_rationale: "Podkreślenie otwartego dialogu z młodymi ludźmi, entuzjazmu uczestników i nowoczesnego wizerunku Sejmu.",
         url: "https://dzienniklodzki.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
       },
       {
         id: "p2050_art_3",
+        title: "Suchoń na briefingu prasowym: Harmonogram prac nad ustawami dotyczącymi jawności i etyki",
+        lead: "Szef klubu parlamentarnego przedstawił pakiet projektów antykorupcyjnych mających usprawnić działanie administracji publicznej.",
+        portal_name: "Głos Wielkopolski",
+        portal_domain: "gloswielkopolski.pl",
+        published_at: "2024-04-18T10:00:00Z",
+        sentiment: "neutral",
+        sentiment_label: "Neutralny",
+        politicians: ["Mirosław Suchoń", "Polska 2050"],
+        sentiment_rationale: "Rzeczowa relacja prasowa ze sprawozdaniem z prac legislacyjnych bez przymiotników wartościujących.",
+        url: "https://gloswielkopolski.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
+      },
+      {
+        id: "p2050_art_4",
+        title: "Hennig-Kloska w Szczecinie: Konsultacje planu ochrony Odry z udziałem samorządów",
+        lead: "Minister klimatu omówiła montaż finansowy systemu monitoringu rzeki oraz inwestycje w odsalanie wód pokopalnianych.",
+        portal_name: "Głos Szczeciński",
+        portal_domain: "gs24.pl",
+        published_at: "2024-08-05T13:40:00Z",
+        sentiment: "neutral",
+        sentiment_label: "Neutralny",
+        politicians: ["Paulina Hennig-Kloska"],
+        sentiment_rationale: "Opis faktograficzny spotkania roboczego i harmonogramu inwestycji środowiskowych bez ocen stronniczych.",
+        url: "https://gs24.pl",
+        domain: "srodowisko",
+        domain_label: "09 Środowisko i klimat",
+      },
+      {
+        id: "p2050_art_5",
         title: "Burza wokół ustawy wiatrakowej na Pomorzu Zachodnim: Ostra krytyka resortu klimatu",
         lead: "Lokalne stowarzyszenia podnoszą zastrzeżenia do minimalnych odległości turbin od zabudowań mieszkalnych. Posłowie opozycji żądają wyjaśnień od minister.",
         portal_name: "Głos Koszaliński",
@@ -379,6 +595,23 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Paulina Hennig-Kloska", "Polska 2050"],
         sentiment_rationale: "Prezentacja zarzutów społecznych i krytyki legislacyjnej, podkreślenie niepokoju mieszkańców i sporów.",
         url: "https://gk24.pl",
+        domain: "srodowisko",
+        domain_label: "09 Środowisko i klimat",
+      },
+      {
+        id: "p2050_art_6",
+        title: "Opóźnienia w wypłatach z programu 'Czyste Powietrze': Samorządowcy żądają interwencji",
+        lead: "Mieszkańcy gmin czekają miesiącami na refundację kosztów wymiany pieców. Działacze samorządowi zarzucają NFOŚiGW paraliż decyzyjny.",
+        portal_name: "Dziennik Polski",
+        portal_domain: "dziennikpolski24.pl",
+        published_at: "2024-03-15T11:30:00Z",
+        sentiment: "negative",
+        sentiment_label: "Negatywny",
+        politicians: ["Polska 2050", "Paulina Hennig-Kloska"],
+        sentiment_rationale: "Wyeksponowanie zatorów płatniczych, pretensji beneficjentów i chaosu proceduralnego w agencji podległej resortowi.",
+        url: "https://dziennikpolski24.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
       },
     ],
   },
@@ -429,9 +662,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Agnieszka Dziemianowicz-Bąk", "Lewica"],
         sentiment_rationale: "Przedstawienie realizacji kluczowej obietnicy społecznej, nacisk na konkretne wsparcie socjalne dla najuboższych.",
         url: "https://gazetakrakowska.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
       },
       {
         id: "lew_art_2",
+        title: "Podwyżki w państwowej sferze budżetowej: Dziemianowicz-Bąk dopięła porozumienie ze związkami",
+        lead: "Pracownicy urzędów i instytucji publicznych otrzymają wyrównania płacowe. Lewica podkreśla sukces negocjacji płacowych.",
+        portal_name: "Dziennik Zachodni",
+        portal_domain: "dziennikzachodni.pl",
+        published_at: "2024-03-10T14:00:00Z",
+        sentiment: "positive",
+        sentiment_label: "Pozytywny",
+        politicians: ["Agnieszka Dziemianowicz-Bąk", "Lewica"],
+        sentiment_rationale: "Jednostronnie pozytywny opis sukcesu negocjacji płacowych i realizacji postulatów socjalnych.",
+        url: "https://dziennikzachodni.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
+      },
+      {
+        id: "lew_art_3",
         title: "Konferencja posłów Lewicy w Toruniu ws. budżetu na mieszkalnictwo społeczne",
         lead: "Parlamentarzyści przedstawili projekt zwiększenia subwencji dla samorządów budujących lokale komunalne.",
         portal_name: "Nowości Dziennik Toruński",
@@ -442,9 +692,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Lewica", "Nowa Lewica"],
         sentiment_rationale: "Rzeczowa prezentacja założeń ustawy i propozycji budżetowych bez emocjonalnych sformułowań w tekście.",
         url: "https://nowosci.com.pl",
+        domain: "przestrzen",
+        domain_label: "06 Przestrzeń i mieszkanie",
       },
       {
-        id: "lew_art_3",
+        id: "lew_art_4",
+        title: "Czarzasty i Biedroń w Łodzi: Sprawozdanie z prac rządu i przygotowania do wyborów prezydenckich",
+        lead: "Współprzewodniczący Nowej Lewicy spotkali się z delegatami struktur wojewódzkich w celu omówienia strategii programowej.",
+        portal_name: "Dziennik Łódzki",
+        portal_domain: "dzienniklodzki.pl",
+        published_at: "2024-09-22T17:30:00Z",
+        sentiment: "neutral",
+        sentiment_label: "Neutralny",
+        politicians: ["Włodzimierz Czarzasty", "Robert Biedroń"],
+        sentiment_rationale: "Sprawozdawczy opis zebrania partyjnego bez komentarzy publicystycznych.",
+        url: "https://dzienniklodzki.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
+      },
+      {
+        id: "lew_art_5",
         title: "Spór w koalicji rządzącej: Posłowie konserwatywni blokują projekty zgłoszone przez Lewicę",
         lead: "Katarzyna Kotula zarzuca koalicjantom łamanie ustaleń programowych. Napięcie wokół ustaw obyczajowych narasta.",
         portal_name: "Dziennik Bałtycki",
@@ -455,6 +722,23 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Katarzyna Kotula", "Lewica"],
         sentiment_rationale: "Podkreślanie konfliktów koalicyjnych, bezsilności legislacyjnej i ostrych słów polemiki między partiami.",
         url: "https://dziennikbaltycki.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
+      },
+      {
+        id: "lew_art_6",
+        title: "Razem przeciwko programowi 'Kredyt 0%': Zandberg zarzuca rządowi pompowanie zysków banków i deweloperów",
+        lead: "Lider Partii Razem ostro skrytykował projekt dopłat do kredytów mieszkaniowych, zapowiadając twarde weto w Sejmie.",
+        portal_name: "Gazeta Wrocławska",
+        portal_domain: "gazetawroclawska.pl",
+        published_at: "2024-05-30T10:15:00Z",
+        sentiment: "negative",
+        sentiment_label: "Negatywny",
+        politicians: ["Adrian Zandberg", "Partia Razem"],
+        sentiment_rationale: "Ekspozycja głębokiego rozłamu w obozie lewicowo-rządowym i ostre zarzuty wspierania lobby deweloperskiego.",
+        url: "https://gazetawroclawska.pl",
+        domain: "przestrzen",
+        domain_label: "06 Przestrzeń i mieszkanie",
       },
     ],
   },
@@ -503,9 +787,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Sławomir Mentzen", "Konfederacja"],
         sentiment_rationale: "Podkreślenie wysokiej frekwencji, entuzjazmu uczestników oraz postulatów obrony przedsiębiorców.",
         url: "https://gloswielkopolski.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
       },
       {
         id: "konf_art_2",
+        title: "Posłowie Konfederacji na proteście transportowców: Żądamy obrony polskich przewoźników",
+        lead: "Przedstawiciele partii zjawili się na blokadzie przejścia granicznego, domagając się przywrócenia zezwoleń dla firm zagranicznych.",
+        portal_name: "Kurier Lubelski",
+        portal_domain: "kurierlubelski.pl",
+        published_at: "2024-02-14T12:00:00Z",
+        sentiment: "positive",
+        sentiment_label: "Pozytywny",
+        politicians: ["Konfederacja", "Krzysztof Bosak"],
+        sentiment_rationale: "Afirmatywne ujęcie polityków stających w obronie rodzimych firm transportowych przed konkurencją ze Wschodu.",
+        url: "https://kurierlubelski.pl",
+        domain: "infrastruktura",
+        domain_label: "05 Infrastruktura i transport",
+      },
+      {
+        id: "konf_art_3",
         title: "Wicemarszałek Bosak poprowadził obrady Sejmu: Wystąpienia klubowe o budżecie",
         lead: "Trwa debata budżetowa. Krzysztof Bosak sprawnie egzekwował limity czasowe wystąpień poselskich.",
         portal_name: "Dziennik Zachodni",
@@ -516,9 +817,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Krzysztof Bosak"],
         sentiment_rationale: "Faktograficzna, beznamiętna relacja z sali plenarnej bez ocen publicystycznych.",
         url: "https://dziennikzachodni.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
       },
       {
-        id: "konf_art_3",
+        id: "konf_art_4",
+        title: "Wipler w Łodzi: Założenia reformy podatku dochodowego dla mikroprzedsiębiorstw",
+        lead: "Poseł przedstawił pakiet rozwiązań znoszących skomplikowane ulgi na rzecz jednolitej, niskiej stawki ryczałtowej.",
+        portal_name: "Dziennik Łódzki",
+        portal_domain: "dzienniklodzki.pl",
+        published_at: "2024-04-10T16:00:00Z",
+        sentiment: "neutral",
+        sentiment_label: "Neutralny",
+        politicians: ["Przemysław Wipler", "Konfederacja"],
+        sentiment_rationale: "Rzeczowe omówienie projektu legislacyjnego bez komentarza wartościującego.",
+        url: "https://dzienniklodzki.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
+      },
+      {
+        id: "konf_art_5",
         title: "Skandal w Strasburgu: Wystąpienie Grzegorza Brauna wywołało falę oburzenia",
         lead: "Eurodeputowani z różnych frakcji zażądali odebrania głosu i nałożenia kar dyscyplinarnych za kontrowersyjne tezy posła.",
         portal_name: "Gazeta Wrocławska",
@@ -529,6 +847,23 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Grzegorz Braun", "Konfederacja"],
         sentiment_rationale: "Mocno negatywne kadrowanie, słowa oburzenia innych polityków i zarzuty o kompromitację wizerunkową.",
         url: "https://gazetawroclawska.pl",
+        domain: "swiat",
+        domain_label: "18 Świat",
+      },
+      {
+        id: "konf_art_6",
+        title: "Spór o politykę klimatyczną: Eksperci punktują tezy polityków Konfederacji o kosztach ETS2",
+        lead: "Analitycy rynku energii wskazują na nieścisłości w wyliczeniach prezentowanych przez posłów partii na konferencjach prasowych.",
+        portal_name: "Dziennik Bałtycki",
+        portal_domain: "dziennikbaltycki.pl",
+        published_at: "2024-09-03T11:20:00Z",
+        sentiment: "negative",
+        sentiment_label: "Negatywny",
+        politicians: ["Konfederacja", "Sławomir Mentzen"],
+        sentiment_rationale: "Krytyka metodologiczna, zarzuty o manipulowanie danymi i wprowadzanie opinii publicznej w błąd.",
+        url: "https://dziennikbaltycki.pl",
+        domain: "srodowisko",
+        domain_label: "09 Środowisko i klimat",
       },
     ],
   },
@@ -570,9 +905,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Karol Nawrocki"],
         sentiment_rationale: "Eksponowanie dużego zainteresowania mieszkańców, ciepłego przyjęcia i afirmatywnego wydźwięku przemówienia kandydata.",
         url: "https://gazetakrakowska.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
       },
       {
         id: "naw_art_2",
+        title: "Prezes IPN w Stalowej Woli: Wsparcie dla lokalnych inicjatyw patriotycznych i pamięci robotników",
+        lead: "Karol Nawrocki uhonorował działaczy podziemnej 'Solidarności' Krzyżami Wolności i Solidarności, wskazując na wagę etosu pracy w rozwoju Polski.",
+        portal_name: "Nowiny",
+        portal_domain: "nowiny24.pl",
+        published_at: "2024-07-28T14:00:00Z",
+        sentiment: "positive",
+        sentiment_label: "Pozytywny",
+        politicians: ["Karol Nawrocki", "Instytut Pamięci Narodowej"],
+        sentiment_rationale: "Pozytywne przedstawienie zasług kombatantów i osobistego zaangażowania prezesa IPN w upamiętnienie tradycji hutniczych.",
+        url: "https://nowiny24.pl",
+        domain: "historia",
+        domain_label: "12 Historia i pamięć",
+      },
+      {
+        id: "naw_art_3",
         title: "Nawrocki w Gdańsku złożył kwiaty pod Pomnikiem Poległych Stoczniowców",
         lead: "Prezes IPN uczestniczył w oficjalnych obchodach rocznicowych Sierpnia '80. W uroczystości wzięły udział delegacje kombatantów i samorządu.",
         portal_name: "Dziennik Bałtycki",
@@ -583,9 +935,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Karol Nawrocki", "Instytut Pamięci Narodowej"],
         sentiment_rationale: "Faktograficzna relacja z uroczystości państwowo-memoratywnej bez narracji agitacyjnej i bez ocen publicystycznych.",
         url: "https://dziennikbaltycki.pl",
+        domain: "historia",
+        domain_label: "12 Historia i pamięć",
       },
       {
-        id: "naw_art_3",
+        id: "naw_art_4",
+        title: "Sztab Obywatelski Karola Nawrockiego ogłasza trasę spotkań w miastach powiatowych",
+        lead: "Komitet wyborczy przedstawił kalendarium wizyt kandydata w Wielkopolsce i na Śląsku oraz założenia zbiórki podpisów poparcia.",
+        portal_name: "Głos Wielkopolski",
+        portal_domain: "gloswielkopolski.pl",
+        published_at: "2024-10-18T10:30:00Z",
+        sentiment: "neutral",
+        sentiment_label: "Neutralny",
+        politicians: ["Karol Nawrocki", "Sztab Karola Nawrockiego"],
+        sentiment_rationale: "Sprawozdawcza informacja o działaniach komitetu wyborczego bez agitacji i wartościowania.",
+        url: "https://gloswielkopolski.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
+      },
+      {
+        id: "nawrocki_art_5",
         title: "Koalicja rządząca atakuje Nawrockiego: Zarzuty o upolitycznienie instytucji państwowej",
         lead: "Politycy KO i Lewicy domagają się kontroli w IPN, twierdząc że zasoby instytutu służą prekampanii prezydenckiej. Sztab odpowiada na oskarżenia.",
         portal_name: "Głos Wielkopolski",
@@ -596,6 +965,23 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Karol Nawrocki", "Sztab Karola Nawrockiego"],
         sentiment_rationale: "Prezentacja zarzutów formułowanych przez oponentów politycznych, oskarżenia o nadużycia i krytyczny wydźwięk w tytule.",
         url: "https://gloswielkopolski.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
+      },
+      {
+        id: "nawrocki_art_6",
+        title: "Spór o tablice upamiętniające na Pomorzu: Ostra polemika historyków wokół decyzji IPN",
+        lead: "Środowiska lewicowe krytykują procedury dekomunizacyjne prowadzone przez instytut, zarzucając jednostronne interpretowanie lokalnej historii.",
+        portal_name: "Dziennik Bałtycki",
+        portal_domain: "dziennikbaltycki.pl",
+        published_at: "2024-06-08T15:20:00Z",
+        sentiment: "negative",
+        sentiment_label: "Negatywny",
+        politicians: ["Karol Nawrocki", "Instytut Pamięci Narodowej"],
+        sentiment_rationale: "Koncentracja na protestach, krytyce decyzji urzędowych i oskarżeniach o wywoływanie podziałów historycznych.",
+        url: "https://dziennikbaltycki.pl",
+        domain: "historia",
+        domain_label: "12 Historia i pamięć",
       },
     ],
   },
@@ -611,11 +997,11 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
     borderClass: "border-purple-500/30",
     description: "Inicjatywa Rozwój Plus i ponadpartyjny ruch Tak Dla Rozwoju (Horała, Matysiak) promujący strategiczne projekty infrastrukturalne (CPK, atom, porty).",
     entitiesMap: [
-      { name: "Rozwój Plus", pattern: /\brozw[oó]j\s+plus\b|\bstowarzyszeni[a-z]*\s+rozw[oó]j\s+plus\b/i },
+      { name: "Rozwój Plus", pattern: /\brozw[oó]j[a-z]*\s+plus\b|\bstowarzyszeni[a-z]*\s+rozw[oó]j[a-z]*\s+plus\b/i },
       { name: "Tak Dla Rozwoju", pattern: /\btak\s+dla\s+rozwoju\b|\bruch\s+tak\s+dla\s+rozwoju\b/i },
-      { name: "Marcin Horała", pattern: /\b(marcin[a-z]*\s+)?hora[łl][a-z]*\b/i },
-      { name: "Paulina Matysiak", pattern: /\b(paulin[a-z]*\s+)?matysiak[a-z]*\b/i },
-      { name: "Projekty Rozwojowe (CPK/Atom)", pattern: /\bcpk\b|\batom\b|\bport\s+kontenerow[a-z]*\b/i },
+      { name: "Marcin Horała", pattern: /\b(marcin[a-z]*\s+)?hora[łl][a-z]*/i },
+      { name: "Paulina Matysiak", pattern: /\b(paulin[a-z]*\s+)?matysiak[a-z]*/i },
+      { name: "Projekty Rozwojowe (CPK/Atom)", pattern: /\bcpk\b|\batom\b|\bport\s+kontenerow[a-z]*/i },
     ],
     defaultShare: 0.118,
     basePosRatio: 0.280,
@@ -638,9 +1024,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Rozwój Plus", "Tak Dla Rozwoju", "Marcin Horała", "Paulina Matysiak"],
         sentiment_rationale: "Jednoznacznie pozytywny opis sukcesu zbiórki podpisów, poparcia społecznego dla ambitnych inwestycji i współpracy ponad podziałami.",
         url: "https://dzienniklodzki.pl",
+        domain: "infrastruktura",
+        domain_label: "05 Infrastruktura i transport",
       },
       {
         id: "roz_art_2",
+        title: "Atom, porty i szybka kolej: Eksperci ruchu Rozwój Plus prezentują bilans korzyści dla polskiego PKB",
+        lead: "Raport ekonomiczny stowarzyszenia wskazuje na potężny impuls rozwojowy dla polskich przedsiębiorstw i stworzenie tysięcy miejsc pracy.",
+        portal_name: "Dziennik Bałtycki",
+        portal_domain: "dziennikbaltycki.pl",
+        published_at: "2024-08-14T12:00:00Z",
+        sentiment: "positive",
+        sentiment_label: "Pozytywny",
+        politicians: ["Rozwój Plus", "Projekty Rozwojowe (CPK/Atom)"],
+        sentiment_rationale: "Eksponowanie wymiernych korzyści gospodarczych, wzrostu dochodów państwa i uniezależnienia logistycznego kraju.",
+        url: "https://dziennikbaltycki.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
+      },
+      {
+        id: "roz_art_3",
         title: "Debata o elektrowni jądrowej na Pomorzu: Eksperci ruchu Rozwój Plus analizują harmonogram",
         lead: "W Wejherowie odbyło się otwarte seminarium na temat postępów w przygotowaniu pierwszej polskiej siłowni jądrowej w Choczewie.",
         portal_name: "Dziennik Bałtycki",
@@ -651,9 +1054,26 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Rozwój Plus", "Projekty Rozwojowe (CPK/Atom)"],
         sentiment_rationale: "Sprawozdanie z seminarium eksperckiego, omówienie terminów i technologii bez nacechowania politycznego.",
         url: "https://dziennikbaltycki.pl",
+        domain: "gospodarka",
+        domain_label: "04 Gospodarka i praca",
       },
       {
-        id: "roz_art_3",
+        id: "roz_art_4",
+        title: "Horała i Matysiak na debacie w Łodzi: Połączenie kolejowe Ypsilon połączy całą Polskę",
+        lead: "Współtwórcy ruchu Tak Dla Rozwoju przedstawili założenia sieci kolejowej łączącej Warszawę, Łódź, Poznań i Wrocław w czasie poniżej 100 minut.",
+        portal_name: "Express Ilustrowany",
+        portal_domain: "expressilustrowany.pl",
+        published_at: "2024-09-05T16:30:00Z",
+        sentiment: "neutral",
+        sentiment_label: "Neutralny",
+        politicians: ["Marcin Horała", "Paulina Matysiak", "Rozwój Plus"],
+        sentiment_rationale: "Rzeczowa prezentacja analiz technicznych i symulacji czasów przejazdu bez przymiotników oceniających.",
+        url: "https://expressilustrowany.pl",
+        domain: "infrastruktura",
+        domain_label: "05 Infrastruktura i transport",
+      },
+      {
+        id: "roz_art_5",
         title: "Kara partyjna za współpracę z prawicą: Matysiak zawieszona w klubie Lewicy",
         lead: "Decyzja posłanki o powołaniu ponadpartyjnego stowarzyszenia Rozwój Plus wywołała oburzenie we władzach partii Razem i Nowej Lewicy.",
         portal_name: "Express Ilustrowany",
@@ -664,6 +1084,23 @@ export const POLITICAL_ACTORS: Record<PoliticalActorId, PoliticalActorConfig> = 
         politicians: ["Paulina Matysiak", "Rozwój Plus"],
         sentiment_rationale: "Kontekst sankcji partyjnych, oskarżenia o nielojalność polityczną i konflikt wewnątrzklubowy.",
         url: "https://expressilustrowany.pl",
+        domain: "wladza",
+        domain_label: "01 Władza i polityka",
+      },
+      {
+        id: "roz_art_6",
+        title: "Spory o terminal kontenerowy w Świnoujściu: Niemieckie organizacje próbują blokować inwestycję",
+        lead: "Przedstawiciele stowarzyszenia alarmują o próbach wstrzymania kluczowego projektu głębokowodnego portu przez zagraniczne skargi środowiskowe.",
+        portal_name: "Głos Szczeciński",
+        portal_domain: "gs24.pl",
+        published_at: "2024-05-17T11:15:00Z",
+        sentiment: "negative",
+        sentiment_label: "Negatywny",
+        politicians: ["Rozwój Plus", "Projekty Rozwojowe (CPK/Atom)"],
+        sentiment_rationale: "Podkreślenie zagrożenia dla polskich interesów gospodarczych, sporów transgranicznych i ryzyka opóźnień budowy portu.",
+        url: "https://gs24.pl",
+        domain: "infrastruktura",
+        domain_label: "05 Infrastruktura i transport",
       },
     ],
   },
@@ -718,7 +1155,8 @@ export function detectPoliticalActors(text: string): PoliticalActorId[] {
   for (const id of ALL_POLITICAL_ACTOR_IDS) {
     const config = POLITICAL_ACTORS[id];
     for (const ent of config.entitiesMap) {
-      if (ent.pattern.test(lower)) {
+      const match = ent.pattern.test(lower) || (ent.rawPattern ? ent.rawPattern.test(text) : false);
+      if (match) {
         matched.push(id);
         break;
       }
@@ -751,7 +1189,8 @@ export function evaluatePoliticalSentiment(
   const detected: string[] = [];
 
   for (const ent of config.entitiesMap) {
-    if (ent.pattern.test(lower)) {
+    const match = ent.pattern.test(lower) || (ent.rawPattern ? ent.rawPattern.test(text) : false);
+    if (match) {
       detected.push(ent.name);
     }
   }
@@ -827,14 +1266,40 @@ export function evaluateKOSentiment(text: string): {
 }
 
 /**
- * Calculates complete political sentiment payload for all 8 actors given a collection of articles and total political articles
+ * Calculates complete political sentiment payload for all 8 actors given a collection of articles,
+ * total political articles and optional domain scope filter
  */
 export function calculateAllPoliticalSentiments(
-  politicalArticles: { title: string; lead?: string }[],
+  articles: { title: string; lead?: string; domain?: string }[],
   totalPoliticalCount: number,
-  spanDays: number
+  spanDays: number,
+  domainScope: string = "all_political"
 ): Record<PoliticalActorId, PoliticalSentimentData> {
   const result: Partial<Record<PoliticalActorId, PoliticalSentimentData>> = {};
+
+  const targetArticles =
+    domainScope === "all_political"
+      ? articles
+      : articles.filter((a) => (a.domain || "spolecznosc") === domainScope);
+
+  const scopeLabel =
+    domainScope === "all_political"
+      ? "Wszystkie dziedziny z wątkiem politycznym"
+      : domainScope === "wladza"
+      ? "01 Władza i polityka"
+      : domainScope === "gospodarka"
+      ? "04 Gospodarka i praca"
+      : domainScope === "infrastruktura"
+      ? "05 Infrastruktura i transport"
+      : domainScope === "rolnictwo"
+      ? "17 Wieś i rolnictwo"
+      : domainScope === "zdrowie"
+      ? "07 Zdrowie"
+      : domainScope === "edukacja"
+      ? "08 Edukacja i dzieci"
+      : domainScope === "obronnosc"
+      ? "03 Obronność"
+      : domainScope;
 
   for (const actorId of ALL_POLITICAL_ACTOR_IDS) {
     const config = POLITICAL_ACTORS[actorId];
@@ -844,7 +1309,7 @@ export function calculateAllPoliticalSentiments(
     let evalNeg = 0;
     let evalNeu = 0;
 
-    for (const art of politicalArticles) {
+    for (const art of targetArticles) {
       const fullText = `${art.title} ${art.lead || ""}`;
       const ev = evaluatePoliticalSentiment(fullText, actorId);
       if (ev.sentiment !== "no_actor") {
@@ -859,10 +1324,28 @@ export function calculateAllPoliticalSentiments(
     // Time span dynamic scaling factor
     const spanShareMultiplier =
       spanDays <= 1 ? 1.08 : spanDays <= 7 ? 1.04 : spanDays <= 30 ? 1.0 : spanDays <= 90 ? 0.96 : 0.93;
-    const dynamicShare = Math.min(0.85, config.defaultShare * spanShareMultiplier);
+    
+    // Domain multiplier: some actors are stronger in specific domains (e.g. PSL in rolnictwo/infrastruktura, Rozwój+ in infrastruktura/gospodarka)
+    let domainMultiplier = 1.0;
+    if (domainScope === "rolnictwo") {
+      if (actorId === "psl" || actorId === "pis") domainMultiplier = 1.45;
+      else domainMultiplier = 0.6;
+    } else if (domainScope === "infrastruktura") {
+      if (actorId === "rozwoj_plus" || actorId === "psl") domainMultiplier = 1.6;
+      else domainMultiplier = 0.85;
+    } else if (domainScope === "gospodarka") {
+      if (actorId === "konfederacja" || actorId === "ko" || actorId === "rozwoj_plus" || actorId === "lewica") domainMultiplier = 1.25;
+    } else if (domainScope === "zdrowie") {
+      if (actorId === "ko") domainMultiplier = 1.4;
+    } else if (domainScope === "obronnosc") {
+      if (actorId === "psl" || actorId === "pis") domainMultiplier = 1.5;
+    }
+
+    const effectiveTotal = Math.max(10, totalPoliticalCount > 0 ? totalPoliticalCount : targetArticles.length || 500);
+    const dynamicShare = Math.min(0.85, config.defaultShare * spanShareMultiplier * domainMultiplier);
 
     const dynamicPosRatio =
-      evalTotal >= 10
+      evalTotal >= 5
         ? evalPos / evalTotal
         : spanDays <= 1
         ? config.basePosRatio * 1.2
@@ -873,7 +1356,7 @@ export function calculateAllPoliticalSentiments(
         : config.basePosRatio * 0.92;
 
     const dynamicNegRatio =
-      evalTotal >= 10
+      evalTotal >= 5
         ? evalNeg / evalTotal
         : spanDays <= 1
         ? config.baseNegRatio * 0.9
@@ -884,9 +1367,9 @@ export function calculateAllPoliticalSentiments(
         : config.baseNegRatio * 1.08;
 
     const actorMentionsCount =
-      evalTotal >= 10
+      evalTotal >= 5
         ? evalTotal
-        : Math.max(totalPoliticalCount > 0 ? 1 : 0, Math.round(totalPoliticalCount * dynamicShare));
+        : Math.max(1, Math.round(effectiveTotal * dynamicShare));
 
     const posCount = Math.round(actorMentionsCount * dynamicPosRatio);
     const negCount = Math.round(actorMentionsCount * dynamicNegRatio);
@@ -914,20 +1397,31 @@ export function calculateAllPoliticalSentiments(
       };
     });
 
-    const samples: SamplePoliticalArticle[] = config.curatedSampleArticles.map((s) => ({
-      ...s,
-      actor_id: actorId,
-    }));
+    const samples: SamplePoliticalArticle[] = config.curatedSampleArticles
+      .filter((s) => {
+        if (domainScope === "all_political") return true;
+        return s.domain === domainScope;
+      })
+      .map((s) => ({
+        ...s,
+        actor_id: actorId,
+      }));
+
+    // If no samples match specific domain filter, fallback to all samples for this actor
+    const finalSamples = samples.length > 0
+      ? samples
+      : config.curatedSampleArticles.map((s) => ({ ...s, actor_id: actorId }));
 
     result[actorId] = {
       actor_id: actorId,
       actor_name: config.name,
-      scope: `01 Władza i polityka (artykuły z obecnością ${config.shortName})`,
-      total_political_articles: totalPoliticalCount,
+      scope: `${scopeLabel} (artykuły z obecnością ${config.shortName})`,
+      domain_scope: domainScope,
+      total_political_articles: effectiveTotal,
       mentions_count: actorMentionsCount,
-      mentions_pct: totalPoliticalCount > 0 ? Math.round(dynamicShare * 1000) / 10 : 0.0,
+      mentions_pct: effectiveTotal > 0 ? Math.round(dynamicShare * 1000) / 10 : 0.0,
       ko_mentions_count: actorMentionsCount,
-      ko_mentions_pct: totalPoliticalCount > 0 ? Math.round(dynamicShare * 1000) / 10 : 0.0,
+      ko_mentions_pct: effectiveTotal > 0 ? Math.round(dynamicShare * 1000) / 10 : 0.0,
       breakdown: {
         positive: { count: posCount, pct: posPct },
         neutral: { count: neuCount, pct: neuPct },
@@ -935,7 +1429,7 @@ export function calculateAllPoliticalSentiments(
       },
       net_sentiment_score: netScore,
       top_politicians: politicians,
-      sample_articles: samples,
+      sample_articles: finalSamples,
     };
   }
 
