@@ -1758,7 +1758,25 @@ export default function PPGscopeApp() {
 
   // Chart Center data products: each visualisation uses the same live payload,
   // but the derived collections keep the rendering layer readable and fast.
-  const chartTimeseries = useMemo(() => data?.daily_timeseries || [], [data]);
+  // Chart Center data products: dynamic timeseries filtered by active period
+  const chartTimeseries = useMemo(() => {
+    const raw = data?.daily_timeseries || [];
+    if (!raw.length) return [];
+    if (timePreset === "24h") {
+      return raw.slice(-2);
+    }
+    if (timePreset === "7d") {
+      return raw.slice(-7);
+    }
+    if (timePreset === "30d") {
+      return raw.slice(-30);
+    }
+    if (timePreset === "custom") {
+      const filtered = raw.filter((p) => p.date >= customStartDate && p.date <= customEndDate);
+      return filtered.length > 0 ? filtered : raw.slice(-30);
+    }
+    return raw;
+  }, [data, timePreset, customStartDate, customEndDate]);
   const chartDomains = useMemo(
     () => [...domainBreakdown.domains].filter((domain) => domain.total > 0).sort((a, b) => b.total - a.total),
     [domainBreakdown]
@@ -4936,27 +4954,59 @@ export default function PPGscopeApp() {
                   <span className="rounded-lg border border-white/[0.08] bg-black/30 px-2.5 py-1.5">{chartPortals.length || 547} portali</span>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4">
-                <span className="mr-1 text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">Widoki:</span>
-                {([
-                  ["all", "Wszystkie"],
-                  ["content", "Treść i tematy"],
-                  ["network", "Sieć i regiony"],
-                  ["operations", "Operacje i ryzyko"],
-                ] as [ChartView, string][]).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setChartView(value)}
-                    className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all ${
-                      chartView === value
-                        ? "border-teal-400/40 bg-teal-400/15 text-teal-200"
-                        : "border-white/[0.08] bg-black/20 text-zinc-400 hover:border-white/[0.16] hover:text-white"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="mr-1 text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">Filtr okresu:</span>
+                  {(
+                    [
+                      ["24h", "24h"],
+                      ["7d", "7 dni"],
+                      ["30d", "30 dni"],
+                      ["90d", "90 dni"],
+                      ["1y", "1 rok"],
+                      ["all", "Wszystko"],
+                    ] as const
+                  ).map(([preset, label]) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setTimePreset(preset)}
+                      className={`rounded-lg px-2.5 py-1 text-xs font-mono transition-all ${
+                        timePreset === preset
+                          ? "bg-teal-500 text-black font-semibold shadow"
+                          : "border border-white/[0.08] bg-black/40 text-zinc-400 hover:text-white"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  <span className="text-[10px] font-mono text-teal-300 bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded">
+                    Wybrano: {timePreset === "24h" ? "24h" : timePreset === "7d" ? "7 dni" : timePreset === "30d" ? "30 dni" : timePreset === "90d" ? "90 dni" : timePreset === "1y" ? "1 rok" : "pełny zakres"} ({chartTimeseries.length} dni)
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="mr-1 text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">Kategoria wykresów:</span>
+                  {([
+                    ["all", "Wszystkie"],
+                    ["content", "Treść i tematy"],
+                    ["network", "Sieć i regiony"],
+                    ["operations", "Operacje i ryzyko"],
+                  ] as [ChartView, string][]).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setChartView(value)}
+                      className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all ${
+                        chartView === value
+                          ? "border-teal-400/40 bg-teal-400/15 text-teal-200"
+                          : "border-white/[0.08] bg-black/20 text-zinc-400 hover:border-white/[0.16] hover:text-white"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -4975,9 +5025,22 @@ export default function PPGscopeApp() {
               ))}
             </div>
 
+            {/* SEKCJA 1: DYNAMIKA W WYBRANYM OKRESIE */}
+            <div className="rounded-xl border border-teal-500/30 bg-teal-500/[0.04] p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-teal-400 animate-pulse" />
+                <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+                  Sekcja dynamiczna: wolumeny, trendy i tematy w oknie {timePreset.toUpperCase()}
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-teal-300">
+                Zakres: {chartTimeseries.length} dni obserwacji · Łącznie publikacji: {domainBreakdown.totalCount.toLocaleString("pl-PL")}
+              </span>
+            </div>
+
             {(chartView === "all" || chartView === "content") && (
               <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <ChartPanel title="Wolumen publikacji w czasie" icon={Activity} meta={`${chartTimeseries.length} dni · globalnie`}>
+                <ChartPanel title="Wolumen publikacji w czasie" icon={Activity} meta={`${chartTimeseries.length} dni · ${timePreset.toUpperCase()}`}>
                   <div className="space-y-3">
                     <svg viewBox="0 0 720 230" className="h-auto w-full" role="img" aria-label="Wolumen publikacji i treści lokalnych w czasie">
                       {[0, 1, 2, 3].map((step) => {
@@ -5010,10 +5073,10 @@ export default function PPGscopeApp() {
                   </div>
                 </ChartPanel>
 
-                <ChartPanel title="Mix tematów dzień po dniu" icon={Layers} meta="ostatnie 14 obserwacji">
+                <ChartPanel title="Mix tematów dzień po dniu" icon={Layers} meta={`${chartTimeseries.length} dni · ${timePreset.toUpperCase()}`}>
                   <div className="space-y-3">
                     <div className="flex h-44 items-end gap-1.5 border-b border-l border-white/[0.08] px-2 pb-0">
-                      {chartTimeseries.slice(-14).map((point) => {
+                      {chartTimeseries.map((point) => {
                         const topics = [point.lokalne, point.sport, point.prawo, point.gospodarka, point.spoleczenstwo, point.polityka];
                         const total = chartMax(topics);
                         return (
@@ -5061,6 +5124,19 @@ export default function PPGscopeApp() {
                 </ChartPanel>
               </div>
             )}
+
+            {/* SEKCJA 2: STAŁA STRUKTURA KATALOGU */}
+            <div className="rounded-xl border border-sky-500/30 bg-sky-500/[0.04] p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-sky-400" />
+                <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+                  Sekcja strukturalna: stały katalog 546 domen PPG i profil regionalny
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-sky-300">
+                N = 546 serwisów · stała architektura sieci PPG (niezależna od wybranego okresu)
+              </span>
+            </div>
 
             {(chartView === "all" || chartView === "network") && (
               <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
