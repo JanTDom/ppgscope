@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireApiSession } from "../../../../lib/api-auth";
 
 export async function POST(req: NextRequest) {
+  const unauthorized = requireApiSession(req);
+  if (unauthorized) return unauthorized;
+
   try {
-    const { apiKey } = await req.json();
     const effectiveKey =
-      apiKey ||
       process.env.PPGSCOPE_GEMINI_API_KEY ||
       process.env.GEMINI_API_KEY;
 
@@ -49,9 +51,10 @@ export async function POST(req: NextRequest) {
       latency_ms: latency,
       reply,
     });
-  } catch (error: any) {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Błąd sieciowy podczas sprawdzania Gemini API";
     return NextResponse.json(
-      { ok: false, error: error?.message || "Błąd sieciowy podczas sprawdzania Gemini API" },
+      { ok: false, error: message },
       { status: 500 }
     );
   }

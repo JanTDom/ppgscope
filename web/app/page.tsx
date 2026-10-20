@@ -2,47 +2,49 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
+import ForensicsPanel from "./forensics-panel";
 import {
   Shield,
   Lock,
   Search,
-  Filter,
   RefreshCw,
   AlertTriangle,
   CheckCircle2,
-  ChevronRight,
   BarChart3,
-  TrendingUp,
   Layers,
   FileText,
   Database,
   Settings,
   X,
   ExternalLink,
-  Calendar,
   GitBranch,
-  Share2,
   Sparkles,
   Check,
-  XCircle,
   Info,
   PieChart,
   Activity,
   Zap,
   Users,
   Compass,
-  MapPin,
   Clock,
   Download,
   Building2,
-  Globe2,
   Target,
   Scale,
   ThumbsUp,
   ThumbsDown,
   Minus,
-  Quote,
-  Vote
+  Vote,
+  Menu,
+  ChevronRight,
+  LayoutDashboard,
+  Map,
+  BookOpen,
+  SlidersHorizontal,
+  Monitor,
+  Radio,
+  ArrowLeft,
+  Maximize2
 } from "lucide-react";
 
 // =========================================================================
@@ -561,6 +563,315 @@ interface DashboardPayload {
   editorial_intelligence?: EditorialIntelligenceData;
 }
 
+interface DataProvenance {
+  dataset_id: string;
+  mode: "synthetic_fixture" | "live" | "mixed";
+  display_label: string;
+  trust_label: string;
+  generated_at: string;
+  source_class: string;
+  source_summary: string;
+  primary_sources: string[];
+  live_paths: {
+    path: string;
+    source: string;
+    trust: string;
+    storage: string;
+  }[];
+  not_verified_in_static_payload: string[];
+  honesty_note: string;
+}
+
+interface IngestStatusPayload {
+  configured: boolean;
+  latest_run: {
+    status: "running" | "success" | "partial" | "failed";
+    started_at: string;
+    finished_at: string | null;
+    sources_attempted: number;
+    sources_succeeded: number;
+    articles_written: number;
+    metrics_written: number;
+  } | null;
+  metric_proofs: Array<{
+    metric_key: string;
+    status: "observed" | "partial" | "no_data";
+    source_urls: string[];
+  }>;
+}
+
+function DataTrustBadge({ provenance, compact = false }: { provenance: DataProvenance | null; compact?: boolean }) {
+  const isLive = provenance?.mode === "live";
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border font-mono uppercase tracking-[0.08em] ${
+        compact ? "px-2 py-1 text-[9px]" : "px-2.5 py-1.5 text-[10px]"
+      } ${isLive ? "border-teal-400/30 bg-teal-400/10 text-teal-200" : "border-amber-400/30 bg-amber-400/10 text-amber-200"}`}
+      title={provenance?.source_summary || "Status źródła danych jest ładowany."}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${isLive ? "bg-teal-300" : "bg-amber-300"}`} />
+      {provenance?.trust_label || "STATUS ŹRÓDŁA: WERYFIKACJA"}
+    </span>
+  );
+}
+
+function DataTrustNotice({ provenance }: { provenance: DataProvenance | null }) {
+  if (!provenance) return null;
+  const isLive = provenance.mode === "live";
+  return (
+    <section className={`rounded-2xl border p-4 ${isLive ? "border-teal-400/20 bg-teal-400/[0.06]" : "border-amber-400/25 bg-amber-400/[0.07]"}`} aria-label="Status wiarygodności danych">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-3">
+          <div className={`mt-0.5 rounded-xl p-2 ${isLive ? "bg-teal-400/10 text-teal-200" : "bg-amber-400/10 text-amber-200"}`}>
+            {isLive ? <Radio className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-white">{provenance.display_label}</p>
+              <DataTrustBadge provenance={provenance} compact />
+            </div>
+            <p className="mt-1 max-w-4xl text-xs leading-5 text-zinc-300">{provenance.source_summary}</p>
+          </div>
+        </div>
+        <div className="shrink-0 text-left text-[10px] font-mono uppercase tracking-[0.08em] text-zinc-500 lg:text-right">
+          <div>Timestamp payloadu</div>
+          <div className="mt-1 text-zinc-200">{new Date(provenance.generated_at).toLocaleString("pl-PL")}</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function IngestStatusCard({ status }: { status: IngestStatusPayload | null }) {
+  const run = status?.latest_run;
+  if (!status || !run) return null;
+  const healthy = run.status === "success";
+  return (
+    <section className={`rounded-2xl border p-4 ${healthy ? "border-teal-400/20 bg-teal-400/[0.05]" : "border-amber-400/25 bg-amber-400/[0.06]"}`} aria-label="Status cyklicznego ingestu">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-3">
+          <div className={`mt-0.5 rounded-xl p-2 ${healthy ? "bg-teal-400/10 text-teal-200" : "bg-amber-400/10 text-amber-200"}`}>
+            <Radio className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-white">Cykliczny ingest źródeł</p>
+              <span className={`rounded-full border px-2 py-1 text-[9px] font-mono uppercase tracking-[0.08em] ${healthy ? "border-teal-400/30 text-teal-200" : "border-amber-400/30 text-amber-200"}`}>
+                {run.status === "success" ? "PRODUKCJA · OK" : run.status.toUpperCase()}
+              </span>
+            </div>
+            <p className="mt-1 text-xs leading-5 text-zinc-300">RSS/sitemap → trwały storage. Każda metryka ma dowód obserwacji, artykułów i URL-i źródłowych.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-x-5 gap-y-2 text-[10px] font-mono uppercase tracking-[0.08em] text-zinc-500 sm:grid-cols-4 lg:text-right">
+          <span><b className="block text-sm text-white">{run.sources_succeeded}/{run.sources_attempted}</b>źródeł</span>
+          <span><b className="block text-sm text-white">{run.articles_written.toLocaleString("pl-PL")}</b>artykułów</span>
+          <span><b className="block text-sm text-white">{run.metrics_written}</b>proofów</span>
+          <span><b className="block text-sm text-white">{new Date(run.finished_at || run.started_at).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}</b>ostatni cykl UTC</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type WallScene = "network" | "editorial" | "forensics";
+
+function PresentationWall({
+  data,
+  provenance,
+  domainBreakdown,
+  chartTimeseries,
+  chartDomains,
+  chartRegions,
+  chartStatusBuckets,
+  scene,
+  onSceneChange,
+  onExit,
+}: {
+  data: DashboardPayload;
+  provenance: DataProvenance | null;
+  domainBreakdown: DomainBreakdownResult;
+  chartTimeseries: DailyTimeseriesItem[];
+  chartDomains: DomainStatItem[];
+  chartRegions: VoivodeshipCrossSection[];
+  chartStatusBuckets: (VitalityStatusBucket & { key: string })[];
+  scene: WallScene;
+  onSceneChange: (scene: WallScene) => void;
+  onExit: () => void;
+}) {
+  useEffect(() => {
+    if (scene !== "network") return;
+    const timer = window.setInterval(() => onSceneChange("editorial"), 14000);
+    return () => window.clearInterval(timer);
+  }, [scene, onSceneChange]);
+
+  const latestPoint = chartTimeseries[chartTimeseries.length - 1];
+  const topDomains = chartDomains.slice(0, 5);
+  const topRegions = chartRegions.slice(0, 12);
+  const activePortals = chartStatusBuckets.find((bucket) => bucket.key === "AKTYWNY_UNIKALNY")?.count || 0;
+  const syntheticNotice = provenance?.mode !== "live";
+  const signalItems = topDomains.map((domain, index) => ({
+    label: `${String(index + 1).padStart(2, "0")} · ${domain.name}`,
+    value: `${domain.total.toLocaleString("pl-PL")} publikacji`,
+    detail: `${domain.pct}% strumienia · C / CL / L`,
+  }));
+
+  return (
+    <div className="ppg-wall-mode" aria-label="PPGscope The Wall">
+      <div className="ppg-wall-grid" />
+      <header className="ppg-wall-header">
+        <div className="flex items-center gap-4">
+          <div className="ppg-wall-wordmark"><span>PPG</span><span>scope</span></div>
+          <div className="hidden border-l border-white/10 pl-4 sm:block">
+            <p className="ppg-wall-eyebrow">MEDIA INTELLIGENCE CONTROL ROOM</p>
+            <p className="mt-1 text-sm text-zinc-300">The Wall / sygnał sieciowy</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <DataTrustBadge provenance={provenance} />
+          <button type="button" onClick={onExit} className="ppg-wall-exit" aria-label="Wróć do trybu analitycznego">
+            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Tryb analityczny</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="ppg-wall-content">
+        <section className="ppg-wall-hero">
+          <div className="ppg-wall-hero-copy">
+            <p className="ppg-wall-eyebrow">{scene === "network" ? "NETWORK PULSE" : scene === "editorial" ? "EDITORIAL INTELLIGENCE" : "FORENSICS LAYER"}</p>
+            <h1>{scene === "network" ? "Jedna sieć. Setki sygnałów. Jedna decyzja." : scene === "editorial" ? "Widzisz nie tylko wolumen — widzisz kierunek." : "Każdy sygnał ma ślad, źródło i poziom pewności."}</h1>
+            <p className="ppg-wall-lede">{syntheticNotice ? "Prezentacja na snapshotcie demonstracyjnym — status źródła pozostaje widoczny przy każdym ujęciu." : "Prezentacja oparta na aktualnym pomiarze z podłączonych źródeł."}</p>
+            <div className="ppg-wall-scenes" role="tablist" aria-label="Sceny prezentacji">
+              {(["network", "editorial", "forensics"] as WallScene[]).map((item) => (
+                <button key={item} type="button" role="tab" aria-selected={scene === item} onClick={() => onSceneChange(item)} className={scene === item ? "is-active" : ""}>
+                  {item === "network" ? "Network Pulse" : item === "editorial" ? "Editorial Intelligence" : "Forensics"}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="ppg-wall-pulse" aria-label="Wizualizacja sieci regionów">
+            <div className="ppg-wall-pulse-ring ring-a" />
+            <div className="ppg-wall-pulse-ring ring-b" />
+            <div className="ppg-wall-pulse-core"><span>{data.titles.length}</span><small>serwisów</small></div>
+            {topRegions.map((region, index) => {
+              const angle = (index / Math.max(1, topRegions.length)) * Math.PI * 2 - Math.PI / 2;
+              const radius = 37 + (index % 3) * 8;
+              const x = 50 + Math.cos(angle) * radius;
+              const y = 50 + Math.sin(angle) * radius;
+              return <span key={region.region} className="ppg-wall-node" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${index * 110}ms` }} title={`${region.region}: ${region.articles_count.toLocaleString("pl-PL")} publikacji`} />;
+            })}
+          </div>
+        </section>
+
+        <section className="ppg-wall-kpis" aria-label="Kluczowe wskaźniki snapshotu">
+          <div><span>STRUMIEŃ 30D</span><strong>{domainBreakdown.totalCount.toLocaleString("pl-PL")}</strong><small>zaklasyfikowanych publikacji</small></div>
+          <div><span>LOKALNOŚĆ L + CL</span><strong>{domainBreakdown.localContentShare.toFixed(1)}%</strong><small>udział treści lokalnych</small></div>
+          <div><span>AKTYWNE UNIKALNE</span><strong>{activePortals.toLocaleString("pl-PL")}</strong><small>portali w audycie żywotności</small></div>
+          <div><span>OSTATNI PUNKT CZASU</span><strong>{latestPoint?.total > 0 ? latestPoint.total.toLocaleString("pl-PL") : "—"}</strong><small>{latestPoint?.label || "brak szeregu"}</small></div>
+        </section>
+
+        <section className="ppg-wall-lower-grid">
+          <div className="ppg-wall-panel ppg-wall-signal-panel">
+            <div className="ppg-wall-panel-head"><div><p className="ppg-wall-eyebrow">SIGNAL RAIL · SNAPSHOT</p><h2>Co właśnie widać w sieci</h2></div><Maximize2 className="h-4 w-4 text-zinc-600" /></div>
+            <div className="ppg-wall-signal-list">{signalItems.map((signal) => <div key={signal.label} className="ppg-wall-signal"><span className="ppg-wall-signal-dot" /><div><strong>{signal.label}</strong><small>{signal.detail}</small></div><b>{signal.value}</b></div>)}</div>
+          </div>
+          <div className="ppg-wall-panel">
+            <div className="ppg-wall-panel-head"><div><p className="ppg-wall-eyebrow">REGIONAL PULSE</p><h2>Gdzie rośnie napięcie informacyjne</h2></div><Map className="h-4 w-4 text-teal-300" /></div>
+            <div className="ppg-wall-region-bars">{topRegions.slice(0, 7).map((region) => <div key={region.region}><div><span>{region.region}</span><b>{region.articles_count.toLocaleString("pl-PL")}</b></div><span className="ppg-wall-bar"><i style={{ width: `${Math.min(100, (region.articles_count / Math.max(1, topRegions[0]?.articles_count || 1)) * 100)}%` }} /></span></div>)}</div>
+          </div>
+        </section>
+
+        <footer className="ppg-wall-footer">
+          <span><span className="ppg-live-dot" /> PPGscope Intelligence v2.0</span>
+          <span>{syntheticNotice ? "Snapshot demonstracyjny · nie jest pomiarem live" : "Live measurement"}</span>
+          <span>Źródło: {provenance?.source_class || "status nieznany"}</span>
+        </footer>
+      </main>
+    </div>
+  );
+}
+
+function ChartPanel({
+  title,
+  icon: Icon,
+  meta,
+  children,
+  className = "",
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  meta?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-5 space-y-4 ${className}`}>
+      <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] pb-3">
+        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+          <Icon className="h-4 w-4 shrink-0 text-teal-400" />
+          {title}
+        </h3>
+        {meta ? <span className="shrink-0 text-[10px] font-mono text-zinc-500">{meta}</span> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+type AppTab =
+  | "overview"
+  | "domain_stats"
+  | "executive_briefing"
+  | "compare"
+  | "vitality_audit"
+  | "charts"
+  | "intelligence"
+  | "cross_sections"
+  | "titles"
+  | "articles"
+  | "methodology"
+  | "ko_sentiment"
+  | "forensics";
+
+type ChartView = "all" | "content" | "network" | "operations";
+
+const NAV_GROUPS: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: { id: AppTab; label: string; meta?: string; icon: React.ComponentType<{ className?: string }> }[];
+}[] = [
+  {
+    label: "Pulpit",
+    icon: LayoutDashboard,
+    items: [
+      { id: "executive_briefing", label: "Briefing zarządczy", meta: "07:30", icon: Target },
+      { id: "domain_stats", label: "Dziedziny i lokalność", meta: "18", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Analiza",
+    icon: SlidersHorizontal,
+    items: [
+      { id: "forensics", label: "Szyba śledcza", icon: Shield },
+      { id: "compare", label: "Porównywarka mediów", meta: "A / B", icon: Scale },
+      { id: "ko_sentiment", label: "Wydźwięk KO / PO", icon: Vote },
+      { id: "vitality_audit", label: "Żywotność i unikalność", meta: "546", icon: Activity },
+      { id: "charts", label: "Centrum wykresów", icon: PieChart },
+      { id: "intelligence", label: "Wskaźniki wywiadu", icon: Zap },
+      { id: "cross_sections", label: "Przekroje regionalne", meta: "16", icon: Map },
+    ],
+  },
+  {
+    label: "Biblioteka",
+    icon: BookOpen,
+    items: [
+      { id: "titles", label: "Serwisy PPG", meta: "546", icon: Database },
+      { id: "articles", label: "Baza artykułów", icon: FileText },
+      { id: "methodology", label: "Metodologia", meta: "v2.0", icon: Info },
+    ],
+  },
+];
+
 
 // 18 Domains Specification
 const DOMAINS_SPEC: DomainItem[] = [
@@ -700,18 +1011,25 @@ function evaluateKOSentiment(text: string): {
   };
 }
 
+const INTERNAL_CSV_MAX_BYTES = 1_000_000;
+const INTERNAL_CSV_HEADER = "url,pageviews,engaged_time_sec,strefa_plus_conversions";
+
 export default function PPGscopeApp() {
-  // Session Authentication State (In-Memory Only, No Cookies)
+  // Session Authentication State (server-issued HttpOnly cookie)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
 
   // Application Data State
   const [data, setData] = useState<DashboardPayload | null>(null);
+  const [provenance, setProvenance] = useState<DataProvenance | null>(null);
+  const [ingestStatus, setIngestStatus] = useState<IngestStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "domain_stats" | "executive_briefing" | "compare" | "vitality_audit" | "charts" | "intelligence" | "cross_sections" | "titles" | "articles" | "methodology" | "ko_sentiment"
-  >("domain_stats");
+  const [activeTab, setActiveTab] = useState<AppTab>("executive_briefing");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [chartView, setChartView] = useState<ChartView>("all");
+  const [wallMode, setWallMode] = useState(false);
+  const [wallScene, setWallScene] = useState<WallScene>("network");
 
   // Portal Vitality & Uniqueness Audit States
   const [vitalityStatusFilter, setVitalityStatusFilter] = useState<string>("ALL");
@@ -744,17 +1062,8 @@ export default function PPGscopeApp() {
   const [selectedCompetitorRegion, setSelectedCompetitorRegion] = useState<string>("Małopolskie");
 
   // Internal Data Adapter (URL Matcher for GA4 / GSC / Strefa Plus)
-  const [internalCsvInput, setInternalCsvInput] = useState<string>(
-    [
-      "url,pageviews,engaged_time_sec,strefa_plus_conversions",
-      "https://gazetakrakowska.pl/budzet-krakowa-sesja-rady-miasta,48200,142,19",
-      "https://dziennikbaltycki.pl/przetarg-tereny-postoczniowe-gdansk,39400,168,24",
-      "https://dziennikzachodni.pl/kopalnie-slask-rozmowy-pgg-katowice,54100,154,28",
-      "https://gloswielkopolski.pl/przebudowa-centrum-poznania-mpk-objazdy,61800,118,11",
-      "https://pomorska.pl/kiedy-wyplata-14-emerytury-zus-harmonogram,194000,14,1",
-      "https://i.pl/spor-w-koalicji-budzet-skladka-zdrowotna,82500,88,6",
-    ].join("\n")
-  );
+  const [internalCsvInput, setInternalCsvInput] = useState<string>(INTERNAL_CSV_HEADER);
+
 
   // KO Political Sentiment States
   const [selectedKOSentimentFilter, setSelectedKOSentimentFilter] = useState<"all" | "positive" | "neutral" | "negative">("all");
@@ -788,12 +1097,13 @@ export default function PPGscopeApp() {
   const [selectedDomainFilter, setSelectedDomainFilter] = useState("wszystkie");
   const [selectedLocalityFilter, setSelectedLocalityFilter] = useState("wszystkie");
 
-  // Settings Modal State with LocalStorage Persistence
+  // Settings Modal State (secrets remain server-side)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsSavedNotice, setSettingsSavedNotice] = useState(false);
-  const [geminiApiKey, setGeminiApiKey] = useState("");
-  const [supabaseUrl, setSupabaseUrl] = useState("https://nkeoyouxtschemvpqgmq.supabase.co");
-  const [supabaseAnonKey, setSupabaseAnonKey] = useState("");
+  const [geminiConfigured, setGeminiConfigured] = useState(false);
+  const [supabaseConfigured, setSupabaseConfigured] = useState(false);
+
+  const [internalCsvNotice, setInternalCsvNotice] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
   // Live Testing States
   const [geminiTestStatus, setGeminiTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
@@ -819,87 +1129,125 @@ export default function PPGscopeApp() {
   const [liveFetchNotice, setLiveFetchNotice] = useState<string | null>(null);
   const [articlesViewMode, setArticlesViewMode] = useState<"live_session" | "sample_archive">("live_session");
 
-  // Initialize client time and load configuration
+  // Establish the server-side session before loading protected data.
   useEffect(() => {
-    try {
-      const storedKey = localStorage.getItem("ppgscope_gemini_api_key");
-      if (storedKey && storedKey.trim().length > 0) setGeminiApiKey(storedKey);
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((result) => setIsAuthenticated(Boolean(result.authenticated)))
+      .catch(() => setIsAuthenticated(false));
+  }, []);
 
-      const storedSbUrl = localStorage.getItem("ppgscope_supabase_url");
-      if (storedSbUrl && storedSbUrl.trim().length > 0) setSupabaseUrl(storedSbUrl);
+  const internalRowsCount = useMemo(
+    () =>
+      internalCsvInput
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && !line.toLowerCase().startsWith("url,")).length,
+    [internalCsvInput]
+  );
 
-      const storedSbAnon = localStorage.getItem("ppgscope_supabase_anon_key");
-      if (storedSbAnon && storedSbAnon.trim().length > 0) setSupabaseAnonKey(storedSbAnon);
+  const handleInternalCsvFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (file.size > INTERNAL_CSV_MAX_BYTES) {
+      setInternalCsvNotice({ kind: "error", text: "Plik jest za duży (limit 1 MB). Podziel dane na mniejsze części." });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === "string" ? reader.result : "";
+      if (text.trim().length === 0) {
+        setInternalCsvNotice({ kind: "error", text: "Plik jest pusty." });
+        return;
+      }
+      setInternalCsvInput(text.replace(/\r\n?/g, "\n"));
+      setInternalCsvNotice({ kind: "ok", text: `Wczytano plik ${file.name}. Dane żyją tylko w tej sesji przeglądarki.` });
+    };
+    reader.onerror = () => setInternalCsvNotice({ kind: "error", text: "Nie udało się odczytać pliku. Spróbuj ponownie." });
+    reader.readAsText(file);
+  };
 
-      fetch("/api/gemini/config")
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.key && (!storedKey || storedKey.trim().length === 0)) {
-            setGeminiApiKey(d.key);
-            localStorage.setItem("ppgscope_gemini_api_key", d.key);
-          }
-          if (d.supabaseUrl && (!storedSbUrl || storedSbUrl.trim().length === 0)) {
-            setSupabaseUrl(d.supabaseUrl);
-            localStorage.setItem("ppgscope_supabase_url", d.supabaseUrl);
-          }
-          if (d.supabaseAnonKey && (!storedSbAnon || storedSbAnon.trim().length === 0)) {
-            setSupabaseAnonKey(d.supabaseAnonKey);
-            localStorage.setItem("ppgscope_supabase_anon_key", d.supabaseAnonKey);
-          }
-        })
-        .catch(() => {});
+  const handleSaveSettings = () => {
+    setSettingsSavedNotice(true);
+    window.setTimeout(() => {
+      setSettingsSavedNotice(false);
+      setIsSettingsOpen(false);
+    }, 1500);
+  };
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetch("/api/gemini/config", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((result) => {
+        setGeminiConfigured(Boolean(result.configured));
+        setSupabaseConfigured(Boolean(result.supabaseConfigured));
+      })
+      .catch(() => {
+        setGeminiConfigured(false);
+        setSupabaseConfigured(false);
+      });
+
+    const timer = window.setTimeout(() => {
       const nowMs = Date.now();
       setClientNow(nowMs);
       const endStr = new Date(nowMs).toISOString().split("T")[0];
       const startStr = new Date(nowMs - 30 * 86400 * 1000).toISOString().split("T")[0];
       setCustomStartDate(startStr);
       setCustomEndDate(endStr);
-    } catch {
-      // Ignore localStorage in private browsing
-    }
-  }, []);
-
-  const handleSaveSettings = () => {
-    try {
-      localStorage.setItem("ppgscope_gemini_api_key", geminiApiKey);
-      localStorage.setItem("ppgscope_supabase_url", supabaseUrl);
-      localStorage.setItem("ppgscope_supabase_anon_key", supabaseAnonKey);
-      setSettingsSavedNotice(true);
-      setTimeout(() => {
-        setSettingsSavedNotice(false);
-        setIsSettingsOpen(false);
-      }, 1500);
-    } catch {
-      setIsSettingsOpen(false);
-    }
-  };
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [isAuthenticated]);
 
   // Fetch dashboard dataset
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await fetch("/data/dashboard.json", { cache: "no-store" });
-        if (!res.ok) throw new Error("Nie można pobrać bazy danych PPGscope.");
-        const json = await res.json();
+        const [dataRes, provenanceRes, ingestRes] = await Promise.all([
+          fetch("/data/dashboard.json", { cache: "no-store" }),
+          fetch("/data/provenance.json", { cache: "no-store" }),
+          fetch("/api/ingest/status", { cache: "no-store" }),
+        ]);
+        if (!dataRes.ok) throw new Error("Nie można pobrać bazy danych PPGscope.");
+        const json = await dataRes.json();
         setData(json);
+        if (provenanceRes.ok) setProvenance(await provenanceRes.json());
+        if (ingestRes.ok) setIngestStatus(await ingestRes.json());
       } catch (err) {
         console.error("Błąd ładowania danych dashboard.json:", err);
       } finally {
         setLoading(false);
       }
     }
-    loadData();
-  }, []);
+    if (isAuthenticated) loadData();
+  }, [isAuthenticated]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === "A132a132!" || passwordInput === "Felek2026") {
-      setIsAuthenticated(true);
-      setPasswordError(false);
-    } else {
+    setPasswordError(false);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+      if (response.ok) {
+        setIsAuthenticated(true);
+        setPasswordInput("");
+      } else {
+        setPasswordError(true);
+      }
+    } catch {
       setPasswordError(true);
     }
+  };
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    setIsAuthenticated(false);
+    setData(null);
+    setWallMode(false);
   };
 
   const handleTestGemini = async () => {
@@ -908,7 +1256,6 @@ export default function PPGscopeApp() {
       const res = await fetch("/api/gemini/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey: geminiApiKey }),
       });
       const resJson = await res.json();
       if (res.ok && resJson.ok) {
@@ -928,7 +1275,6 @@ export default function PPGscopeApp() {
       const res = await fetch("/api/supabase/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: supabaseUrl, anonKey: supabaseAnonKey }),
       });
       const resJson = await res.json();
       if (res.ok && resJson.ok) {
@@ -954,7 +1300,6 @@ export default function PPGscopeApp() {
           lead: article.lead,
           body: article.title,
           outlet: article.portal_name,
-          apiKey: geminiApiKey,
         }),
       });
       const resJson = await res.json();
@@ -1539,6 +1884,54 @@ export default function PPGscopeApp() {
     };
   }, [data, timePreset, selectedMediumDomain, compareMediumDomain]);
 
+  // Chart Center data products: each visualisation uses the same live payload,
+  // but the derived collections keep the rendering layer readable and fast.
+  const chartTimeseries = useMemo(() => data?.daily_timeseries || [], [data]);
+  const chartDomains = useMemo(
+    () => [...domainBreakdown.domains].filter((domain) => domain.total > 0).sort((a, b) => b.total - a.total),
+    [domainBreakdown]
+  );
+  const chartRegions = useMemo(
+    () => [...(data?.cross_sections?.by_voivodeship || [])].sort((a, b) => b.articles_count - a.articles_count),
+    [data]
+  );
+  const chartSegments = useMemo(
+    () => [...(data?.cross_sections?.by_segment || [])].sort((a, b) => b.articles_count - a.articles_count),
+    [data]
+  );
+  const chartPortals = useMemo(
+    () => [...(data?.portal_vitality_audit?.portals || [])].sort((a, b) => b.daily_articles_count - a.daily_articles_count),
+    [data]
+  );
+  const chartStatusBuckets = useMemo(() => {
+    const order = ["AKTYWNY_UNIKALNY", "AKTYWNY_SYNDYKAT", "LEDWO_ZYWY", "ZOMBIE_AUTOMAT", "MARTWY"];
+    return order.map((key) => ({
+      key,
+      ...(data?.portal_vitality_audit?.status_breakdown?.[key] || { count: 0, pct: 0, label: key, criteria: "" }),
+    }));
+  }, [data]);
+  const chartEntities = useMemo(() => data?.hhi_entities?.entities || [], [data]);
+
+  const chartMax = (values: number[]) => Math.max(1, ...values);
+  const chartScale = (value: number, max: number, size: number) => (value / Math.max(1, max)) * size;
+
+  if (wallMode) {
+    return (
+      <PresentationWall
+        data={data!}
+        provenance={provenance}
+        domainBreakdown={domainBreakdown}
+        chartTimeseries={chartTimeseries}
+        chartDomains={chartDomains}
+        chartRegions={chartRegions}
+        chartStatusBuckets={chartStatusBuckets}
+        scene={wallScene}
+        onSceneChange={setWallScene}
+        onExit={() => setWallMode(false)}
+      />
+    );
+  }
+
   // CSV Export Handler
   const handleExportCSV = () => {
     if (!filteredArticles.length) return;
@@ -1598,10 +1991,10 @@ export default function PPGscopeApp() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center p-4 selection:bg-teal-500 selection:text-black">
-        <div className="w-full max-w-md p-8 rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 backdrop-blur-xl shadow-2xl">
+      <div className="ppg-auth-screen min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center p-4 selection:bg-teal-500 selection:text-black">
+        <div className="ppg-auth-card w-full max-w-md p-8 rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 backdrop-blur-xl shadow-2xl">
           {/* Project Brand Header */}
-          <div className="flex flex-col items-center text-center mb-6">
+          <div className="ppg-auth-brand flex flex-col items-center text-center mb-6">
             <div className="relative mb-3 flex items-center justify-center rounded-2xl bg-white px-6 py-4 shadow-lg border border-zinc-200">
               <Image
                 src="/logo.png"
@@ -1627,7 +2020,7 @@ export default function PPGscopeApp() {
             Standard Fable 5.1 · Prawda danych ponad wszystko
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="ppg-auth-form space-y-4">
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Hasło dostępu do systemu:
@@ -1697,13 +2090,64 @@ export default function PPGscopeApp() {
     (t.city && t.city.toLowerCase().includes(compareSearchQuery.toLowerCase()))
   );
 
+  const activeNavItem = NAV_GROUPS.flatMap((group) => group.items).find((item) => item.id === activeTab);
+  const periodLabel = timePreset === "24h" ? "Ostatnie 24 godziny" : timePreset === "7d" ? "Ostatnie 7 dni" : timePreset === "30d" ? "Ostatnie 30 dni" : timePreset === "90d" ? "Ostatnie 90 dni" : timePreset === "1y" ? "Ostatni rok" : "Cała baza";
+
   return (
-    <div className="min-h-screen bg-[#07080a] text-zinc-100 selection:bg-teal-500 selection:text-black">
+    <div className="ppg-app-shell min-h-screen bg-[#07080a] text-zinc-100 selection:bg-teal-500 selection:text-black">
+      <aside className={`ppg-sidebar ${mobileNavOpen ? "is-open" : ""}`} aria-label="Nawigacja PPGscope">
+        <div className="ppg-sidebar-brand">
+          <div className="ppg-sidebar-mark"><span>PPG</span><span>scope</span></div>
+          <div className="ppg-sidebar-brand-meta"><span>INTELLIGENCE</span><strong>v2.0</strong></div>
+        </div>
+        <div className="ppg-sidebar-workspace">
+          <span className="ppg-sidebar-kicker">WORKSPACE</span>
+          <div className="ppg-workspace-row"><span className="ppg-live-dot" /> Polska Press Grupa <ChevronRight className="h-3.5 w-3.5" /></div>
+        </div>
+        <nav className="ppg-sidebar-nav">
+          {NAV_GROUPS.map((group) => {
+            const GroupIcon = group.icon;
+            return (
+              <div key={group.label} className="ppg-nav-group">
+                <div className="ppg-nav-group-label"><GroupIcon className="h-3.5 w-3.5" />{group.label}</div>
+                <div className="ppg-nav-items">
+                  {group.items.map((item) => {
+                    const ItemIcon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => { setActiveTab(item.id); setMobileNavOpen(false); }}
+                        className={`ppg-nav-item ${isActive ? "is-active" : ""}`}
+                        aria-current={isActive ? "page" : undefined}
+                      >
+                        <ItemIcon className="ppg-nav-item-icon h-4 w-4" />
+                        <span className="ppg-nav-item-label">{item.label}</span>
+                        {item.meta ? <span className="ppg-nav-item-meta">{item.meta}</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </nav>
+        <div className="ppg-sidebar-footer">
+          <div className="ppg-sync-status">
+            <span className={provenance?.mode === "live" ? "ppg-live-dot" : "h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_0_4px_rgba(246,197,107,0.10)]"} />
+            {provenance?.mode === "live" ? "Dane z pomiaru live" : "Snapshot demonstracyjny"}
+          </div>
+          <p>{provenance?.display_label || "Status danych"}<br /><strong>{data ? new Date(data.generated_at).toLocaleString("pl-PL", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—"}</strong></p>
+        </div>
+      </aside>
+      {mobileNavOpen ? <button type="button" className="ppg-sidebar-overlay" aria-label="Zamknij menu" onClick={() => setMobileNavOpen(false)} /> : null}
       {/* Top Header & Global Bar */}
-      <header className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#07080a]/95 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center rounded-xl bg-white px-3 py-1.5 shadow-md border border-zinc-200">
+      <header className="ppg-topbar sticky top-0 z-30 border-b border-white/[0.08] bg-[#07080a]/95 backdrop-blur-xl">
+        <div className="ppg-topbar-inner mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+          <button type="button" className="ppg-mobile-menu-trigger" aria-label="Otwórz menu" onClick={() => setMobileNavOpen(true)}><Menu className="h-5 w-5" /></button>
+          <div className="ppg-header-brand flex items-center gap-4">
+            <div className="ppg-topbar-logo flex items-center rounded-xl bg-white px-3 py-1.5 shadow-md border border-zinc-200">
               <Image
                 src="/logo.png"
                 alt="Logo projektu"
@@ -1726,6 +2170,11 @@ export default function PPGscopeApp() {
                 Kategoryzacja tematyczna i analityka lokalności (C / CL / L)
               </p>
             </div>
+          </div>
+
+          <div className="ppg-topbar-current hidden md:flex">
+            <span>PPGSCOPE / {activeNavItem?.label ?? "Panel"}</span>
+            <strong>{periodLabel}</strong>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -1805,16 +2254,14 @@ export default function PPGscopeApp() {
               <span className="hidden md:inline">Eksport CSV</span>
             </button>
 
-            {/* Master Project Spec DOCX Download Link */}
-            <a
-              href="/docs/PPGscope_Projekt_Docelowy_Master_Architecture.docx"
-              download="PPGscope_Projekt_Docelowy_Master_Architecture.docx"
-              className="rounded-xl border border-teal-500/30 bg-teal-500/10 px-3 py-1.5 text-xs text-teal-300 hover:bg-teal-500/20 hover:text-white transition-all flex items-center gap-1.5 font-mono"
-              title="Pobierz pełny projekt docelowy i architekturę systemu PPGscope (Word .DOCX)"
+            <button
+              onClick={() => { setWallScene("network"); setWallMode(true); }}
+              className="rounded-xl border border-teal-400/30 bg-teal-400/10 px-3 py-1.5 text-xs font-medium text-teal-200 hover:bg-teal-400/20 transition-all flex items-center gap-1.5"
+              title="Otwórz prezentacyjny tryb The Wall"
             >
-              <FileText className="h-3.5 w-3.5 text-teal-400" />
-              <span className="hidden lg:inline">Projekt (.DOCX)</span>
-            </a>
+              <Monitor className="h-3.5 w-3.5" />
+              <span className="hidden md:inline">The Wall</span>
+            </button>
 
             {/* Settings Modal Button */}
             <button
@@ -1827,7 +2274,8 @@ export default function PPGscopeApp() {
 
             {/* Session Lock Button */}
             <button
-              onClick={() => setIsAuthenticated(false)}
+              onClick={handleLogout}
+              aria-label="Zablokuj sesję analityczną"
               className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
             >
               <Lock className="h-3 w-3" />
@@ -1837,7 +2285,7 @@ export default function PPGscopeApp() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="mx-auto flex max-w-7xl overflow-x-auto px-4 sm:px-6 border-t border-white/[0.04]">
+        <div className="ppg-legacy-navigation mx-auto flex max-w-7xl overflow-x-auto px-4 sm:px-6 border-t border-white/[0.04]">
           <nav className="flex space-x-1 py-1.5 text-xs font-medium">
             <button
               onClick={() => setActiveTab("domain_stats")}
@@ -1859,6 +2307,17 @@ export default function PPGscopeApp() {
               }`}
             >
               <Target className="h-3.5 w-3.5 text-amber-400" /> Przegląd zarządczy i KPI (7:30)
+            </button>
+
+            <button
+              onClick={() => setActiveTab("forensics")}
+              className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
+                activeTab === "forensics"
+                  ? "bg-amber-500/20 text-amber-200 border border-amber-500/40"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+              }`}
+            >
+              <Shield className="h-3.5 w-3.5 text-amber-400" /> Szyba śledcza
             </button>
 
             <button
@@ -1966,7 +2425,11 @@ export default function PPGscopeApp() {
       {/* Main Container */}
       <main className="mx-auto max-w-7xl p-4 sm:p-6 space-y-6">
 
+        <DataTrustNotice provenance={provenance} />
+        <IngestStatusCard status={ingestStatus} />
+
         {/* Global Context Bar: Searchable 546-Medium Selector + Locality Toggles */}
+        {activeTab !== "forensics" && (
         <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Medium Selector Dropdown + Instant Search */}
@@ -2109,11 +2572,12 @@ export default function PPGscopeApp() {
             </div>
           )}
         </div>
+        )}
 
         {/* ================================================================= */}
         {/* SINGLE MEDIUM 360-DEGREE DIAGNOSTIC PANEL (ALL CRITERIA AT ONCE) */}
         {/* ================================================================= */}
-        {selectedPortalFullAudit && activeTab !== "compare" && (
+        {selectedPortalFullAudit && activeTab !== "compare" && activeTab !== "forensics" && (
           <div className="rounded-2xl border border-teal-500/30 bg-gradient-to-br from-teal-500/[0.07] via-[#0c0e12] to-[#0c0e12] p-5 space-y-4 shadow-xl">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
               <div>
@@ -2338,6 +2802,11 @@ export default function PPGscopeApp() {
             </div>
           </div>
         )}
+
+        {/* ================================================================= */}
+        {/* TAB: SZYBA ŚLEDCZA / LIVE FORENSICS OSINT */}
+        {/* ================================================================= */}
+        {activeTab === "forensics" && <ForensicsPanel />}
 
         {/* ================================================================= */}
         {/* TAB: 18 DZIEDZIN I LOKALNOŚĆ (MAIN VIEW) */}
@@ -2643,7 +3112,7 @@ export default function PPGscopeApp() {
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-500">
-                  Zdolność redakcji do 'przepakowywania' tematów ogólnopolskich na konkretne przykłady lokalne
+                  Zdolność redakcji do &apos;przepakowywania&apos; tematów ogólnopolskich na konkretne przykłady lokalne
                 </p>
               </div>
             </div>
@@ -3317,6 +3786,13 @@ export default function PPGscopeApp() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/[0.05]">
+                        {parsedInternalRows.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="py-8 px-2.5 text-center text-zinc-400">
+                              Brak danych wewnętrznych. Wklej wiersze CSV obok albo wczytaj plik w Ustawieniach.
+                            </td>
+                          </tr>
+                        )}
                         {parsedInternalRows.map((r, idx) => (
                           <tr key={idx} className="hover:bg-white/[0.03]">
                             <td className="py-2.5 px-2.5">
@@ -4572,13 +5048,211 @@ export default function PPGscopeApp() {
         {activeTab === "charts" && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-2">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <PieChart className="h-5 w-5 text-teal-400" /> Centrum Wykresów Graficznych i Wizualizacji Danych
-              </h2>
-              <p className="text-xs text-zinc-400">
-                Graficzne podsumowanie struktury mediów, rozkładu lokalności oraz kaskad depeszowych.
-              </p>
+                  </h2>
+                  <p className="mt-1 max-w-3xl text-xs text-zinc-400">
+                    Wielowarstwowy atlas sieci PPG: wolumen, tematy, lokalność, regiony, żywotność portali i przepływ informacji.
+                    Wszystkie widoki korzystają z bieżącego zakresu danych i wybranego medium.
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2 font-mono text-[10px] text-zinc-400">
+                  <span className="rounded-lg border border-teal-500/20 bg-teal-500/10 px-2.5 py-1.5 text-teal-300">{chartDomains.length || 18} dziedzin</span>
+                  <span className="rounded-lg border border-white/[0.08] bg-black/30 px-2.5 py-1.5">{chartRegions.length || 16} regionów</span>
+                  <span className="rounded-lg border border-white/[0.08] bg-black/30 px-2.5 py-1.5">{chartPortals.length || 547} portali</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-4">
+                <span className="mr-1 text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">Widoki:</span>
+                {([
+                  ["all", "Wszystkie"],
+                  ["content", "Treść i tematy"],
+                  ["network", "Sieć i regiony"],
+                  ["operations", "Operacje i ryzyko"],
+                ] as [ChartView, string][]).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setChartView(value)}
+                    className={`rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all ${
+                      chartView === value
+                        ? "border-teal-400/40 bg-teal-400/15 text-teal-200"
+                        : "border-white/[0.08] bg-black/20 text-zinc-400 hover:border-white/[0.16] hover:text-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                { label: "Publikacje w zakresie", value: domainBreakdown.totalCount.toLocaleString("pl-PL"), note: selectedMediumDomain === "ALL" ? "cała sieć" : selectedMediumDomain, tone: "text-teal-300" },
+                { label: "Udział lokalny", value: `${domainBreakdown.localContentShare}%`, note: "L + CL / wszystkie", tone: "text-emerald-300" },
+                { label: "Największa dziedzina", value: chartDomains[0]?.name || "—", note: chartDomains[0] ? `${chartDomains[0].pct}% zakresu` : "brak danych", tone: "text-amber-300" },
+                { label: "Średnia unikalność", value: `${data?.portal_vitality_audit?.network_avg_uniqueness_pct ?? 31.4}%`, note: "audyt portali", tone: "text-sky-300" },
+              ].map((metric) => (
+                <div key={metric.label} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/70 p-4">
+                  <span className="block text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">{metric.label}</span>
+                  <strong className={`mt-2 block truncate text-xl font-semibold ${metric.tone}`}>{metric.value}</strong>
+                  <span className="mt-1 block truncate text-[11px] font-mono text-zinc-500">{metric.note}</span>
+                </div>
+              ))}
+            </div>
+
+            {(chartView === "all" || chartView === "content") && (
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <ChartPanel title="Wolumen publikacji w czasie" icon={Activity} meta={`${chartTimeseries.length} dni · globalnie`}>
+                  <div className="space-y-3">
+                    <svg viewBox="0 0 720 230" className="h-auto w-full" role="img" aria-label="Wolumen publikacji i treści lokalnych w czasie">
+                      {[0, 1, 2, 3].map((step) => {
+                        const y = 28 + step * 48;
+                        return <line key={step} x1="42" x2="700" y1={y} y2={y} stroke="rgba(159,186,199,.10)" strokeDasharray="3 5" />;
+                      })}
+                      {chartTimeseries.length > 1 && (() => {
+                        const max = chartMax(chartTimeseries.map((point) => point.total));
+                        const points = chartTimeseries.map((point, index) => `${42 + (index / (chartTimeseries.length - 1)) * 658},${190 - (point.total / max) * 150}`).join(" ");
+                        const localPoints = chartTimeseries.map((point, index) => `${42 + (index / (chartTimeseries.length - 1)) * 658},${190 - (point.lokalne / max) * 150}`).join(" ");
+                        return (
+                          <>
+                            <polyline points={`${points} 700,190 42,190`} fill="rgba(87,224,197,.08)" stroke="none" />
+                            <polyline points={points} fill="none" stroke="#57e0c5" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+                            <polyline points={localPoints} fill="none" stroke="#75b8ff" strokeWidth="2" strokeDasharray="5 4" strokeLinejoin="round" />
+                            {[0, Math.floor(chartTimeseries.length / 2), chartTimeseries.length - 1].map((index) => {
+                              const point = chartTimeseries[index];
+                              return <text key={point.date} x={42 + (index / (chartTimeseries.length - 1)) * 658} y="216" textAnchor={index === 0 ? "start" : index === chartTimeseries.length - 1 ? "end" : "middle"} fill="#70808a" fontSize="10" fontFamily="monospace">{point.label}</text>;
+                            })}
+                          </>
+                        );
+                      })()}
+                      <text x="42" y="18" fill="#70808a" fontSize="10" fontFamily="monospace">art./dzień</text>
+                    </svg>
+                    <div className="flex flex-wrap gap-4 text-[11px] font-mono text-zinc-400">
+                      <span className="flex items-center gap-2"><i className="h-2 w-5 rounded-full bg-teal-300" /> Wszystkie publikacje</span>
+                      <span className="flex items-center gap-2"><i className="h-0.5 w-5 border-t-2 border-dashed border-blue-300" /> Treści lokalne</span>
+                      <span className="ml-auto text-zinc-500">Szczyt: {chartTimeseries.length ? Math.max(...chartTimeseries.map((point) => point.total)).toLocaleString("pl-PL") : "—"}</span>
+                    </div>
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Mix tematów dzień po dniu" icon={Layers} meta="ostatnie 14 obserwacji">
+                  <div className="space-y-3">
+                    <div className="flex h-44 items-end gap-1.5 border-b border-l border-white/[0.08] px-2 pb-0">
+                      {chartTimeseries.slice(-14).map((point) => {
+                        const topics = [point.lokalne, point.sport, point.prawo, point.gospodarka, point.spoleczenstwo, point.polityka];
+                        const total = chartMax(topics);
+                        return (
+                          <div key={point.date} className="group relative flex h-full flex-1 flex-col justify-end gap-px" title={`${point.label}: ${point.total} publikacji`}>
+                            {topics.map((topic, index) => <span key={index} className={`block min-h-[2px] rounded-sm ${["bg-teal-400", "bg-blue-400", "bg-amber-400", "bg-rose-400", "bg-purple-400", "bg-zinc-400"][index]}`} style={{ height: `${(topic / total) * 100}%` }} />)}
+                            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] font-mono text-zinc-600">{point.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 text-[10px] font-mono text-zinc-400">
+                      {["Lokalne", "Sport", "Prawo", "Gospodarka", "Społeczeństwo", "Polityka"].map((label, index) => <span key={label} className="flex items-center gap-1.5"><i className={`h-2 w-2 rounded-sm ${["bg-teal-400", "bg-blue-400", "bg-amber-400", "bg-rose-400", "bg-purple-400", "bg-zinc-400"][index]}`} />{label}</span>)}
+                    </div>
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Ranking 18 dziedzin" icon={BarChart3} meta="udział w zakresie" className="xl:col-span-2">
+                  <div className="grid grid-cols-1 gap-x-8 gap-y-2 md:grid-cols-2">
+                    {chartDomains.slice(0, 18).map((domain, index) => {
+                      const width = chartScale(domain.pct, chartMax(chartDomains.map((item) => item.pct)), 100);
+                      return (
+                        <div key={domain.slug} className="grid grid-cols-[24px_minmax(0,1fr)_50px] items-center gap-2 text-xs">
+                          <span className="font-mono text-zinc-600">{String(index + 1).padStart(2, "0")}</span>
+                          <div className="min-w-0">
+                            <div className="mb-1 flex justify-between gap-2 font-mono"><span className="truncate text-zinc-300">{domain.name}</span><span className="text-zinc-500">{domain.total.toLocaleString("pl-PL")}</span></div>
+                            <div className="h-2 overflow-hidden rounded-full bg-white/[0.05]"><div className={`h-full rounded-full ${index < 3 ? "bg-teal-400" : "bg-teal-400/55"}`} style={{ width: `${width}%` }} /></div>
+                          </div>
+                          <span className="text-right font-mono font-bold text-teal-300">{domain.pct}%</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Macierz dziedzin i lokalności" icon={Compass} meta="C · CL · L" className="xl:col-span-2">
+                  <div className="overflow-x-auto">
+                    <div className="min-w-[620px] space-y-1.5">
+                      <div className="grid grid-cols-[minmax(180px,1fr)_repeat(3,1fr)] gap-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500"><span>Dziedzina</span><span className="text-center">C centralne</span><span className="text-center">CL rozwinięcie</span><span className="text-center">L lokalne</span></div>
+                      {chartDomains.map((domain) => {
+                        const maxCell = chartMax(chartDomains.flatMap((item) => [item.countC, item.countCL, item.countL]));
+                        return <div key={domain.slug} className="grid grid-cols-[minmax(180px,1fr)_repeat(3,1fr)] gap-1"><span className="truncate py-1 text-[11px] text-zinc-400">{domain.code} · {domain.name}</span>{[domain.countC, domain.countCL, domain.countL].map((value, index) => <span key={index} className="rounded-md px-2 py-1 text-center font-mono text-[10px] text-zinc-200" style={{ backgroundColor: `rgba(${index === 2 ? "87,224,197" : index === 1 ? "117,184,255" : "148,163,184"},${Math.min(.65, .08 + value / maxCell * .57)})` }}>{value.toLocaleString("pl-PL")}</span>)}</div>;
+                      })}
+                    </div>
+                  </div>
+                </ChartPanel>
+              </div>
+            )}
+
+            {(chartView === "all" || chartView === "network") && (
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <ChartPanel title="Autonomia i syndykacja województw" icon={Map} meta={`${chartRegions.length || 16} regionów`} className="xl:col-span-2">
+                  <div className="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">
+                    {chartRegions.map((region) => <div key={region.region} className="space-y-1.5"><div className="flex justify-between gap-3 text-[11px] font-mono"><span className="truncate text-zinc-300">{region.region}</span><span className="shrink-0 text-zinc-500">{region.articles_count.toLocaleString("pl-PL")} art.</span></div><div className="relative h-2 overflow-hidden rounded-full bg-white/[0.05]"><div className="absolute inset-y-0 left-0 rounded-full bg-emerald-400/80" style={{ width: `${region.autonomy_index_pct}%` }} /><div className="absolute inset-y-0 left-0 rounded-full border-r-2 border-amber-300" style={{ width: `${region.syndicated_pct}%` }} /></div><div className="flex justify-between text-[9px] font-mono text-zinc-600"><span>autonomia {region.autonomy_index_pct}%</span><span>syndykacja {region.syndicated_pct}%</span></div></div>)}
+                  </div>
+                  <div className="flex flex-wrap gap-4 border-t border-white/[0.06] pt-3 text-[10px] font-mono text-zinc-500"><span className="flex items-center gap-2"><i className="h-2 w-5 rounded-full bg-emerald-400/80" /> indeks autonomii</span><span className="flex items-center gap-2"><i className="h-2 w-5 rounded-full border-r-2 border-amber-300 bg-white/[0.05]" /> udział syndykacji</span></div>
+                </ChartPanel>
+
+                <ChartPanel title="Mapa: wolumen × autonomia" icon={Target} meta="każdy punkt = województwo">
+                  <svg viewBox="0 0 520 260" className="h-auto w-full" role="img" aria-label="Wolumen publikacji względem autonomii województw">
+                    <line x1="48" y1="220" x2="492" y2="220" stroke="rgba(159,186,199,.22)" /><line x1="48" y1="28" x2="48" y2="220" stroke="rgba(159,186,199,.22)" />
+                    {[0, 1, 2, 3].map((step) => <line key={step} x1="48" x2="492" y1={220 - step * 64} y2={220 - step * 64} stroke="rgba(159,186,199,.08)" strokeDasharray="3 5" />)}
+                    {chartRegions.map((region) => { const max = chartMax(chartRegions.map((item) => item.articles_count)); const x = 56 + (region.autonomy_index_pct / 100) * 425; const y = 210 - (region.articles_count / max) * 170; return <g key={region.region}><circle cx={x} cy={y} r="5" fill="#57e0c5" fillOpacity=".85" stroke="#07100f" strokeWidth="2" /><text x={x + 8} y={y + 3} fill="#8e9da7" fontSize="9" fontFamily="monospace">{region.region.slice(0, 3)}</text></g>; })}
+                    <text x="48" y="246" fill="#70808a" fontSize="10" fontFamily="monospace">niski indeks autonomii</text><text x="492" y="246" textAnchor="end" fill="#70808a" fontSize="10" fontFamily="monospace">wysoki indeks autonomii</text><text x="48" y="18" fill="#70808a" fontSize="10" fontFamily="monospace">wolumen publikacji ↑</text>
+                  </svg>
+                </ChartPanel>
+
+                <ChartPanel title="Segmenty portfela" icon={Layers} meta={`${chartSegments.length} segmentów`}>
+                  <div className="space-y-3">
+                    {chartSegments.map((segment, index) => <div key={segment.segment} className="space-y-1.5"><div className="flex justify-between gap-3 text-[11px] font-mono"><span className="truncate text-zinc-300">{segment.segment.replaceAll("_", " ")}</span><span className="text-teal-300">{segment.share_pct}%</span></div><div className="h-2 overflow-hidden rounded-full bg-white/[0.05]"><div className={`h-full rounded-full ${index === 0 ? "bg-teal-400" : index === 1 ? "bg-blue-400" : "bg-amber-400"}`} style={{ width: `${Math.max(1, segment.share_pct)}%` }} /></div><div className="flex justify-between text-[9px] font-mono text-zinc-600"><span>{segment.portals_count} portali</span><span>autonomia {segment.autonomy_index_pct}%</span></div></div>)}
+                  </div>
+                </ChartPanel>
+              </div>
+            )}
+
+            {(chartView === "all" || chartView === "operations") && (
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                <ChartPanel title="Żywotność sieci — rozkład statusów" icon={Activity} meta="audyt portali">
+                  <div className="space-y-4">
+                    <div className="flex h-8 overflow-hidden rounded-xl">
+                      {chartStatusBuckets.map((bucket, index) => <div key={bucket.key} className={["bg-emerald-400", "bg-sky-400", "bg-amber-400", "bg-purple-400", "bg-rose-400"][index]} style={{ width: `${bucket.pct}%` }} title={`${bucket.label}: ${bucket.pct}%`} />)}
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {chartStatusBuckets.map((bucket, index) => <div key={bucket.key} className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.05] bg-black/30 px-3 py-2 text-[11px] font-mono"><span className="flex min-w-0 items-center gap-2 text-zinc-400"><i className={`h-2 w-2 shrink-0 rounded-full ${["bg-emerald-400", "bg-sky-400", "bg-amber-400", "bg-purple-400", "bg-rose-400"][index]}`} /><span className="truncate">{bucket.label.split(" (")[0]}</span></span><strong className="shrink-0 text-white">{bucket.count} · {bucket.pct}%</strong></div>)}
+                    </div>
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Macierz żywotności portali" icon={Target} meta="unikalność × produkcja">
+                  <svg viewBox="0 0 520 270" className="h-auto w-full" role="img" aria-label="Macierz żywotności portali według unikalności i liczby publikacji">
+                    <line x1="46" y1="230" x2="496" y2="230" stroke="rgba(159,186,199,.22)" /><line x1="46" y1="20" x2="46" y2="230" stroke="rgba(159,186,199,.22)" />
+                    {[25, 50, 75].map((tick) => <line key={tick} x1={46 + tick * 4.5} x2={46 + tick * 4.5} y1="20" y2="230" stroke="rgba(159,186,199,.07)" strokeDasharray="3 5" />)}
+                    {chartPortals.slice(0, 90).map((portal) => { const max = chartMax(chartPortals.map((item) => item.daily_articles_count)); const x = 48 + (portal.uniqueness_pct / 100) * 440; const y = 220 - (portal.daily_articles_count / max) * 185; const colors: Record<string, string> = { AKTYWNY_UNIKALNY: "#57e0c5", AKTYWNY_SYNDYKAT: "#75b8ff", LEDWO_ZYWY: "#f6c56b", ZOMBIE_AUTOMAT: "#c084fc", MARTWY: "#ff7f87" }; return <circle key={portal.domain} cx={x} cy={y} r="3" fill={colors[portal.vitality_status] || "#8e9da7"} fillOpacity=".72" />; })}
+                    <text x="46" y="252" fill="#70808a" fontSize="10" fontFamily="monospace">0% unikalności</text><text x="496" y="252" textAnchor="end" fill="#70808a" fontSize="10" fontFamily="monospace">100%</text><text x="46" y="14" fill="#70808a" fontSize="10" fontFamily="monospace">publikacje/dobę ↑</text>
+                  </svg>
+                  <div className="flex flex-wrap gap-3 text-[10px] font-mono text-zinc-500">{[["bg-emerald-300", "unikalne"], ["bg-sky-300", "syndykat"], ["bg-amber-300", "śladowe"], ["bg-purple-300", "zombie"], ["bg-rose-300", "martwe"]].map(([color, label]) => <span key={label} className="flex items-center gap-1.5"><i className={`h-2 w-2 rounded-full ${color}`} />{label}</span>)}</div>
+                </ChartPanel>
+
+                <ChartPanel title="Ekspozycja instytucji" icon={Users} meta={`HHI ${data?.hhi_entities?.score?.toFixed(3) ?? "0.142"}`}>
+                  <div className="space-y-3">
+                    {chartEntities.slice(0, 8).map((entity, index) => <div key={entity.name} className="grid grid-cols-[24px_minmax(0,1fr)_54px] items-center gap-2"><span className="font-mono text-[10px] text-zinc-600">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0"><div className="mb-1 truncate text-[11px] text-zinc-300">{entity.name}</div><div className="h-2 overflow-hidden rounded-full bg-white/[0.05]"><div className="h-full rounded-full bg-blue-400/80" style={{ width: `${(entity.count / chartMax(chartEntities.map((item) => item.count))) * 100}%` }} /></div></div><span className="text-right font-mono text-[10px] text-white">{entity.count}</span></div>)}
+                  </div>
+                </ChartPanel>
+
+                <ChartPanel title="Prędkość kaskad depeszowych" icon={Zap} meta="zasięg / godzina">
+                  <div className="flex h-48 items-end gap-3 border-b border-l border-white/[0.08] px-3 pb-0">
+                    {(data.wire_cascades || []).map((wire) => { const velocity = Math.round((wire.reach / Math.max(.1, wire.duration_hours)) * 10) / 10; const max = chartMax((data.wire_cascades || []).map((item) => item.reach / Math.max(.1, item.duration_hours))); return <div key={wire.id} className="group relative flex h-full flex-1 flex-col justify-end"><div className="mb-1 text-center text-[10px] font-mono text-amber-300 opacity-0 transition-opacity group-hover:opacity-100">{velocity}</div><div className="rounded-t-lg bg-gradient-to-t from-amber-500/80 to-amber-300" style={{ height: `${Math.max(5, (velocity / max) * 82)}%` }} /><span className="absolute -bottom-5 left-1/2 max-w-[70px] -translate-x-1/2 truncate text-[8px] font-mono text-zinc-600">{wire.origin_outlet}</span></div>; })}
+                  </div>
+                  <p className="pt-2 text-[10px] font-mono text-zinc-500">Najwyższy słupek oznacza historię, która dotarła do największej liczby portali w najkrótszym czasie.</p>
+                </ChartPanel>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -6335,7 +7009,7 @@ export default function PPGscopeApp() {
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
               <div className="flex items-center gap-2.5">
                 <Settings className="h-5 w-5 text-teal-400" />
-                <h2 className="text-base font-semibold text-white">Konfiguracja kluczy API i bazy danych</h2>
+                <h2 className="text-base font-semibold text-white">Stan usług serwerowych</h2>
               </div>
               <button onClick={() => setIsSettingsOpen(false)} className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/[0.06] hover:text-white">
                 <X className="h-4 w-4" />
@@ -6354,17 +7028,14 @@ export default function PPGscopeApp() {
                   <label className="font-semibold text-zinc-200 flex items-center gap-1.5">
                     <Sparkles className="h-4 w-4 text-teal-400" /> Google Gemini API (AI Classifier)
                   </label>
-                  <button onClick={handleTestGemini} disabled={geminiTestStatus === "testing"} className="rounded bg-teal-500/20 border border-teal-500/40 px-2.5 py-1 text-[11px] font-medium text-teal-300">
+                  <button onClick={handleTestGemini} disabled={geminiTestStatus === "testing" || !geminiConfigured} className="rounded bg-teal-500/20 border border-teal-500/40 px-2.5 py-1 text-[11px] font-medium text-teal-300">
                     {geminiTestStatus === "testing" ? "Sprawdzanie..." : "Testuj połączenie Gemini"}
                   </button>
                 </div>
-                <input
-                  type="text"
-                  value={geminiApiKey}
-                  onChange={(e) => setGeminiApiKey(e.target.value)}
-                  placeholder="Klucz API Gemini..."
-                  className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-2 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
-                />
+                <p className="text-[11px] text-zinc-400">Klucz jest przechowywany wyłącznie po stronie serwera i nie jest wysyłany do przeglądarki.</p>
+                <p className={`text-[11px] font-mono ${geminiConfigured ? "text-emerald-400" : "text-amber-300"}`}>
+                  {geminiConfigured ? "Konfiguracja serwerowa aktywna" : "Brak konfiguracji serwerowej"}
+                </p>
                 {geminiTestStatus === "success" && (
                   <p className="text-[11px] text-emerald-400 flex items-center gap-1 pt-1 font-mono">
                     <Check className="h-3 w-3" /> Połączenie aktywne (Model: gemini-3.8-flash, opóźnienie: {geminiLatency} ms)
@@ -6374,36 +7045,64 @@ export default function PPGscopeApp() {
 
               <div className="space-y-2 rounded-xl border border-white/[0.06] bg-black/40 p-4">
                 <label className="font-semibold text-zinc-200 block">Baza danych PostgreSQL / Supabase</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-zinc-400 text-[11px] block mb-1">Supabase URL:</span>
-                    <input
-                      type="text"
-                      value={supabaseUrl}
-                      onChange={(e) => setSupabaseUrl(e.target.value)}
-                      className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-1.5 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <span className="text-zinc-400 text-[11px] block mb-1">Publishable / Anon Key:</span>
-                    <input
-                      type="text"
-                      value={supabaseAnonKey}
-                      onChange={(e) => setSupabaseAnonKey(e.target.value)}
-                      className="w-full rounded-lg border border-white/[0.1] bg-black/60 py-1.5 px-3 font-mono text-xs text-white focus:border-teal-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
+                <p className="text-[11px] text-zinc-400">URL i klucz są zarządzane w środowisku serwerowym. Nie zapisujemy ich w localStorage ani w kodzie klienta.</p>
                 <div className="flex items-center justify-between pt-1">
-                  <button onClick={handleTestSupabase} disabled={supabaseTestStatus === "testing" || !supabaseAnonKey} className="rounded bg-sky-500/20 border border-sky-500/40 px-2.5 py-1 text-[11px] font-medium text-sky-300">
+                  <button onClick={handleTestSupabase} disabled={supabaseTestStatus === "testing" || !supabaseConfigured} className="rounded bg-sky-500/20 border border-sky-500/40 px-2.5 py-1 text-[11px] font-medium text-sky-300">
                     {supabaseTestStatus === "testing" ? "Sprawdzanie..." : "Testuj połączenie Supabase"}
                   </button>
+                  <span className={`text-[11px] font-mono ${supabaseConfigured ? "text-emerald-400" : "text-amber-300"}`}>
+                    {supabaseConfigured ? "Konfiguracja serwerowa aktywna" : "Brak konfiguracji serwerowej"}
+                  </span>
                   {supabaseTestStatus === "success" && (
                     <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-mono">
                       <Check className="h-3 w-3" /> Połączenie aktywne ({supabaseRecordsCount ?? 0} rekordów, {supabaseLatency} ms)
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-3 rounded-xl border border-teal-500/30 bg-teal-500/[0.04] p-4">
+                <label className="font-semibold text-zinc-200 flex items-center gap-1.5" htmlFor="internal-csv-settings">
+                  <Database className="h-4 w-4 text-teal-400" /> Dane wewnętrzne (GA4, GSC, Piano Strefa Plus, inne zrzuty CSV)
+                </label>
+                <p className="text-[11px] text-zinc-400">
+                  Wczytaj plik CSV albo wklej wiersze w formacie <span className="font-mono">url,pageviews,engaged_time_sec,strefa_plus_conversions</span>.
+                  Dane trafiają do adaptera w panelu analitycznym i żyją wyłącznie w tej sesji przeglądarki. Nie są wysyłane na serwer ani zapisywane.
+                </p>
+                <textarea
+                  id="internal-csv-settings"
+                  rows={6}
+                  value={internalCsvInput}
+                  onChange={(e) => {
+                    setInternalCsvInput(e.target.value);
+                    setInternalCsvNotice(null);
+                  }}
+                  className="w-full rounded-xl border border-white/[0.12] bg-black/80 p-3 font-mono text-xs text-teal-200 focus:border-teal-400 focus:outline-none"
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="cursor-pointer rounded bg-teal-500/20 border border-teal-500/40 px-2.5 py-1 text-[11px] font-medium text-teal-300 focus-within:ring-2 focus-within:ring-teal-400">
+                    Wczytaj plik CSV
+                    <input type="file" accept=".csv,text/csv,text/plain" onChange={handleInternalCsvFile} className="sr-only" />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInternalCsvInput(INTERNAL_CSV_HEADER);
+                      setInternalCsvNotice({ kind: "ok", text: "Dane wewnętrzne wyczyszczone." });
+                    }}
+                    className="rounded border border-white/[0.12] px-2.5 py-1 text-[11px] font-medium text-zinc-300 hover:text-white"
+                  >
+                    Wyczyść dane
+                  </button>
+                  <span className="text-[11px] font-mono text-zinc-300" aria-live="polite">
+                    Wierszy: {internalRowsCount}
+                  </span>
+                </div>
+                {internalCsvNotice && (
+                  <p role="status" className={`text-[11px] font-mono ${internalCsvNotice.kind === "ok" ? "text-emerald-400" : "text-rose-300"}`}>
+                    {internalCsvNotice.text}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -6412,7 +7111,7 @@ export default function PPGscopeApp() {
                 Anuluj
               </button>
               <button onClick={handleSaveSettings} className="rounded-xl bg-teal-500 px-4 py-2 text-xs font-semibold text-black hover:bg-teal-400 transition-all shadow-md shadow-teal-500/20">
-                Zapisz konfigurację
+                Zamknij
               </button>
             </div>
           </div>

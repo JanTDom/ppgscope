@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireApiSession } from "../../../../lib/api-auth";
 
 interface LiveArticleItem {
   id: string;
@@ -42,7 +43,7 @@ const LOCALITY_NAME_MAP: Record<string, string> = {
   C: "Centralne",
 };
 
-function classifyInFlight(title: string, lead: string, portalDomain: string): { domain: string; locality: "C" | "CL" | "L" } {
+function classifyInFlight(title: string, lead: string): { domain: string; locality: "C" | "CL" | "L" } {
   const text = `${title} ${lead}`.toLowerCase();
 
   // Fast domain classification rules
@@ -104,6 +105,9 @@ function classifyInFlight(title: string, lead: string, portalDomain: string): { 
 }
 
 export async function GET(req: NextRequest) {
+  const unauthorized = requireApiSession(req);
+  if (unauthorized) return unauthorized;
+
   try {
     const { searchParams } = new URL(req.url);
     const domain = searchParams.get("domain") || "gazetakrakowska.pl";
@@ -118,8 +122,6 @@ export async function GET(req: NextRequest) {
     };
 
     let xmlText = "";
-    let sourceUsed = "direct_rss";
-
     // 1. Try direct RSS feed
     try {
       const controller = new AbortController();
@@ -150,11 +152,11 @@ export async function GET(req: NextRequest) {
 
         if (gResp.ok) {
           xmlText = await gResp.text();
-          sourceUsed = "google_news_live_stream";
         }
-      } catch (err: any) {
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Nieznany błąd połączenia z siecią.";
         return NextResponse.json(
-          { ok: false, error: `Błąd połączenia z siecią: ${err?.message}` },
+          { ok: false, error: `Błąd połączenia z siecią: ${message}` },
           { status: 502 }
         );
       }
@@ -190,7 +192,7 @@ export async function GET(req: NextRequest) {
       const rawPubDate = pubDateMatch ? pubDateMatch[1].trim() : new Date().toISOString();
 
       if (rawTitle && rawLink) {
-        const { domain: dSlug, locality: loc } = classifyInFlight(rawTitle, rawDesc, domain);
+        const { domain: dSlug, locality: loc } = classifyInFlight(rawTitle, rawDesc);
         items.push({
           id: `live-${counter++}`,
           title: rawTitle,
@@ -217,9 +219,10 @@ export async function GET(req: NextRequest) {
       articles: items,
       note: "Publikacje pobrane w locie wprost z serwera wydawcy dla bieżącej sesji. Żadne artykuły nie są zapisywane w bazie danych.",
     });
-  } catch (err: any) {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Błąd pobierania publikacji w locie.";
     return NextResponse.json(
-      { ok: false, error: err?.message || "Błąd pobierania publikacji w locie." },
+      { ok: false, error: message },
       { status: 500 }
     );
   }

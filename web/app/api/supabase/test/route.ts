@@ -1,22 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireApiSession } from "../../../../lib/api-auth";
 
 export async function POST(req: NextRequest) {
+  const unauthorized = requireApiSession(req);
+  if (unauthorized) return unauthorized;
+
   try {
-    const body = await req.json().catch(() => ({}));
     const effectiveUrl =
-      body.url ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      process.env.SUPABASE_URL ||
-      "https://nkeoyouxtschemvpqgmq.supabase.co";
+      process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 
     const effectiveKey =
-      body.anonKey ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      process.env.SUPABASE_ANON_KEY;
+      process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!effectiveKey) {
+    if (!effectiveUrl || !effectiveKey) {
       return NextResponse.json(
-        { ok: false, error: "Brak klucza anonimowego Supabase." },
+        { ok: false, error: "Supabase nie jest skonfigurowany na serwerze." },
         { status: 400 }
       );
     }
@@ -51,9 +49,10 @@ export async function POST(req: NextRequest) {
       records_count: count,
       message: `Połączenie z bazą Supabase aktywne (${count !== null ? count : 0} artykułów w tabeli)`,
     });
-  } catch (err: any) {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Błąd sieci podczas łączenia z Supabase.";
     return NextResponse.json(
-      { ok: false, error: err?.message || "Błąd sieci podczas łączenia z Supabase." },
+      { ok: false, error: message },
       { status: 500 }
     );
   }
