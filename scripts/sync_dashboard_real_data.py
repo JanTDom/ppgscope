@@ -13,6 +13,83 @@ import random
 
 repo_root = Path(__file__).resolve().parent.parent
 
+def generate_realistic_daily_timeseries(base_date: date = date(2026, 10, 18), days: int = 365):
+    """
+    Generates realistic, continuous timeseries data for PPG network.
+    Reflects genuine journalistic rhythms:
+    - Weekdays: heavy on politics, business, law & order; high total volume (~11 400 art/day).
+    - Fridays: transition to weekend events, increased traffic/law enforcement, preview of matches.
+    - Weekends: reduced newsroom staffing (~7 200 art/day); big surges in sport (league matchdays)
+      and community/lifestyle/culture; sharp drops in parliamentary politics and financial news.
+    - Natural day-to-day news cycle momentum with deterministic pseudo-random variation.
+    - Guarantees exact mathematical sum: sum(topics) == day_total.
+    """
+    rng = random.Random(42)
+    full_timeseries = []
+
+    for i in range(days - 1, -1, -1):
+        cur_date = base_date - timedelta(days=i)
+        w = cur_date.weekday()
+        is_weekend = w >= 5
+        base_vol = 7200 if is_weekend else 11400
+        jitter = rng.randint(-400, 450)
+        day_total = base_vol + jitter
+
+        if w in (1, 2, 3):  # Wt, Śr, Czw: szczyt prac sejmowych i aktywności gospodarczej
+            p_pol = 0.115 + rng.uniform(-0.015, 0.018)
+            p_gos = 0.068 + rng.uniform(-0.008, 0.010)
+            p_spo = 0.185 + rng.uniform(-0.012, 0.012)
+            p_spr = 0.038 + rng.uniform(-0.006, 0.008)
+            p_pra = 0.138 + rng.uniform(-0.008, 0.010)
+        elif w == 0:  # Poniedziałek: podsumowania sportowe, otwarcie tygodnia
+            p_pol = 0.098 + rng.uniform(-0.010, 0.012)
+            p_gos = 0.060 + rng.uniform(-0.006, 0.008)
+            p_spo = 0.190 + rng.uniform(-0.010, 0.012)
+            p_spr = 0.065 + rng.uniform(-0.008, 0.012)
+            p_pra = 0.142 + rng.uniform(-0.008, 0.010)
+        elif w == 4:  # Piątek: zapowiedzi weekendu, drogówka, kultura
+            p_pol = 0.082 + rng.uniform(-0.008, 0.010)
+            p_gos = 0.055 + rng.uniform(-0.006, 0.008)
+            p_spo = 0.198 + rng.uniform(-0.010, 0.012)
+            p_spr = 0.058 + rng.uniform(-0.006, 0.010)
+            p_pra = 0.155 + rng.uniform(-0.010, 0.012)
+        elif w == 5:  # Sobota: kolejka ligowa (sport), festyny, spadek polityki
+            p_pol = 0.048 + rng.uniform(-0.006, 0.008)
+            p_gos = 0.028 + rng.uniform(-0.004, 0.006)
+            p_spo = 0.225 + rng.uniform(-0.015, 0.015)
+            p_spr = 0.108 + rng.uniform(-0.012, 0.018)
+            p_pra = 0.152 + rng.uniform(-0.010, 0.012)
+        else:  # Niedziela: szczyt meczowy (sport), wywiady polityczne, styl życia
+            p_pol = 0.062 + rng.uniform(-0.008, 0.010)
+            p_gos = 0.024 + rng.uniform(-0.004, 0.005)
+            p_spo = 0.218 + rng.uniform(-0.012, 0.015)
+            p_spr = 0.122 + rng.uniform(-0.015, 0.020)
+            p_pra = 0.148 + rng.uniform(-0.010, 0.012)
+
+        counts = {
+            "polityka": int(day_total * p_pol),
+            "gospodarka": int(day_total * p_gos),
+            "spoleczenstwo": int(day_total * p_spo),
+            "sport": int(day_total * p_spr),
+            "prawo": int(day_total * p_pra),
+        }
+        counts["lokalne"] = day_total - sum(counts.values())
+
+        full_timeseries.append({
+            "date": cur_date.isoformat(),
+            "label": cur_date.strftime("%d.%m"),
+            "total": day_total,
+            "polityka": counts["polityka"],
+            "gospodarka": counts["gospodarka"],
+            "spoleczenstwo": counts["spoleczenstwo"],
+            "sport": counts["sport"],
+            "lokalne": counts["lokalne"],
+            "prawo": counts["prawo"],
+        })
+
+    return full_timeseries
+
+
 def sync_dashboard():
     with open(repo_root / "config" / "verified_domains.json", "r", encoding="utf-8") as f:
         verified_domains = json.load(f)
@@ -121,33 +198,12 @@ def sync_dashboard():
                         new_item["domain"] = dom
                         per_med[dom] = new_item
 
-    # 5. Expand daily_timeseries to 365 days
+    # 5. Expand daily_timeseries to 365 days of realistic, dynamic data
     base_date = date(2026, 10, 18)
-    full_timeseries = []
-    
-    # We will generate daily points from (base_date - 364 days) up to base_date
-    random.seed(42)
-    for i in range(364, -1, -1):
-        cur_date = base_date - timedelta(days=i)
-        is_weekend = cur_date.weekday() >= 5
-        base_vol = 7200 if is_weekend else 11400
-        jitter = random.randint(-400, 450)
-        day_total = base_vol + jitter
-        
-        full_timeseries.append({
-            "date": cur_date.isoformat(),
-            "label": cur_date.strftime("%d.%m"),
-            "total": day_total,
-            "polityka": int(day_total * 0.091),
-            "gospodarka": int(day_total * 0.059),
-            "spoleczenstwo": int(day_total * 0.192),
-            "sport": int(day_total * 0.030),
-            "lokalne": int(day_total * 0.417),
-            "prawo": int(day_total * 0.140),
-        })
+    full_timeseries = generate_realistic_daily_timeseries(base_date=base_date, days=365)
 
     data["daily_timeseries"] = full_timeseries
-    print(f"Expanded daily_timeseries to {len(full_timeseries)} days (was 30)")
+    print(f"Generated realistic daily_timeseries with {len(full_timeseries)} days")
 
     # Save to data/dashboard.json
     with open(data_path, "w", encoding="utf-8") as f:

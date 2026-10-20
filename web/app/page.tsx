@@ -5682,21 +5682,69 @@ export default function PPGscopeApp() {
                 </ChartPanel>
 
                 <ChartPanel title="Mix tematów dzień po dniu" icon={Layers} meta={`${chartTimeseries.length} dni · ${timePreset.toUpperCase()}`}>
-                  <div className="space-y-3">
-                    <div className="flex h-44 items-end gap-1.5 border-b border-l border-white/[0.08] px-2 pb-0">
-                      {chartTimeseries.map((point) => {
-                        const topics = [point.lokalne, point.sport, point.prawo, point.gospodarka, point.spoleczenstwo, point.polityka];
-                        const total = chartMax(topics);
-                        return (
-                          <div key={point.date} className="group relative flex h-full flex-1 flex-col justify-end gap-px" title={`${point.label}: ${point.total} publikacji`}>
-                            {topics.map((topic, index) => <span key={index} className={`block min-h-[2px] rounded-sm ${["bg-teal-400", "bg-blue-400", "bg-amber-400", "bg-rose-400", "bg-purple-400", "bg-zinc-400"][index]}`} style={{ height: `${(topic / total) * 100}%` }} />)}
-                            <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] font-mono text-zinc-600">{point.label}</span>
-                          </div>
-                        );
-                      })}
+                  <div className="space-y-4 pb-1">
+                    <div className={`flex h-44 items-end border-b border-l border-white/[0.08] px-2 pb-0 ${
+                      chartTimeseries.length > 90 ? "gap-[1px]" : chartTimeseries.length > 31 ? "gap-0.5" : chartTimeseries.length > 14 ? "gap-1" : "gap-1.5"
+                    }`}>
+                      {(() => {
+                        const TOPIC_SEGMENTS = [
+                          { key: "lokalne", label: "Lokalne", color: "bg-teal-400" },
+                          { key: "sport", label: "Sport", color: "bg-blue-400" },
+                          { key: "prawo", label: "Prawo", color: "bg-amber-400" },
+                          { key: "gospodarka", label: "Gospodarka", color: "bg-rose-400" },
+                          { key: "spoleczenstwo", label: "Społeczeństwo", color: "bg-purple-400" },
+                          { key: "polityka", label: "Polityka", color: "bg-zinc-400" },
+                        ] as const;
+
+                        const totalPoints = chartTimeseries.length;
+
+                        return chartTimeseries.map((point, index) => {
+                          const daySum = (point.lokalne || 0) + (point.sport || 0) + (point.prawo || 0) + (point.gospodarka || 0) + (point.spoleczenstwo || 0) + (point.polityka || 0) || point.total || 1;
+                          const showLabel = totalPoints <= 10
+                            ? true
+                            : totalPoints <= 31
+                              ? (index % 5 === 0 || index === totalPoints - 1)
+                              : [0, Math.floor(totalPoints * 0.25), Math.floor(totalPoints * 0.5), Math.floor(totalPoints * 0.75), totalPoints - 1].includes(index);
+
+                          const colTooltip = `${point.label} (${point.date}) · ${point.total.toLocaleString("pl-PL")} art.\n` +
+                            `• Lokalne: ${point.lokalne.toLocaleString("pl-PL")} (${((point.lokalne / daySum) * 100).toFixed(1)}%)\n` +
+                            `• Społeczeństwo: ${point.spoleczenstwo.toLocaleString("pl-PL")} (${((point.spoleczenstwo / daySum) * 100).toFixed(1)}%)\n` +
+                            `• Prawo: ${point.prawo.toLocaleString("pl-PL")} (${((point.prawo / daySum) * 100).toFixed(1)}%)\n` +
+                            `• Polityka: ${point.polityka.toLocaleString("pl-PL")} (${((point.polityka / daySum) * 100).toFixed(1)}%)\n` +
+                            `• Sport: ${point.sport.toLocaleString("pl-PL")} (${((point.sport / daySum) * 100).toFixed(1)}%)\n` +
+                            `• Gospodarka: ${point.gospodarka.toLocaleString("pl-PL")} (${((point.gospodarka / daySum) * 100).toFixed(1)}%)`;
+
+                          return (
+                            <div key={point.date} className="group relative flex h-full flex-1 flex-col justify-end gap-px cursor-pointer" title={colTooltip}>
+                              {TOPIC_SEGMENTS.map((seg) => {
+                                const val = point[seg.key] ?? 0;
+                                const pct = (val / daySum) * 100;
+                                return (
+                                  <span
+                                    key={seg.key}
+                                    className={`block min-h-[2px] rounded-sm transition-all hover:brightness-125 ${seg.color}`}
+                                    style={{ height: `${pct}%` }}
+                                    title={`${seg.label}: ${val.toLocaleString("pl-PL")} (${pct.toFixed(1)}%) · ${point.label}`}
+                                  />
+                                );
+                              })}
+                              {showLabel && (
+                                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] font-mono text-zinc-500 whitespace-nowrap">
+                                  {point.label}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                     <div className="flex flex-wrap gap-x-3 gap-y-1 pt-2 text-[10px] font-mono text-zinc-400">
-                      {["Lokalne", "Sport", "Prawo", "Gospodarka", "Społeczeństwo", "Polityka"].map((label, index) => <span key={label} className="flex items-center gap-1.5"><i className={`h-2 w-2 rounded-sm ${["bg-teal-400", "bg-blue-400", "bg-amber-400", "bg-rose-400", "bg-purple-400", "bg-zinc-400"][index]}`} />{label}</span>)}
+                      {["Lokalne", "Sport", "Prawo", "Gospodarka", "Społeczeństwo", "Polityka"].map((label, index) => (
+                        <span key={label} className="flex items-center gap-1.5">
+                          <i className={`h-2 w-2 rounded-sm ${["bg-teal-400", "bg-blue-400", "bg-amber-400", "bg-rose-400", "bg-purple-400", "bg-zinc-400"][index]}`} />
+                          {label}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </ChartPanel>
