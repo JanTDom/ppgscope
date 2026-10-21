@@ -12,6 +12,8 @@ export interface FeedRotationMetric {
   ageMinutes: number | null;
   status: RotationStatus;
   medianIntervalMinutes: number | null;
+  ok?: boolean;
+  error?: string | null;
 }
 
 export interface RegionalRotationComparison {
@@ -113,6 +115,8 @@ export function analyzeStreamRotation(
         ageMinutes: null,
         status: "BRAK_DANYCH",
         medianIntervalMinutes: null,
+        ok: result.ok,
+        error: result.error,
       };
     }
 
@@ -145,6 +149,8 @@ export function analyzeStreamRotation(
       ageMinutes,
       status,
       medianIntervalMinutes: calculateMedian(intervals),
+      ok: result.ok,
+      error: result.error,
     };
   });
 

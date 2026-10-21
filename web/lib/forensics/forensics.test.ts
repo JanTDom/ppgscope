@@ -386,6 +386,31 @@ describe("analyzeStreamRotation", () => {
     assert.equal(regional.fasterMedium, "PPG");
     assert.equal(regional.freshnessGapMinutes, 30); // konkurent 60 min temu, PPG 30 min temu
   });
+
+  it("propaguje status BRAK_DANYCH, ok: false i powód błędu (np. HTTP 403 / Cloudflare)", () => {
+    const ppgResults: FeedFetchResult[] = [
+      {
+        sourceId: "gk",
+        sourceName: "Gazeta Krakowska",
+        url: "https://gk.test/rss",
+        ok: false,
+        httpStatus: 403,
+        latencyMs: 120,
+        error: "HTTP 403",
+        items: [],
+      },
+    ];
+    const report = analyzeStreamRotation(ppgResults, [], ppgSources, [], NOW);
+    const gkMetric = report.sources.find((s) => s.sourceId === "gk");
+    assert.ok(gkMetric);
+    assert.equal(gkMetric.status, "BRAK_DANYCH");
+    assert.equal(gkMetric.ok, false);
+    assert.equal(gkMetric.error, "HTTP 403");
+    assert.equal(gkMetric.itemCount, 0);
+    assert.equal(gkMetric.latestPublishedAt, null);
+    assert.equal(gkMetric.ageMinutes, null);
+    assert.equal(gkMetric.medianIntervalMinutes, null);
+  });
 });
 
 describe("analyzeStreamPaywall", () => {

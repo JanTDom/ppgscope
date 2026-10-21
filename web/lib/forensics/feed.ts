@@ -30,7 +30,7 @@ const NAMED_ENTITIES: Readonly<Record<string, string>> = {
 };
 
 const MIN_VALID_YEAR = 2000;
-const FETCH_TIMEOUT_MS = 7000;
+const FETCH_TIMEOUT_MS = 9000;
 export const MAX_FEED_ITEMS = 60;
 const MAX_FEED_BYTES = 1_500_000;
 
@@ -139,38 +139,78 @@ export function parseFeed(xml: string): FeedItem[] {
   return items;
 }
 
-export async function fetchFeed(source: FeedSource): Promise<FeedFetchResult> {
-  const startedAt = Date.now();
-  const base = { sourceId: source.id, sourceName: source.name, url: source.url };
+async function fetchSingleUrl(url: string): Promise<{ ok: boolean; httpStatus: number; body?: string; error: string | null }> {
   try {
-    const parsedUrl = new URL(source.url);
+    const parsedUrl = new URL(url);
     if (!/^https?:$/.test(parsedUrl.protocol) || parsedUrl.username || parsedUrl.password) {
-      return { ...base, ok: false, httpStatus: 0, latencyMs: Date.now() - startedAt, items: [], error: "Adres źródła nie jest publicznym adresem HTTP(S)" };
+      return { ok: false, httpStatus: 0, error: "Adres źródła nie jest publicznym adresem HTTP(S)" };
     }
-    const response = await fetch(source.url, {
+    const response = await fetch(url, {
       headers: {
         "User-Agent": FORENSICS_USER_AGENT,
-        Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,application/rss+xml;q=0.8,*/*;q=0.7",
         "Accept-Language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
       },
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       redirect: "follow",
     });
-    const latencyMs = Date.now() - startedAt;
     if (!response.ok) {
-      return { ...base, ok: false, httpStatus: response.status, latencyMs, items: [], error: `HTTP ${response.status}` };
+      return { ok: false, httpStatus: response.status, error: `HTTP ${response.status}` };
     }
     const body = await response.text();
     if (body.length > MAX_FEED_BYTES) {
-      return { ...base, ok: false, httpStatus: response.status, latencyMs, items: [], error: `Kanał przekracza limit ${MAX_FEED_BYTES} bajtów` };
+      return { ok: false, httpStatus: response.status, error: `Kanał przekracza limit ${MAX_FEED_BYTES} bajtów` };
     }
-    const items = parseFeed(body);
-    if (items.length === 0) {
-      return { ...base, ok: false, httpStatus: response.status, latencyMs, items, error: "Kanał nie zawiera elementów <item>" };
-    }
-    return { ...base, ok: true, httpStatus: response.status, latencyMs, items, error: null };
+    return { ok: true, httpStatus: response.status, body, error: null };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Nieznany błąd sieci";
-    return { ...base, ok: false, httpStatus: 0, latencyMs: Date.now() - startedAt, items: [], error: message };
+    return { ok: false, httpStatus: 0, error: message };
   }
+}
+
+export async function fetchFeed(source: FeedSource): Promise<FeedFetchResult> {
+  const startedAt = Date.now();
+  const base = { sourceId: source.id, sourceName: source.name, url: source.url };
+
+  let attempt = await fetchSingleUrl(source.url);
+  let effectiveUrl = source.url;
+
+  if ((!attempt.ok || !attempt.body) && source.fallbackUrl) {
+    const fallbackAttempt = await fetchSingleUrl(source.fallbackUrl);
+    if (fallbackAttempt.ok && fallbackAttempt.body) {
+      attempt = fallbackAttempt;
+      effectiveUrl = source.fallbackUrl;
+    }
+  }
+
+  const latencyMs = Date.now() - startedAt;
+  if (!attempt.ok || !attempt.body) {
+    return { ...base, url: effectiveUrl, ok: false, httpStatus: attempt.httpStatus, latencyMs, items: [], error: attempt.error };
+  }
+
+  const items = parseFeed(attempt.body);
+  if (items.length === 0) {
+    if (effectiveUrl === source.url && source.fallbackUrl) {
+      const fallbackAttempt = await fetchSingleUrl(source.fallbackUrl);
+      if (fallbackAttempt.ok && fallbackAttempt.body) {
+        const fallbackItems = parseFeed(fallbackAttempt.body);
+        if (fallbackItems.length > 0) {
+          return {
+            ...base,
+            url: source.fallbackUrl,
+            ok: true,
+            httpStatus: fallbackAttempt.httpStatus,
+            latencyMs: Date.now() - startedAt,
+            items: fallbackItems,
+            error: null,
+          };
+        }
+      }
+    }
+    return { ...base, url: effectiveUrl, ok: false, httpStatus: attempt.httpStatus, latencyMs, items, error: "Kanał nie zawiera elementów <item>" };
+  }
+
+  return { ...base, url: effectiveUrl, ok: true, httpStatus: attempt.httpStatus, latencyMs, items, error: null };
 }
