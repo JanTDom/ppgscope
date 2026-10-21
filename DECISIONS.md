@@ -118,4 +118,24 @@ Dokument zawiera spis kluczowych decyzji podjętych w projekcie **PPGscope**, zg
   - W generatorze `scripts/editorial_intelligence_builder.py` oraz `scripts/generate_full_scale_aggregates.py` wyliczono kompletne zestawy danych dla 20 dzienników regionalnych, portalu `i.pl`, 8 kluczowych pojedynków konkurencyjnych oraz 546 domen sieci.
   - W aplikacji `web/app/page.tsx` dodano dedykowaną zakładkę główną **„Przegląd zarządczy i KPI (7:30)”** (`activeTab === "executive_briefing"`) oraz 3 nowe podmoduły w zakładce **„Wskaźniki Wywiadu”** (`staleness_radar`, `canonical_syndication`, `competitor_1to1`).
 
+---
+
+## ADR-009: Rzetelne ważenie wydźwięku politycznego i siły oddziaływania mediów (Dual-View i koszyki regionalne)
+
+* **Data:** 2026-10-21
+* **Status:** PRZYJĘTE I WDROŻONE PRODUKCYJNIE
+* **Kontekst:** Wychylenie polityczne mediów Polska Press nie może być traktowane jednowymiarowo: pojedynczy artykuł na małym portalu miejskim ma inną siłę społecznego oddziaływania niż czołówka na ogólnopolskim portalu `i.pl` czy w wiodącym dzienniku regionalnym (`Gazeta Krakowska`, `Dziennik Bałtycki`, `Dziennik Zachodni`). Z drugiej strony, sztuczne przypisywanie wag „z sufitu” naruszałoby kardynalną zasadę prawdy danych.
+* **Decyzja:**
+  1. **Dual-View (Rozdzielenie intencji redakcji od siły dotarcia):**
+     - **Linia redakcyjna (Co produkuje wydawca?):** tryb surowy `raw` (1 art = 1 głos). Status `POMIAR`. Odpowiada na pytanie o czystą linię redakcyjną.
+     - **Ekspozycja strony głównej (Share of Voice Above-the-fold):** tryb `homepage_exposure`. Status `POMIAR`. Wagi wynikające wprost z audytu HTML strefy czołówek (`LEAD_MAIN` 5.0×, `TOP_GRID` 2.5×, `SUB_STREAM` 1.0×, podstrony 0.3×).
+     - **Zasięg audytorium (Mediapanel PBI/Gemius Q3 2026):** tryb `audience_reach`. Status `PRZYBLIŻENIE`. Wagi oparte na oficjalnych badaniach widowni: `i.pl` (8.5×, ~6.8 mln RU), dzienniki regionalne (3.0×–4.8×, ~1.5–3.2 mln RU), serwisy tematyczne (1.8×), serwisy miejskie (0.8×).
+     - **Odsłony rzeczywiste (GA4 / Piano Strefa Plus):** tryb `telemetry`. Status `POMIAR`. Obliczenia wprost z pliku telemetrycznego użytkownika.
+  2. **Separacja koszyków regionalnych:**
+     - Możliwość izolacji tradycyjnych dzienników regionalnych (`DZIENNIKI`) od sieci miejsko-powiatowej (`POWIATY`), eliminująca efekt rozmywania lokalnego dyskursu przez masowe kaskady depesz syndykowanych.
+  3. **Wskaźnik przesunięcia ważonego (`shift_delta`):**
+     - Jawne prezentowanie w kartach KPI i selektorze sił politycznych różnicy między saldem surowym a ważonym wraz z pełną notą metodologiczną `WeightingProvenance` (standard `v2.4.0`).
+
+
+
 

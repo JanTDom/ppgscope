@@ -279,5 +279,80 @@ describe("Odpowiedzialność redakcyjna za rozkład sympatii (Media Accountabili
     assert.ok(accPSL.regions.length >= 4);
     assert.ok(typeof accPSL.regions[0].net_sentiment_score === "number");
     assert.ok(accPSL.regions[0].sentiment_tendency);
+    assert.equal(accPSL.weighting_mode, "raw");
+    assert.equal(accPSL.provenance.status, "POMIAR");
+  });
+
+  it("obsługuje ważenie zasięgowe Mediapanel PBI/Gemius i ekspozycję SG", () => {
+    const extendedTitles = [
+      ...mockTitles,
+      { id: "i_pl", name: "Portal i.pl", domain: "i.pl", region: "Ogólnopolski", type: "PORTAL_KRAJOWY", articles_count: 500 },
+      { id: "kartuzy_nm", name: "Kartuzy Nasze Miasto", domain: "kartuzy.naszemiasto.pl", region: "Pomorskie", type: "NASZE_MIASTO", articles_count: 50 },
+    ];
+
+    // Tryb 1: Czysta produkcja redakcyjna (raw)
+    const accRaw = calculateMediaAccountability(extendedTitles, mockAggs, "ko", 0.0, 30, "all_political", "raw");
+    const iPlRaw = accRaw.media.find(m => m.domain === "i.pl");
+    const kartuzyRaw = accRaw.media.find(m => m.domain === "kartuzy.naszemiasto.pl");
+    assert.ok(iPlRaw && kartuzyRaw);
+    assert.equal(iPlRaw.effective_weight, 1.0);
+    assert.equal(kartuzyRaw.effective_weight, 1.0);
+
+    // Tryb 2: Zasięg audytorium (audience_reach)
+    const accReach = calculateMediaAccountability(extendedTitles, mockAggs, "ko", 0.0, 30, "all_political", "audience_reach");
+    const iPlReach = accReach.media.find(m => m.domain === "i.pl");
+    const kartuzyReach = accReach.media.find(m => m.domain === "kartuzy.naszemiasto.pl");
+    assert.ok(iPlReach && kartuzyReach);
+    assert.equal(iPlReach.effective_weight, 8.5);
+    assert.equal(kartuzyReach.effective_weight, 0.8);
+    assert.ok(iPlReach.weighted_mentions! > iPlRaw.actor_mentions);
+    assert.equal(accReach.provenance.status, "PRZYBLIŻENIE");
+    assert.ok(accReach.provenance.label.includes("Mediapanel"));
+
+    // Tryb 3: Ekspozycja strony głównej (homepage_exposure)
+    const accExposure = calculateMediaAccountability(extendedTitles, mockAggs, "ko", 0.0, 30, "all_political", "homepage_exposure");
+    const iPlExp = accExposure.media.find(m => m.domain === "i.pl");
+    assert.ok(iPlExp);
+    assert.ok(typeof iPlExp.effective_weight === "number" && iPlExp.effective_weight >= 3.0);
+    assert.equal(accExposure.provenance.status, "POMIAR");
+
+    // Tryb 4: Telemetria rzeczywista z GA4
+    const mockTelemetry = {
+      "i.pl": 500000,
+      "dziennikbaltycki.pl": 100000,
+      "kartuzy.naszemiasto.pl": 2500,
+    };
+    const accTelemetry = calculateMediaAccountability(
+      extendedTitles,
+      mockAggs,
+      "ko",
+      0.0,
+      30,
+      "all_political",
+      "telemetry",
+      "ALL",
+      mockTelemetry
+    );
+    const iPlTelem = accTelemetry.media.find(m => m.domain === "i.pl");
+    assert.ok(iPlTelem);
+    assert.ok(iPlTelem.effective_weight! > 5);
+    assert.equal(accTelemetry.provenance.status, "POMIAR");
+  });
+
+  it("obsługuje koszyki regionalne (wszystkie vs dzienniki vs powiaty)", () => {
+    const extendedTitles = [
+      ...mockTitles,
+      { id: "kartuzy_nm", name: "Kartuzy Nasze Miasto", domain: "kartuzy.naszemiasto.pl", region: "Pomorskie", type: "NASZE_MIASTO", articles_count: 50 },
+    ];
+
+    // Koszyk: tylko dzienniki regionalne
+    const accDzienniki = calculateMediaAccountability(extendedTitles, mockAggs, "ko", 0.0, 30, "all_political", "raw", "DZIENNIKI");
+    assert.ok(accDzienniki.media.every(m => m.type === "DZIENNIK_REGIONALNY" || m.type === "PORTAL_KRAJOWY"));
+    assert.equal(accDzienniki.media.some(m => m.domain === "kartuzy.naszemiasto.pl"), false);
+
+    // Koszyk: tylko powiaty
+    const accPowiaty = calculateMediaAccountability(extendedTitles, mockAggs, "ko", 0.0, 30, "all_political", "raw", "POWIATY");
+    assert.ok(accPowiaty.media.every(m => m.type !== "DZIENNIK_REGIONALNY" && m.type !== "PORTAL_KRAJOWY"));
+    assert.equal(accPowiaty.media.some(m => m.domain === "kartuzy.naszemiasto.pl"), true);
   });
 });

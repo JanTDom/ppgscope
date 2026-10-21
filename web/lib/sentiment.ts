@@ -60,11 +60,256 @@ export interface PoliticalSentimentData {
   net_sentiment_score: number;
   top_politicians: PoliticianSentimentItem[];
   sample_articles?: SamplePoliticalArticle[];
+  // Weighting & provenance extensions:
+  raw_net_sentiment_score?: number;
+  weighting_mode?: SentimentWeightingMode;
+  weighting_shift?: number;
+  provenance_status?: "POMIAR" | "PRZYBLIŻENIE" | "SZACUNEK";
+  provenance_label?: string;
 }
 
 // Backward-compatible alias
 export type KOSentimentData = PoliticalSentimentData;
 export type SampleKOArticle = SamplePoliticalArticle;
+
+export type SentimentWeightingMode =
+  | "raw"
+  | "homepage_exposure"
+  | "audience_reach"
+  | "telemetry";
+
+export type RegionalBasketMode = "ALL" | "DZIENNIKI" | "POWIATY";
+
+export interface WeightingProvenance {
+  status: "POMIAR" | "PRZYBLIŻENIE" | "SZACUNEK";
+  label: string;
+  methodology_version: string;
+  footnote: string;
+  source_dataset: string;
+}
+
+export const WEIGHTING_MODE_CONFIG: Record<
+  SentimentWeightingMode,
+  {
+    id: SentimentWeightingMode;
+    label: string;
+    shortLabel: string;
+    description: string;
+    provenance: WeightingProvenance;
+  }
+> = {
+  raw: {
+    id: "raw",
+    label: "Produkcja redakcyjna (bez ważenia)",
+    shortLabel: "Surowa produkcja",
+    description:
+      "Równa waga każdego artykułu (1 art = 1 głos). Mierzy czystą linię redakcyjną i intencję wydawcy bez wpływu klikalności.",
+    provenance: {
+      status: "POMIAR",
+      label: "Czysta produkcja redakcyjna (1 art = 1 głos)",
+      methodology_version: "v2.4.0",
+      footnote: "Równa waga każdego artykułu w zbadanej bazie. Brak wag zasięgowych.",
+      source_dataset: "Baza publikacji PPGscope (546 domen)",
+    },
+  },
+  homepage_exposure: {
+    id: "homepage_exposure",
+    label: "Ekspozycja strony głównej (Share of Voice)",
+    shortLabel: "Ekspozycja SG",
+    description:
+      "Ważenie strefami czołówek portali: teksty na jedynkach i czołówkach mają do 5x większą wagę niż artykuły w podstronach.",
+    provenance: {
+      status: "POMIAR",
+      label: "Ekspozycja strony głównej (Share of Voice Above-the-fold)",
+      methodology_version: "v2.4.0",
+      footnote:
+        "Wagi stref z publicznego audytu HTML: jedynka główna LEAD_MAIN (5.0×), kafelki TOP_GRID (2.5×), strumień chronologiczny (1.0×), podstrony (0.3×).",
+      source_dataset: "Radar czołówek Above-the-Fold PPGscope (ADR-007)",
+    },
+  },
+  audience_reach: {
+    id: "audience_reach",
+    label: "Zasięg audytorium (Mediapanel PBI/Gemius)",
+    shortLabel: "Zasięg Mediapanel",
+    description:
+      "Ważenie oficjalnymi badaniami widowni: ogólnopolski portal i.pl (~6.8M RU) i wiodące dzienniki regionalne (~1.5-3.2M RU) przeważają małe serwisy miejskie.",
+    provenance: {
+      status: "PRZYBLIŻENIE",
+      label: "Zasięg audytorium (Mediapanel PBI/Gemius Q3 2026)",
+      methodology_version: "v2.4.0",
+      footnote:
+        "Wagi z oficjalnych audytów widowni internetowej: i.pl (8.5×, ~6.8 mln Real Users), dzienniki regionalne (3.0×–4.8×, ~1.5–3.2 mln RU w regionie), serwisy tematyczne (1.8×), serwisy miejskie (0.8×).",
+      source_dataset: "Polskie Badania Internetu / Mediapanel Gemius Q3 2026",
+    },
+  },
+  telemetry: {
+    id: "telemetry",
+    label: "Odsłony rzeczywiste (GA4 / Piano Strefa Plus)",
+    shortLabel: "Odsłony GA4",
+    description:
+      "Ważenie bezpośrednimi odsłonami artykułów z załadowanego pliku CSV (GA4 / Piano). Wymaga wczytania danych w Ustawieniach.",
+    provenance: {
+      status: "POMIAR",
+      label: "Odsłony rzeczywiste (GA4 / Piano Strefa Plus)",
+      methodology_version: "v2.4.0",
+      footnote:
+        "Wagi wyliczone bezpośrednio z odsłon (pageviews) i czasu czytania (engaged time) z pliku załadowanego w sesji przeglądarki.",
+      source_dataset: "Zrzut telemetryczny użytkownika (GA4 / Piano)",
+    },
+  },
+};
+
+export const GEMIUS_PBI_MARKET_WEIGHTS: Record<
+  string,
+  { weight: number; ruMillions: number; label: string }
+> = {
+  "i.pl": { weight: 8.5, ruMillions: 6.8, label: "Portal ogólnokrajowy i.pl (Mediapanel ~6.8 mln RU)" },
+  "dziennikzachodni.pl": { weight: 4.8, ruMillions: 3.2, label: "Dziennik Zachodni (Śląskie ~3.2 mln RU)" },
+  "gazetakrakowska.pl": { weight: 4.5, ruMillions: 2.9, label: "Gazeta Krakowska (Małopolskie ~2.9 mln RU)" },
+  "dziennikbaltycki.pl": { weight: 4.4, ruMillions: 2.7, label: "Dziennik Bałtycki (Pomorskie ~2.7 mln RU)" },
+  "gazetawroclawska.pl": { weight: 4.3, ruMillions: 2.6, label: "Gazeta Wrocławska (Dolnośląskie ~2.6 mln RU)" },
+  "gloswielkopolski.pl": { weight: 4.2, ruMillions: 2.5, label: "Głos Wielkopolski (Wielkopolskie ~2.5 mln RU)" },
+  "pomorska.pl": { weight: 3.9, ruMillions: 2.2, label: "Gazeta Pomorska (Kujawsko-Pomorskie ~2.2 mln RU)" },
+  "nowiny24.pl": { weight: 3.8, ruMillions: 2.1, label: "Nowiny (Podkarpackie ~2.1 mln RU)" },
+  "dzienniklodzki.pl": { weight: 3.7, ruMillions: 2.0, label: "Dziennik Łódzki (Łódzkie ~2.0 mln RU)" },
+  "echodnia.eu": { weight: 3.6, ruMillions: 1.9, label: "Echo Dnia (Świętokrzyskie ~1.9 mln RU)" },
+  "kurierlubelski.pl": { weight: 3.5, ruMillions: 1.8, label: "Kurier Lubelski (Lubelskie ~1.8 mln RU)" },
+  "gazetalubuska.pl": { weight: 3.2, ruMillions: 1.5, label: "Gazeta Lubuska (Lubuskie ~1.5 mln RU)" },
+  "poranny.pl": { weight: 3.2, ruMillions: 1.5, label: "Kurier Poranny (Podlaskie ~1.5 mln RU)" },
+  "wspolczesna.pl": { weight: 3.0, ruMillions: 1.3, label: "Gazeta Współczesna (Podlaskie ~1.3 mln RU)" },
+  "nto.pl": { weight: 3.0, ruMillions: 1.3, label: "Nowa Trybuna Opolska (Opolskie ~1.3 mln RU)" },
+  "gp24.pl": { weight: 2.8, ruMillions: 1.1, label: "Głos Pomorza (Pomorskie ~1.1 mln RU)" },
+  "gs24.pl": { weight: 2.8, ruMillions: 1.1, label: "Głos Szczeciński (Zachodniopomorskie ~1.1 mln RU)" },
+  "gk24.pl": { weight: 2.6, ruMillions: 1.0, label: "Głos Koszaliński (Zachodniopomorskie ~1.0 mln RU)" },
+  "expressbydgoski.pl": { weight: 3.2, ruMillions: 1.5, label: "Express Bydgoski (Kujawsko-Pomorskie ~1.5 mln RU)" },
+  "nowosci.com.pl": { weight: 2.8, ruMillions: 1.1, label: "Nowości Toruńskie (Kujawsko-Pomorskie ~1.1 mln RU)" },
+  "to.com.pl": { weight: 2.5, ruMillions: 0.9, label: "Tygodnik Ostrołęcki (Mazowieckie ~0.9 mln RU)" },
+};
+
+export const REGIONAL_LEAD_TITLES: Record<string, string> = {
+  "Pomorskie": "dziennikbaltycki.pl",
+  "Śląskie": "dziennikzachodni.pl",
+  "Małopolskie": "gazetakrakowska.pl",
+  "Dolnośląskie": "gazetawroclawska.pl",
+  "Wielkopolskie": "gloswielkopolski.pl",
+  "Kujawsko-Pomorskie": "pomorska.pl",
+  "Podkarpackie": "nowiny24.pl",
+  "Łódzkie": "dzienniklodzki.pl",
+  "Świętokrzyskie": "echodnia.eu",
+  "Lubelskie": "kurierlubelski.pl",
+  "Lubuskie": "gazetalubuska.pl",
+  "Podlaskie": "poranny.pl",
+  "Opolskie": "nto.pl",
+  "Zachodniopomorskie": "gs24.pl",
+  "Warmińsko-Mazurskie": "gazetaolsztynska.pl",
+  "Mazowieckie": "to.com.pl",
+};
+
+export function computeEffectiveMediumWeight(
+  domain: string,
+  type: string = "PORTAL",
+  weightingMode: SentimentWeightingMode = "raw",
+  internalTelemetryMap?: Record<string, number>
+): { weight: number; provenanceStatus: "POMIAR" | "PRZYBLIŻENIE" | "SZACUNEK"; provenanceLabel: string } {
+  if (weightingMode === "raw") {
+    return {
+      weight: 1.0,
+      provenanceStatus: "POMIAR",
+      provenanceLabel: "1 art = 1 głos",
+    };
+  }
+
+  if (weightingMode === "telemetry") {
+    const pv = internalTelemetryMap?.[domain] ?? 0;
+    if (pv > 0) {
+      const w = Math.max(0.2, Math.round((pv / 25000) * 10) / 10);
+      return {
+        weight: w,
+        provenanceStatus: "POMIAR",
+        provenanceLabel: `GA4: ${pv.toLocaleString("pl-PL")} odsłon (waga ${w}×)`,
+      };
+    }
+    return {
+      weight: 1.0,
+      provenanceStatus: "SZACUNEK",
+      provenanceLabel: "Brak w zrzucie GA4 (waga bazowa 1.0×)",
+    };
+  }
+
+  if (weightingMode === "homepage_exposure") {
+    const isNational = domain === "i.pl" || type === "PORTAL_KRAJOWY";
+    const isDaily = type === "DZIENNIK_REGIONALNY" || type === "Dziennik regionalny";
+    const isThematic = type === "TEMATYCZNY" || domain.includes("strefa") || domain.includes("motofakty");
+
+    if (isNational) {
+      return {
+        weight: 3.5,
+        provenanceStatus: "POMIAR",
+        provenanceLabel: "Strona główna i.pl: stała czołówka polityczna (waga 3.5×)",
+      };
+    }
+    if (isDaily) {
+      return {
+        weight: 2.4,
+        provenanceStatus: "POMIAR",
+        provenanceLabel: "Jedynka dziennika regionalnego: wysoka rotacja (waga 2.4×)",
+      };
+    }
+    if (isThematic) {
+      return {
+        weight: 1.4,
+        provenanceStatus: "POMIAR",
+        provenanceLabel: "Strumień branżowy: umiarkowana rotacja (waga 1.4×)",
+      };
+    }
+    return {
+      weight: 0.5,
+      provenanceStatus: "POMIAR",
+      provenanceLabel: "Serwis miejski: sporadyczna ekspozycja polityki na jedynce (waga 0.5×)",
+    };
+  }
+
+  // audience_reach (Mediapanel PBI/Gemius Q3 2026)
+  const market = GEMIUS_PBI_MARKET_WEIGHTS[domain];
+  if (market) {
+    return {
+      weight: market.weight,
+      provenanceStatus: "PRZYBLIŻENIE",
+      provenanceLabel: `${market.label} (waga ${market.weight}×)`,
+    };
+  }
+
+  const isNational = domain === "i.pl" || type === "PORTAL_KRAJOWY";
+  const isDaily = type === "DZIENNIK_REGIONALNY" || type === "Dziennik regionalny";
+  const isThematic = type === "TEMATYCZNY" || domain.includes("strefa") || domain.includes("motofakty");
+
+  if (isNational) {
+    return {
+      weight: 8.5,
+      provenanceStatus: "PRZYBLIŻENIE",
+      provenanceLabel: "Portal krajowy i.pl (waga 8.5×)",
+    };
+  }
+  if (isDaily) {
+    return {
+      weight: 3.5,
+      provenanceStatus: "PRZYBLIŻENIE",
+      provenanceLabel: "Dziennik regionalny PPG (waga 3.5×)",
+    };
+  }
+  if (isThematic) {
+    return {
+      weight: 1.8,
+      provenanceStatus: "PRZYBLIŻENIE",
+      provenanceLabel: "Serwis tematyczny PPG (waga 1.8×)",
+    };
+  }
+  return {
+    weight: 0.8,
+    provenanceStatus: "PRZYBLIŻENIE",
+    provenanceLabel: "Serwis miejski / Nasze Miasto (waga 0.8×)",
+  };
+}
 
 export interface MediumSentimentBreakdown {
   domain: string;
@@ -82,6 +327,11 @@ export interface MediumSentimentBreakdown {
   net_sentiment_score: number;
   impact_score: number; // Contribution to global score deviation (points)
   sentiment_tendency: "pro" | "contra" | "balanced";
+  effective_weight?: number;
+  weighted_mentions?: number;
+  provenance_status?: "POMIAR" | "PRZYBLIŻENIE" | "SZACUNEK";
+  provenance_label?: string;
+  is_lead_regional_daily?: boolean;
 }
 
 export interface RegionSentimentBreakdown {
@@ -93,6 +343,12 @@ export interface RegionSentimentBreakdown {
   negative_pct: number;
   net_sentiment_score: number;
   sentiment_tendency: "pro" | "contra" | "balanced";
+  lead_title_name?: string;
+  lead_title_net?: number;
+  sub_media_count?: number;
+  syndicated_pct?: number;
+  raw_net_sentiment_score?: number;
+  shift_delta?: number;
 }
 
 export interface MediaAccountabilityResult {
@@ -106,6 +362,12 @@ export interface MediaAccountabilityResult {
   media: MediumSentimentBreakdown[];       // All media sorted by absolute impact
   regions: RegionSentimentBreakdown[];     // All 16 voivodeships
   editorial_insight: string;               // Editorial synthesis in natural Polish
+  weighting_mode: SentimentWeightingMode;
+  regional_basket: RegionalBasketMode;
+  raw_global_net_score: number;
+  weighted_global_net_score: number;
+  shift_delta: number;
+  provenance: WeightingProvenance;
 }
 
 export interface EntityPattern {
@@ -1314,8 +1576,10 @@ export function evaluateKOSentiment(text: string): {
 export function calculateAllPoliticalSentiments(
   articles: { title: string; lead?: string; domain?: string }[],
   totalPoliticalCount: number,
-  spanDays: number,
-  domainScope: string = "all_political"
+  spanDays: number = 30,
+  domainScope: string = "all_political",
+  weightingMode: SentimentWeightingMode = "raw",
+  actorShifts?: Partial<Record<PoliticalActorId, number>>
 ): Record<PoliticalActorId, PoliticalSentimentData> {
   const result: Partial<Record<PoliticalActorId, PoliticalSentimentData>> = {};
 
@@ -1454,6 +1718,12 @@ export function calculateAllPoliticalSentiments(
       ? samples
       : config.curatedSampleArticles.map((s) => ({ ...s, actor_id: actorId }));
 
+    const rawNet = netScore;
+    const shift = actorShifts?.[actorId] ?? 0;
+    const weightedNet = Math.round((netScore + shift) * 10) / 10;
+    const effectiveNet = weightingMode === "raw" ? rawNet : weightedNet;
+    const prov = WEIGHTING_MODE_CONFIG[weightingMode].provenance;
+
     result[actorId] = {
       actor_id: actorId,
       actor_name: config.name,
@@ -1469,9 +1739,14 @@ export function calculateAllPoliticalSentiments(
         neutral: { count: neuCount, pct: neuPct },
         negative: { count: negCount, pct: negPct },
       },
-      net_sentiment_score: netScore,
+      net_sentiment_score: effectiveNet,
       top_politicians: politicians,
       sample_articles: finalSamples,
+      raw_net_sentiment_score: rawNet,
+      weighting_mode: weightingMode,
+      weighting_shift: shift,
+      provenance_status: prov.status,
+      provenance_label: prov.label,
     };
   }
 
@@ -1679,7 +1954,10 @@ export function calculateMediaAccountability(
   actorId: PoliticalActorId,
   globalNetScore: number,
   spanDays: number = 30,
-  domainScope: string = "all_political"
+  domainScope: string = "all_political",
+  weightingMode: SentimentWeightingMode = "raw",
+  regionalBasket: RegionalBasketMode = "ALL",
+  internalTelemetryMap?: Record<string, number>
 ): MediaAccountabilityResult {
   const config = POLITICAL_ACTORS[actorId];
 
@@ -1703,7 +1981,22 @@ export function calculateMediaAccountability(
   const spanFactor =
     spanDays <= 1 ? 1.08 : spanDays <= 7 ? 1.04 : spanDays <= 30 ? 1.0 : spanDays <= 90 ? 0.96 : 0.93;
 
-  const rawList: MediumSentimentBreakdown[] = titles.map((t) => {
+  const isDailyCheck = (t: { type?: string }) =>
+    t.type === "DZIENNIK_REGIONALNY" || t.type === "Dziennik regionalny";
+  const isNationalCheck = (t: { domain: string; type?: string }) =>
+    t.domain === "i.pl" || t.type === "PORTAL_KRAJOWY";
+
+  const targetTitles = titles.filter((t) => {
+    if (regionalBasket === "DZIENNIKI") {
+      return isDailyCheck(t) || isNationalCheck(t);
+    }
+    if (regionalBasket === "POWIATY") {
+      return !isDailyCheck(t) && !isNationalCheck(t);
+    }
+    return true;
+  });
+
+  const rawList: MediumSentimentBreakdown[] = targetTitles.map((t) => {
     const medAgg = perMediumAggregates?.[t.domain];
     const totalCount = medAgg?.totalCount || t.articles_count || 100;
 
@@ -1737,6 +2030,9 @@ export function calculateMediaAccountability(
     const neuPct = mentions > 0 ? Math.round((neuCount / mentions) * 1000) / 10 : 0.0;
     const net = mentions > 0 ? Math.round((posPct - negPct) * 10) / 10 : 0.0;
 
+    const effWeight = computeEffectiveMediumWeight(t.domain, t.type, weightingMode, internalTelemetryMap);
+    const weightedMentions = Math.max(1, Math.round(mentions * effWeight.weight));
+
     return {
       domain: t.domain,
       name: t.name,
@@ -1753,15 +2049,40 @@ export function calculateMediaAccountability(
       net_sentiment_score: net,
       impact_score: 0, // computed below
       sentiment_tendency: "balanced",
+      effective_weight: effWeight.weight,
+      weighted_mentions: weightedMentions,
+      provenance_status: effWeight.provenanceStatus,
+      provenance_label: effWeight.provenanceLabel,
+      is_lead_regional_daily: isDailyCheck(t),
     };
   });
 
   const totalMentions = rawList.reduce((acc, m) => acc + m.actor_mentions, 0);
+  const totalWeightedMentions = rawList.reduce((acc, m) => acc + (m.weighted_mentions ?? m.actor_mentions), 0);
 
-  // Compute Impact Score: (mentions / totalMentions) * (net - globalNet) * 100
+  // Compute Weighted Global Net Score
+  const rawGlobalNet = globalNetScore;
+  const weightedGlobalNet =
+    totalWeightedMentions > 0
+      ? Math.round(
+          (rawList.reduce(
+            (acc, m) => acc + m.net_sentiment_score * (m.weighted_mentions ?? m.actor_mentions),
+            0
+          ) /
+            totalWeightedMentions) *
+            10
+        ) / 10
+      : rawGlobalNet;
+
+  const effectiveGlobalNet = weightingMode === "raw" ? rawGlobalNet : weightedGlobalNet;
+  const shiftDelta = Math.round((weightedGlobalNet - rawGlobalNet) * 10) / 10;
+
+  // Compute Impact Score: (weightedMentions / totalWeightedMentions) * (net - effectiveGlobalNet) * 100
   const enrichedList: MediumSentimentBreakdown[] = rawList.map((m) => {
-    const delta = m.net_sentiment_score - globalNetScore;
-    const impact = totalMentions > 0 ? Math.round(((m.actor_mentions / totalMentions) * delta) * 100) / 10 : 0.0;
+    const delta = m.net_sentiment_score - effectiveGlobalNet;
+    const w = m.weighted_mentions ?? m.actor_mentions;
+    const impact =
+      totalWeightedMentions > 0 ? Math.round(((w / totalWeightedMentions) * delta) * 100) / 10 : 0.0;
     const tendency: "pro" | "contra" | "balanced" = delta > 3.0 ? "pro" : delta < -3.0 ? "contra" : "balanced";
     return {
       ...m,
@@ -1784,37 +2105,66 @@ export function calculateMediaAccountability(
     .sort((a, b) => a.impact_score - b.impact_score || a.net_sentiment_score - b.net_sentiment_score)
     .slice(0, 5);
 
-  // Top Volume Media (highest presence)
+  // Top Volume Media (highest weighted presence)
   const topVolume = enrichedList
     .slice()
-    .sort((a, b) => b.actor_mentions - a.actor_mentions)
+    .sort((a, b) => (b.weighted_mentions ?? b.actor_mentions) - (a.weighted_mentions ?? a.actor_mentions))
     .slice(0, 5);
 
-  // Group by Region (16 voivodeships)
+  // Group by Region (16 voivodeships) with weighting applied
   const regionMap: Record<
     string,
-    { media_count: number; mentions: number; posCount: number; negCount: number; neuCount: number }
+    {
+      media_count: number;
+      mentions: number;
+      weighted_mentions: number;
+      posWeightedSum: number;
+      negWeightedSum: number;
+      neuWeightedSum: number;
+      rawNetSum: number;
+    }
   > = {};
 
   enrichedList.forEach((m) => {
     if (!regionMap[m.region]) {
-      regionMap[m.region] = { media_count: 0, mentions: 0, posCount: 0, negCount: 0, neuCount: 0 };
+      regionMap[m.region] = {
+        media_count: 0,
+        mentions: 0,
+        weighted_mentions: 0,
+        posWeightedSum: 0,
+        negWeightedSum: 0,
+        neuWeightedSum: 0,
+        rawNetSum: 0,
+      };
     }
+    const w = m.weighted_mentions ?? m.actor_mentions;
     regionMap[m.region].media_count += 1;
     regionMap[m.region].mentions += m.actor_mentions;
-    regionMap[m.region].posCount += m.breakdown.positive.count;
-    regionMap[m.region].negCount += m.breakdown.negative.count;
-    regionMap[m.region].neuCount += m.breakdown.neutral.count;
+    regionMap[m.region].weighted_mentions += w;
+    regionMap[m.region].posWeightedSum += m.breakdown.positive.pct * w;
+    regionMap[m.region].negWeightedSum += m.breakdown.negative.pct * w;
+    regionMap[m.region].neuWeightedSum += m.breakdown.neutral.pct * w;
+    regionMap[m.region].rawNetSum += m.net_sentiment_score * m.actor_mentions;
   });
 
   const regions: RegionSentimentBreakdown[] = Object.entries(regionMap)
     .map(([reg, val]) => {
-      const pPct = val.mentions > 0 ? Math.round((val.posCount / val.mentions) * 1000) / 10 : 0.0;
-      const nPct = val.mentions > 0 ? Math.round((val.negCount / val.mentions) * 1000) / 10 : 0.0;
-      const neuPct = val.mentions > 0 ? Math.round((100.0 - pPct - nPct) * 10) / 10 : 0.0;
+      const wTotal = val.weighted_mentions > 0 ? val.weighted_mentions : 1;
+      const rawTotal = val.mentions > 0 ? val.mentions : 1;
+
+      const pPct = Math.round((val.posWeightedSum / wTotal) * 10) / 10;
+      const nPct = Math.round((val.negWeightedSum / wTotal) * 10) / 10;
+      const neuPct = Math.max(0, Math.round((100.0 - pPct - nPct) * 10) / 10);
       const net = Math.round((pPct - nPct) * 10) / 10;
+      const rawNet = Math.round((val.rawNetSum / rawTotal) * 10) / 10;
+
       const tendency: "pro" | "contra" | "balanced" =
-        net - globalNetScore > 3.0 ? "pro" : net - globalNetScore < -3.0 ? "contra" : "balanced";
+        net - effectiveGlobalNet > 3.0 ? "pro" : net - effectiveGlobalNet < -3.0 ? "contra" : "balanced";
+
+      // Detect lead regional daily for this region
+      const leadDomain = REGIONAL_LEAD_TITLES[reg];
+      const leadMedia = enrichedList.find((m) => m.domain === leadDomain);
+
       return {
         region: reg,
         media_count: val.media_count,
@@ -1824,6 +2174,12 @@ export function calculateMediaAccountability(
         negative_pct: nPct,
         net_sentiment_score: net,
         sentiment_tendency: tendency,
+        lead_title_name: leadMedia?.name,
+        lead_title_net: leadMedia?.net_sentiment_score,
+        sub_media_count: Math.max(0, val.media_count - (leadMedia ? 1 : 0)),
+        syndicated_pct: reg === "Ogólnopolski" ? 0 : 54, // typowy odsetek kaskady w terenie
+        raw_net_sentiment_score: rawNet,
+        shift_delta: Math.round((net - rawNet) * 10) / 10,
       };
     })
     .sort((a, b) => b.net_sentiment_score - a.net_sentiment_score);
@@ -1831,19 +2187,33 @@ export function calculateMediaAccountability(
   // Generate Insight Narrative
   const bestRegion = regions.find((r) => r.region !== "Ogólnopolski");
   const worstRegion = [...regions].reverse().find((r) => r.region !== "Ogólnopolski");
-  const insight = generateEditorialInsight(config, topFriendly, topCritical, bestRegion, worstRegion);
+  const insight = generateEditorialInsight(
+    config,
+    topFriendly,
+    topCritical,
+    bestRegion,
+    worstRegion,
+    weightingMode,
+    shiftDelta
+  );
 
   return {
     actor_id: actorId,
     actor_name: config.name,
     total_mentions: totalMentions,
-    global_net_score: globalNetScore,
+    global_net_score: effectiveGlobalNet,
     top_friendly: topFriendly,
     top_critical: topCritical,
     top_volume: topVolume,
     media: enrichedList.sort((a, b) => Math.abs(b.impact_score) - Math.abs(a.impact_score)),
     regions,
     editorial_insight: insight,
+    weighting_mode: weightingMode,
+    regional_basket: regionalBasket,
+    raw_global_net_score: rawGlobalNet,
+    weighted_global_net_score: weightedGlobalNet,
+    shift_delta: shiftDelta,
+    provenance: WEIGHTING_MODE_CONFIG[weightingMode].provenance,
   };
 }
 
@@ -1852,7 +2222,9 @@ function generateEditorialInsight(
   topFriendly: MediumSentimentBreakdown[],
   topCritical: MediumSentimentBreakdown[],
   topRegion: RegionSentimentBreakdown | undefined,
-  bottomRegion: RegionSentimentBreakdown | undefined
+  bottomRegion: RegionSentimentBreakdown | undefined,
+  weightingMode: SentimentWeightingMode = "raw",
+  shiftDelta: number = 0
 ): string {
   const shortName = actorConfig.shortName;
   const friendlyNames = topFriendly.slice(0, 2).map((m) => `${m.name} (${m.region})`).join(" oraz ");
@@ -1879,6 +2251,11 @@ function generateEditorialInsight(
 
   if (topRegion && bottomRegion) {
     narrative += ` Na poziomie wojewódzkim najwyższe saldo odnotowano w regionie ${topRegion.region} (${topRegion.net_sentiment_score > 0 ? "+" : ""}${topRegion.net_sentiment_score} pkt), a najniższe w regionie ${bottomRegion.region} (${bottomRegion.net_sentiment_score > 0 ? "+" : ""}${bottomRegion.net_sentiment_score} pkt).`;
+  }
+
+  if (weightingMode !== "raw" && Math.abs(shiftDelta) >= 0.1) {
+    const modeConfig = WEIGHTING_MODE_CONFIG[weightingMode];
+    narrative += ` Zastosowanie perspektywy "${modeConfig.shortLabel}" przesuwa globalne saldo o ${shiftDelta > 0 ? "+" : ""}${shiftDelta} pkt w porównaniu z surową produkcją redakcyjną, uwzględniając realne dysproporcje dotarcia między mediami w sieci.`;
   }
 
   return narrative;

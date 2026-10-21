@@ -12,6 +12,7 @@ import {
   POLITICAL_ACTORS,
   ALL_POLITICAL_ACTOR_IDS,
   DOMAIN_SCOPE_OPTIONS,
+  WEIGHTING_MODE_CONFIG,
   evaluatePoliticalSentiment,
   calculateAllPoliticalSentiments,
   calculateMediaAccountability,
@@ -20,6 +21,8 @@ import {
   type SamplePoliticalArticle,
   type SampleKOArticle,
   type MediaAccountabilityResult,
+  type SentimentWeightingMode,
+  type RegionalBasketMode,
 } from "@/lib/sentiment";
 import {
   Shield,
@@ -832,6 +835,8 @@ export default function PPGscopeApp() {
   // Political Sentiment States (KO, PiS, PSL, Polska 2050, Lewica, Konfederacja, Karol Nawrocki, Rozwój Plus)
   const [selectedPoliticalActor, setSelectedPoliticalActor] = useState<PoliticalActorId>("ko");
   const [sentimentDomainScope, setSentimentDomainScope] = useState<string>("all_political");
+  const [sentimentWeightingMode, setSentimentWeightingMode] = useState<SentimentWeightingMode>("raw");
+  const [sentimentRegionalBasket, setSentimentRegionalBasket] = useState<RegionalBasketMode>("ALL");
   const [selectedKOSentimentFilter, setSelectedKOSentimentFilter] = useState<"all" | "positive" | "neutral" | "negative">("all");
   const [mediaAccountabilitySearch, setMediaAccountabilitySearch] = useState<string>("");
   const [mediaAccountabilityType, setMediaAccountabilityType] = useState<string>("ALL");
@@ -915,6 +920,34 @@ export default function PPGscopeApp() {
         .filter((line) => line.length > 0 && !line.toLowerCase().startsWith("url,")).length,
     [internalCsvInput]
   );
+
+  const internalTelemetryMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    if (!internalCsvInput) return map;
+    const lines = internalCsvInput.split("\n");
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.toLowerCase().startsWith("url,")) continue;
+      const parts = trimmed.split(",").map((p) => p.trim());
+      const url = parts[0] || "";
+      const pv = parseInt(parts[1], 10) || 0;
+      if (!url) continue;
+      try {
+        let hostname = "";
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+          hostname = new URL(url).hostname.replace(/^www\./, "");
+        } else {
+          hostname = url.split("/")[0].replace(/^www\./, "");
+        }
+        if (hostname) {
+          map[hostname] = (map[hostname] || 0) + pv;
+        }
+      } catch {
+        // ignore malformed
+      }
+    }
+    return map;
+  }, [internalCsvInput]);
 
   const handleInternalCsvFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1296,8 +1329,8 @@ export default function PPGscopeApp() {
     };
   }, [data, timePreset, selectedMediumDomain, filteredArticles, dateRange]);
 
-  // Dedicated Dynamic Political Sentiments Engine (8 Actors, Cross-Domain & Sectorial)
-  const activePoliticalSentiments = useMemo(() => {
+  // Raw Unweighted Political Sentiments Engine (Pure Production Baseline, 1 art = 1 voice)
+  const rawPoliticalSentiments = useMemo(() => {
     const spanDays =
       timePreset === "24h"
         ? 1
@@ -1360,13 +1393,15 @@ export default function PPGscopeApp() {
       candidateArticles.map((a) => ({ title: a.title, lead: a.lead, domain: a.domain })),
       baselineTotal,
       spanDays,
-      sentimentDomainScope
+      sentimentDomainScope,
+      "raw"
     );
   }, [domainBreakdown, timePreset, filteredArticles, dateRange, sentimentDomainScope]);
 
-  // Dedicated Media Accountability & Geography Engine (Who drives sympathy and who drives criticism)
+  // Dedicated Media Accountability & Geography Engine (Who drives sympathy and who drives criticism, with Weighting)
   const activeMediaAccountability: MediaAccountabilityResult = useMemo(() => {
     if (!data?.titles) {
+      const cfg = WEIGHTING_MODE_CONFIG[sentimentWeightingMode];
       return {
         actor_id: selectedPoliticalActor,
         actor_name: POLITICAL_ACTORS[selectedPoliticalActor].name,
@@ -1378,6 +1413,12 @@ export default function PPGscopeApp() {
         media: [],
         regions: [],
         editorial_insight: "",
+        weighting_mode: sentimentWeightingMode,
+        regional_basket: sentimentRegionalBasket,
+        raw_global_net_score: 0,
+        weighted_global_net_score: 0,
+        shift_delta: 0,
+        provenance: cfg.provenance,
       };
     }
     const pKey = timePreset === "custom" ? "30d" : timePreset;
@@ -1395,17 +1436,100 @@ export default function PPGscopeApp() {
         ? 365
         : Math.max(1, Math.round((dateRange.end.getTime() - dateRange.start.getTime()) / (86400 * 1000)));
 
-    const globalNet = activePoliticalSentiments[selectedPoliticalActor]?.net_sentiment_score ?? 0;
+    const rawNet = rawPoliticalSentiments[selectedPoliticalActor]?.net_sentiment_score ?? 0;
 
     return calculateMediaAccountability(
       data.titles,
       perMediumMap,
       selectedPoliticalActor,
-      globalNet,
+      rawNet,
       spanDays,
-      sentimentDomainScope
+      sentimentDomainScope,
+      sentimentWeightingMode,
+      sentimentRegionalBasket,
+      internalTelemetryMap
     );
-  }, [data, selectedPoliticalActor, timePreset, dateRange, activePoliticalSentiments, sentimentDomainScope]);
+  }, [
+    data,
+    selectedPoliticalActor,
+    timePreset,
+    dateRange,
+    rawPoliticalSentiments,
+    sentimentDomainScope,
+    sentimentWeightingMode,
+    sentimentRegionalBasket,
+    internalTelemetryMap,
+  ]);
+
+  // Shifts per actor computed across the media network
+  const actorWeightingShifts = useMemo(() => {
+    if (sentimentWeightingMode === "raw" || !data?.titles) return {};
+    const pKey = timePreset === "custom" ? "30d" : timePreset;
+    const perMediumMap = data.server_aggregates?.[pKey]?.per_medium;
+    const spanDays =
+      timePreset === "24h"
+        ? 1
+        : timePreset === "7d"
+        ? 7
+        : timePreset === "30d"
+        ? 30
+        : timePreset === "90d"
+        ? 90
+        : timePreset === "1y"
+        ? 365
+        : Math.max(1, Math.round((dateRange.end.getTime() - dateRange.start.getTime()) / (86400 * 1000)));
+
+    const shifts: Partial<Record<PoliticalActorId, number>> = {};
+    for (const act of ALL_POLITICAL_ACTOR_IDS) {
+      const rawNet = rawPoliticalSentiments[act]?.net_sentiment_score ?? 0;
+      const acc = calculateMediaAccountability(
+        data.titles,
+        perMediumMap,
+        act,
+        rawNet,
+        spanDays,
+        sentimentDomainScope,
+        sentimentWeightingMode,
+        sentimentRegionalBasket,
+        internalTelemetryMap
+      );
+      shifts[act] = acc.shift_delta;
+    }
+    return shifts;
+  }, [
+    sentimentWeightingMode,
+    data,
+    timePreset,
+    dateRange,
+    sentimentDomainScope,
+    sentimentRegionalBasket,
+    internalTelemetryMap,
+    rawPoliticalSentiments,
+  ]);
+
+  // Active political sentiments with weighting mode applied
+  const activePoliticalSentiments = useMemo(() => {
+    if (sentimentWeightingMode === "raw") return rawPoliticalSentiments;
+    const result: Record<PoliticalActorId, PoliticalSentimentData> = { ...rawPoliticalSentiments };
+    for (const act of ALL_POLITICAL_ACTOR_IDS) {
+      const base = rawPoliticalSentiments[act];
+      if (!base) continue;
+      const shift = actorWeightingShifts[act] ?? 0;
+      const rawNet = base.raw_net_sentiment_score ?? base.net_sentiment_score;
+      const weightedNet = Math.round((rawNet + shift) * 10) / 10;
+      const prov = WEIGHTING_MODE_CONFIG[sentimentWeightingMode].provenance;
+      result[act] = {
+        ...base,
+        net_sentiment_score: weightedNet,
+        raw_net_sentiment_score: rawNet,
+        weighting_mode: sentimentWeightingMode,
+        weighting_shift: shift,
+        provenance_status: prov.status,
+        provenance_label: prov.label,
+      };
+    }
+    return result;
+  }, [rawPoliticalSentiments, sentimentWeightingMode, actorWeightingShifts]);
 
   // Global network domain percentages for comparison when a single medium is selected
   const globalDomainPctMap = useMemo(() => {
@@ -4598,7 +4722,104 @@ export default function PPGscopeApp() {
                     })}
                   </div>
                 </div>
+
+                {/* Weighting Model Selector (Raw vs Homepage Exposure vs Audience Reach vs Telemetry) */}
+                <div className="pt-3 border-t border-white/[0.06] space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                    <span className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                      <Scale className="h-3.5 w-3.5 text-teal-400" />
+                      Perspektywa ważenia i siła oddziaływania mediów:
+                    </span>
+                    <span className="text-[11px] text-zinc-400 font-mono">
+                      Wybierz model: czysta linia redakcji [POMIAR] lub ważenie siłą dotarcia [PRZYBLIŻENIE]
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                    {(["raw", "homepage_exposure", "audience_reach", "telemetry"] as SentimentWeightingMode[]).map((modeKey) => {
+                      const modeCfg = WEIGHTING_MODE_CONFIG[modeKey];
+                      const isSel = sentimentWeightingMode === modeKey;
+                      return (
+                        <button
+                          key={modeKey}
+                          onClick={() => setSentimentWeightingMode(modeKey)}
+                          className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all font-mono ${
+                            isSel
+                              ? "bg-teal-500/15 border-teal-400/80 shadow-md shadow-teal-500/10 ring-1 ring-teal-400/50"
+                              : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12]"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="text-xs font-bold text-white truncate">{modeCfg.shortLabel}</span>
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                                modeCfg.provenance.status === "POMIAR"
+                                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                                  : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                              }`}
+                            >
+                              {modeCfg.provenance.status}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-zinc-400 mt-1 line-clamp-2 leading-relaxed">
+                            {modeCfg.description}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
+
+              {/* Methodological Provenance & Shift Note */}
+              <div className="rounded-xl border border-white/[0.08] bg-black/40 p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs font-mono">
+                <div className="flex items-start gap-2.5">
+                  <Info className="h-4 w-4 text-teal-400 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white">
+                        Aktywny model: {WEIGHTING_MODE_CONFIG[sentimentWeightingMode].label}
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.08] text-zinc-300">
+                        {WEIGHTING_MODE_CONFIG[sentimentWeightingMode].provenance.methodology_version}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                      {WEIGHTING_MODE_CONFIG[sentimentWeightingMode].provenance.footnote}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {activeMediaAccountability.shift_delta !== 0 ? (
+                    <div className="rounded-lg bg-teal-500/10 border border-teal-500/30 px-3 py-1 text-right">
+                      <span className="text-[10px] uppercase text-teal-400 block font-bold">Przesunięcie ważone</span>
+                      <span className="text-xs font-bold text-white">
+                        {activeMediaAccountability.shift_delta > 0 ? "+" : ""}{activeMediaAccountability.shift_delta} pkt
+                        <span className="text-[10px] text-zinc-400 font-normal ml-1">
+                          (surowe: {activeMediaAccountability.raw_global_net_score > 0 ? "+" : ""}{activeMediaAccountability.raw_global_net_score})
+                        </span>
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] text-zinc-500">Brak przesunięcia vs produkcja</span>
+                  )}
+                </div>
+              </div>
+
+              {sentimentWeightingMode === "telemetry" && internalRowsCount === 0 && (
+                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs font-mono text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span>
+                    Brak załadowanych danych telemetrycznych (GA4/Piano) w bieżącej sesji. Przejdź do Ustawień (ikona zębatki), aby wkleić plik CSV. System stosuje wagi bazowe.
+                  </span>
+                  <button
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[11px] font-bold underline shrink-0"
+                  >
+                    Otwórz Ustawienia
+                  </button>
+                </div>
+              )}
 
               {/* Header Card for Active Actor */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
@@ -4696,7 +4917,9 @@ export default function PPGscopeApp() {
                     <span className="text-zinc-300 font-bold flex items-center gap-1.5">
                       <Scale className="h-4 w-4 text-teal-400" /> Saldo wydźwięku
                     </span>
-                    <span className="text-teal-400 font-semibold">(Poz. - Neg.)</span>
+                    <span className="text-teal-400 font-semibold">
+                      {WEIGHTING_MODE_CONFIG[sentimentWeightingMode].shortLabel}
+                    </span>
                   </div>
                   <div className="text-2xl font-bold tracking-tight text-white font-mono">
                     {activeSentimentData.net_sentiment_score > 0 ? "+" : ""}
@@ -4704,7 +4927,17 @@ export default function PPGscopeApp() {
                     <span className="text-xs font-normal text-zinc-400 ml-1.5">pkt proc.</span>
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    Indeks przewagi tonu. Wartość dodatnia wskazuje na przewagę narracji afirmatywnej nad krytyczną.
+                    Indeks przewagi tonu ({WEIGHTING_MODE_CONFIG[sentimentWeightingMode].provenance.status}).
+                    {typeof activeSentimentData.raw_net_sentiment_score === "number" &&
+                      activeSentimentData.weighting_shift !== undefined &&
+                      activeSentimentData.weighting_shift !== 0 && (
+                        <span className="block text-teal-300 font-mono mt-0.5">
+                          Surowe: {activeSentimentData.raw_net_sentiment_score > 0 ? "+" : ""}
+                          {activeSentimentData.raw_net_sentiment_score} pkt (Δ{" "}
+                          {activeSentimentData.weighting_shift > 0 ? "+" : ""}
+                          {activeSentimentData.weighting_shift} pkt)
+                        </span>
+                      )}
                   </p>
                 </div>
               </div>
@@ -5031,13 +5264,42 @@ export default function PPGscopeApp() {
                 {/* Geography of Sentiment: 16 Voivodeships Grid */}
                 <div className="space-y-3 pt-2">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-2">
-                    <span className="text-xs font-bold text-white font-mono flex items-center gap-2">
-                      <Map className="h-4 w-4 text-teal-400" />
-                      Geografia sympatii politycznych w regionach (ranking 16 województw):
-                    </span>
-                    <span className="text-[11px] font-mono text-zinc-400">
-                      Gdzie {activeConfig.shortName} ma najlepszą, a gdzie najgorszą prasę regionalną
-                    </span>
+                    <div>
+                      <span className="text-xs font-bold text-white font-mono flex items-center gap-2">
+                        <Map className="h-4 w-4 text-teal-400" />
+                        Geografia sympatii politycznych w regionach (ranking 16 województw):
+                      </span>
+                      <span className="text-[11px] font-mono text-zinc-400 block mt-0.5">
+                        Gdzie {activeConfig.shortName} ma najlepszą, a gdzie najgorszą prasę regionalną ({WEIGHTING_MODE_CONFIG[sentimentWeightingMode].shortLabel})
+                      </span>
+                    </div>
+
+                    {/* Regional Basket Selector */}
+                    <div className="flex items-center gap-1 font-mono text-xs">
+                      <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold mr-1">Koszyk:</span>
+                      {(["ALL", "DZIENNIKI", "POWIATY"] as RegionalBasketMode[]).map((basket) => {
+                        const isSel = sentimentRegionalBasket === basket;
+                        const label =
+                          basket === "ALL"
+                            ? "Wszystkie media"
+                            : basket === "DZIENNIKI"
+                            ? "Tylko dzienniki"
+                            : "Sieć powiatowa";
+                        return (
+                          <button
+                            key={basket}
+                            onClick={() => setSentimentRegionalBasket(basket)}
+                            className={`rounded-lg px-2 py-1 text-xs transition-all ${
+                              isSel
+                                ? "bg-teal-500/20 text-teal-300 font-bold border border-teal-500/40"
+                                : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-zinc-200 border border-transparent"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 font-mono">
@@ -5068,6 +5330,16 @@ export default function PPGscopeApp() {
                               </span>
                               <span className="text-[9px] text-zinc-400">{reg.actor_mentions} art.</span>
                             </div>
+                            {reg.lead_title_name && (
+                              <span
+                                className="text-[9px] text-zinc-400 truncate block"
+                                title={`Wiodący dziennik regionalny: ${reg.lead_title_name} (saldo: ${
+                                  reg.lead_title_net !== undefined && reg.lead_title_net > 0 ? "+" : ""
+                                }${reg.lead_title_net} pkt)`}
+                              >
+                                Tytuł: <strong className="text-zinc-300 font-normal">{reg.lead_title_name.replace("Dziennik ", "Dz. ").replace("Gazeta ", "G. ")}</strong>
+                              </span>
+                            )}
                             <div className="h-1 w-full rounded-full bg-white/[0.06] overflow-hidden flex">
                               <div style={{ width: `${reg.positive_pct}%` }} className="bg-emerald-500 h-full" />
                               <div style={{ width: `${reg.neutral_pct}%` }} className="bg-sky-400 h-full" />
@@ -5173,6 +5445,7 @@ export default function PPGscopeApp() {
                                 <th className="px-3 py-2.5">Region</th>
                                 <th className="px-3 py-2.5">Typ</th>
                                 <th className="px-3 py-2.5 text-right">Liczba art.</th>
+                                <th className="px-3 py-2.5 text-right">Waga ({WEIGHTING_MODE_CONFIG[sentimentWeightingMode].shortLabel})</th>
                                 <th className="px-3 py-2.5 min-w-[140px]">Struktura tonu (100%)</th>
                                 <th className="px-3 py-2.5 text-right">Saldo</th>
                                 <th className="px-3 py-2.5 text-right">Wpływ na wynik</th>
@@ -5190,6 +5463,17 @@ export default function PPGscopeApp() {
                                   <td className="px-3 py-2 text-zinc-400 text-[10px]">{m.type}</td>
                                   <td className="px-3 py-2 text-right font-bold text-white">
                                     {m.actor_mentions}
+                                  </td>
+                                  <td className="px-3 py-2 text-right">
+                                    <span className="font-bold text-white block font-mono">
+                                      {m.effective_weight !== undefined ? `${m.effective_weight}×` : "1.0×"}
+                                    </span>
+                                    <span
+                                      className="text-[9px] text-zinc-400 block truncate max-w-[90px] ml-auto cursor-help"
+                                      title={m.provenance_label}
+                                    >
+                                      {m.provenance_status || "POMIAR"}
+                                    </span>
                                   </td>
                                   <td className="px-3 py-2">
                                     <div className="space-y-1">
