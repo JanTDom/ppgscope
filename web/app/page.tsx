@@ -63,6 +63,7 @@ import {
   Newspaper,
   Menu,
   ChevronRight,
+  ChevronDown,
   LayoutDashboard,
   Map,
   BookOpen,
@@ -693,6 +694,7 @@ type AppTab =
   | "forensics";
 
 type ChartView = "all" | "content" | "network" | "operations";
+type TimePreset = "24h" | "7d" | "30d" | "90d" | "1y" | "all" | "custom";
 
 const NAV_GROUPS: {
   label: string;
@@ -2114,6 +2116,14 @@ export default function PPGscopeApp() {
             />
           </div>
           <div className="ppg-sidebar-brand-meta"><span>INTELLIGENCE</span><strong>v2.0</strong></div>
+          <button
+            type="button"
+            onClick={() => setMobileNavOpen(false)}
+            className="lg:hidden p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Zamknij menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
         <div className="ppg-sidebar-workspace">
           <span className="ppg-sidebar-kicker">WORKSPACE</span>
@@ -2159,43 +2169,61 @@ export default function PPGscopeApp() {
       {mobileNavOpen ? <button type="button" className="ppg-sidebar-overlay" aria-label="Zamknij menu" onClick={() => setMobileNavOpen(false)} /> : null}
       {/* Top Header & Global Bar */}
       <header className="ppg-topbar sticky top-0 z-30 border-b border-white/[0.08] bg-[#07080a]/95 backdrop-blur-xl">
-        <div className="ppg-topbar-inner mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+        <div className="ppg-topbar-inner mx-auto flex max-w-7xl items-center justify-between px-3 py-2.5 sm:px-6 sm:py-3">
           <button type="button" className="ppg-mobile-menu-trigger" aria-label="Otwórz menu" onClick={() => setMobileNavOpen(true)}><Menu className="h-5 w-5" /></button>
-          <div className="ppg-header-brand flex items-center gap-4">
-            <div className="ppg-topbar-logo flex items-center rounded-xl bg-white px-3 py-1.5 shadow-md border border-zinc-200">
+          <div className="ppg-header-brand flex items-center gap-2 sm:gap-4">
+            <div className="ppg-topbar-logo flex items-center rounded-xl bg-white px-2 py-1 sm:px-3 sm:py-1.5 shadow-md border border-zinc-200">
               <Image
                 src="/logo.png"
                 alt="Logo projektu"
                 width={200}
                 height={75}
-                className="h-11 sm:h-12 w-auto object-contain"
+                className="h-8 sm:h-11 w-auto object-contain"
                 priority
               />
             </div>
-            <div>
+            <div className="hidden sm:block">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono bg-white/[0.06] text-zinc-300 border border-white/[0.08] px-1.5 py-0.5 rounded">
                   v2.0 · 18 dziedzin
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">
                   <CheckCircle2 className="h-2.5 w-2.5" /> {totalTitlesCount} portali
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400 hidden sm:block mt-0.5">
+              <p className="text-[11px] text-zinc-400 mt-0.5">
                 Kategoryzacja tematyczna i analityka lokalności (C / CL / L)
               </p>
             </div>
           </div>
 
-          <div className="ppg-topbar-current hidden md:flex">
+          <div className="ppg-topbar-current hidden 2xl:flex">
             <span>PPGSCOPE / {activeNavItem?.label ?? "Panel"}</span>
             <strong>{periodLabel}</strong>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Interactive Period Selector */}
-            <div className="flex items-center rounded-xl border border-white/[0.08] bg-black/40 p-1 text-xs font-mono">
-              <span className="px-2 text-zinc-500 text-[10px] uppercase hidden md:inline">Okres:</span>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Mobile / Tablet Period Select Dropdown */}
+            <div className="relative xl:hidden">
+              <select
+                value={timePreset}
+                onChange={(e) => setTimePreset(e.target.value as TimePreset)}
+                aria-label="Wybierz okres analizy"
+                className="h-8 w-24 rounded-lg border border-white/[0.12] bg-[#11161b] pl-2 pr-5 text-xs font-mono text-zinc-200 appearance-none focus:outline-none focus:border-teal-400"
+              >
+                <option value="24h">24h</option>
+                <option value="7d">7 dni</option>
+                <option value="30d">30 dni</option>
+                <option value="90d">90 dni</option>
+                <option value="1y">1 rok</option>
+                <option value="all">Wszystkie</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-1.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
+            </div>
+
+            {/* Desktop Period Selector Buttons */}
+            <div className="hidden xl:flex items-center rounded-xl border border-white/[0.08] bg-black/40 p-1 text-xs font-mono">
+              <span className="px-2 text-zinc-500 text-[10px] uppercase hidden 2xl:inline">Okres:</span>
               <button
                 onClick={() => setTimePreset("24h")}
                 className={`rounded-lg px-2 py-1 transition-all ${
@@ -2262,20 +2290,23 @@ export default function PPGscopeApp() {
             {/* CSV Export Button */}
             <button
               onClick={handleExportCSV}
-              className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/[0.08] hover:text-white transition-all flex items-center gap-1.5 font-mono"
+              className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-2 2xl:px-3 2xl:py-1.5 text-xs text-zinc-300 hover:bg-white/[0.08] hover:text-white transition-all flex items-center gap-1.5 font-mono"
               title="Eksportuj wyfiltrowane artykuły do pliku CSV"
+              aria-label="Eksport CSV"
             >
               <Download className="h-3.5 w-3.5 text-teal-400" />
-              <span className="hidden md:inline">Eksport CSV</span>
+              <span className="hidden 2xl:inline">Eksport CSV</span>
             </button>
 
+            {/* Presentation Wall Button */}
             <button
               onClick={() => { setWallScene("network"); setWallMode(true); }}
-              className="rounded-xl border border-teal-400/30 bg-teal-400/10 px-3 py-1.5 text-xs font-medium text-teal-200 hover:bg-teal-400/20 transition-all flex items-center gap-1.5"
+              className="rounded-xl border border-teal-400/30 bg-teal-400/10 p-2 2xl:px-3 2xl:py-1.5 text-xs font-medium text-teal-200 hover:bg-teal-400/20 transition-all flex items-center gap-1.5"
               title="Otwórz prezentacyjny tryb The Wall"
+              aria-label="Tryb The Wall"
             >
               <Monitor className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">The Wall</span>
+              <span className="hidden 2xl:inline">The Wall</span>
             </button>
 
             {/* Settings Modal Button */}
@@ -2283,6 +2314,7 @@ export default function PPGscopeApp() {
               onClick={() => setIsSettingsOpen(true)}
               className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-2 text-zinc-300 hover:bg-white/[0.08] hover:text-white transition-all"
               title="Ustawienia API i parametrów"
+              aria-label="Ustawienia"
             >
               <Settings className="h-4 w-4" />
             </button>
@@ -2291,12 +2323,32 @@ export default function PPGscopeApp() {
             <button
               onClick={handleLogout}
               aria-label="Zablokuj sesję analityczną"
-              className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
+              className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2 2xl:px-3 2xl:py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 transition-all flex items-center gap-1.5"
+              title="Zablokuj sesję"
             >
-              <Lock className="h-3 w-3" />
-              <span className="hidden sm:inline">Zablokuj</span>
+              <Lock className="h-3.5 w-3.5" />
+              <span className="hidden 2xl:inline">Zablokuj</span>
             </button>
           </div>
+        </div>
+
+        {/* Mobile Touch-Friendly Horizontal Tabs Bar */}
+        <div className="ppg-mobile-tabs-bar lg:hidden">
+          {NAV_GROUPS.flatMap((g) => g.items).map((item) => {
+            const ItemIcon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveTab(item.id)}
+                className={`ppg-mobile-tab-btn ${isActive ? "is-active" : ""}`}
+              >
+                <ItemIcon className={`h-3.5 w-3.5 ${isActive ? "text-teal-300" : "text-zinc-500"}`} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Navigation Tabs */}
@@ -2449,30 +2501,30 @@ export default function PPGscopeApp() {
       </header>
 
       {/* Main Container */}
-      <main className="mx-auto max-w-7xl p-4 sm:p-6 space-y-6">
+      <main className="mx-auto max-w-7xl w-full min-w-0 p-3 sm:p-6 space-y-6 overflow-x-hidden">
 
         <DataTrustNotice provenance={provenance} />
         <IngestStatusCard status={ingestStatus} />
 
         {/* Global Context Bar: Searchable 546-Medium Selector + Locality Toggles */}
         {activeTab !== "forensics" && activeTab !== "investigation_reports" && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
+        <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-3.5 sm:p-4 w-full min-w-0">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Medium Selector Dropdown + Instant Search */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 flex-wrap w-full lg:w-auto">
               <div className="flex items-center gap-2 text-xs font-semibold text-white">
-                <Building2 className="h-4 w-4 text-teal-400" />
+                <Building2 className="h-4 w-4 text-teal-400 shrink-0" />
                 <span>Wybierz medium (z {totalTitlesCount}):</span>
               </div>
 
-              <div className="relative">
+              <div className="relative w-full sm:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-500" />
                 <input
                   type="text"
                   value={mediumSearchQuery}
                   onChange={(e) => setMediumSearchQuery(e.target.value)}
-                  placeholder={`Filtruj ${totalTitlesCount} mediów (np. kraków, obrona, biznes)...`}
-                  className="w-full sm:w-64 rounded-xl border border-white/[0.1] bg-black/60 py-1.5 pl-8 pr-6 text-xs font-mono text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none"
+                  placeholder={`Filtruj ${totalTitlesCount} mediów...`}
+                  className="w-full rounded-xl border border-white/[0.1] bg-black/60 py-1.5 pl-8 pr-6 text-xs font-mono text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none"
                 />
                 {mediumSearchQuery && (
                   <button
@@ -2485,11 +2537,11 @@ export default function PPGscopeApp() {
                 )}
               </div>
 
-              <div className="relative">
+              <div className="relative w-full sm:w-80">
                 <select
                   value={selectedMediumDomain}
                   onChange={(e) => setSelectedMediumDomain(e.target.value)}
-                  className="w-full sm:w-80 rounded-xl border border-teal-500/40 bg-black/80 py-2 pl-3 pr-8 text-xs font-mono text-white focus:border-teal-400 focus:outline-none"
+                  className="w-full rounded-xl border border-teal-500/40 bg-black/80 py-2 pl-3 pr-8 text-xs font-mono text-white focus:border-teal-400 focus:outline-none truncate"
                 >
                   <option value="ALL">Cała grupa PPG (wszystkie {totalTitlesCount} mediów)</option>
                   <optgroup label={`Dzienniki regionalne (${filteredTitlesForSelector.filter(t => t.type === "DZIENNIK_REGIONALNY" || t.type === "Dziennik regionalny").length})`}>
@@ -2526,17 +2578,17 @@ export default function PPGscopeApp() {
                     : "border-sky-500/40 bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 hover:text-white"
                 }`}
               >
-                <Scale className="h-3.5 w-3.5" /> Porównaj media (A vs B)
+                <Scale className="h-3.5 w-3.5" /> <span className="sm:hidden">Porównaj</span><span className="hidden sm:inline">Porównaj media (A vs B)</span>
               </button>
             </div>
 
             {/* View Mode Switcher: Wszystkie / Podział na centralne i lokalne / Podział na C, CL, L */}
-            <div className="flex flex-wrap items-center gap-3 border-t lg:border-t-0 border-white/[0.06] pt-3 lg:pt-0">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 border-t lg:border-t-0 border-white/[0.06] pt-3 lg:pt-0">
               <span className="text-xs text-zinc-400 font-mono">Widok:</span>
               <div className="flex flex-wrap rounded-xl border border-white/[0.08] bg-black/60 p-1 text-xs font-mono">
                 <button
                   onClick={() => setViewMode("ALL")}
-                  className={`rounded-lg px-3 py-1.5 transition-all ${
+                  className={`rounded-lg px-2.5 sm:px-3 py-1.5 transition-all ${
                     viewMode === "ALL"
                       ? "bg-teal-500 text-black font-semibold shadow"
                       : "text-zinc-400 hover:text-white"
@@ -2546,23 +2598,25 @@ export default function PPGscopeApp() {
                 </button>
                 <button
                   onClick={() => setViewMode("CENTRAL_LOCAL")}
-                  className={`rounded-lg px-3 py-1.5 transition-all ${
+                  className={`rounded-lg px-2.5 sm:px-3 py-1.5 transition-all ${
                     viewMode === "CENTRAL_LOCAL"
                       ? "bg-teal-500 text-black font-semibold shadow"
                       : "text-zinc-400 hover:text-white"
                   }`}
                 >
-                  Podział na centralne i lokalne
+                  <span className="sm:hidden">Centr. / Lok.</span>
+                  <span className="hidden sm:inline">Podział na centralne i lokalne</span>
                 </button>
                 <button
                   onClick={() => setViewMode("THREE_WAY")}
-                  className={`rounded-lg px-3 py-1.5 transition-all ${
+                  className={`rounded-lg px-2.5 sm:px-3 py-1.5 transition-all ${
                     viewMode === "THREE_WAY"
                       ? "bg-teal-500 text-black font-semibold shadow"
                       : "text-zinc-400 hover:text-white"
                   }`}
                 >
-                  Podział na centralne, rozwinięcie i lokalne
+                  <span className="sm:hidden">3 poziomy</span>
+                  <span className="hidden sm:inline">Podział na centralne, rozwinięcie i lokalne</span>
                 </button>
               </div>
             </div>
@@ -3510,8 +3564,8 @@ export default function PPGscopeApp() {
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left font-mono text-xs">
+                  <div className="w-full min-w-0 max-w-full overflow-x-auto">
+                    <table className="w-full min-w-[700px] text-left font-mono text-xs">
                       <thead className="border-b border-white/[0.08] text-[10px] uppercase text-zinc-400">
                         <tr>
                           <th className="py-2.5 px-3">Dziennik regionalny</th>
@@ -3707,12 +3761,12 @@ export default function PPGscopeApp() {
                         Porównanie dziennego strumienia RSS/Sitemap naszego dziennika i lidera niezależnego w tym samym mieście (identyczna klasyfikacja taksonomii v2.0)
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 font-mono text-xs">
-                      <span className="text-zinc-400">Wybierz aglomerację:</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 font-mono text-xs w-full sm:w-auto">
+                      <span className="text-zinc-400 shrink-0">Wybierz aglomerację:</span>
                       <select
                         value={selectedCompetitorRegion}
                         onChange={(e) => setSelectedCompetitorRegion(e.target.value)}
-                        className="rounded-xl border border-white/[0.12] bg-black px-3 py-1.5 text-white font-mono text-xs"
+                        className="w-full sm:w-auto max-w-full rounded-xl border border-white/[0.12] bg-black px-3 py-1.5 text-white font-mono text-xs truncate"
                       >
                         {compBench.map((b) => (
                           <option key={b.region} value={b.region}>
@@ -3786,15 +3840,15 @@ export default function PPGscopeApp() {
                       oraz wyliczy zwrot subskrypcyjny na 100 tys. odsłon.
                     </p>
                   </div>
-                  <span className="text-[11px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-lg shrink-0">
+                  <span className="text-[11px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-lg w-full sm:w-auto text-center sm:text-left">
                     Złączono {parsedInternalRows.length} adresów URL · {totalInternalPV.toLocaleString("pl-PL")} odsłon · {totalInternalConv} subskrypcji
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  <div className="lg:col-span-5 space-y-2">
-                    <label className="text-xs font-mono text-zinc-300 block">
-                      Wejściowy zrzut z GA4 / Piano (CSV: `url,pageviews,engaged_time_sec,strefa_plus_conversions`):
+                  <div className="lg:col-span-5 min-w-0 space-y-2">
+                    <label className="text-xs font-mono text-zinc-300 block break-words">
+                      Wejściowy zrzut z GA4 / Piano (CSV: <span className="break-all font-mono text-teal-300">`url,pageviews,engaged_time_sec,strefa_plus_conversions`</span>):
                     </label>
                     <textarea
                       rows={8}
@@ -3804,8 +3858,8 @@ export default function PPGscopeApp() {
                     />
                   </div>
 
-                  <div className="lg:col-span-7 overflow-x-auto">
-                    <table className="w-full text-left font-mono text-xs">
+                  <div className="lg:col-span-7 min-w-0 w-full max-w-full overflow-x-auto">
+                    <table className="w-full min-w-[540px] text-left font-mono text-xs">
                       <thead className="border-b border-white/[0.08] text-[10px] uppercase text-zinc-400">
                         <tr>
                           <th className="py-2 px-2.5">Domena i dziedzina</th>
@@ -3970,7 +4024,7 @@ export default function PPGscopeApp() {
                       <select
                         value={sideA.domain}
                         onChange={(e) => setSelectedMediumDomain(e.target.value)}
-                        className="sm:w-72 rounded-xl border border-teal-500/40 bg-black/90 py-1.5 px-3 text-xs font-mono text-white focus:border-teal-400 focus:outline-none"
+                        className="w-full sm:w-72 max-w-full rounded-xl border border-teal-500/40 bg-black/90 py-1.5 px-3 text-xs font-mono text-white focus:border-teal-400 focus:outline-none truncate"
                       >
                         <option value="ALL">Cała grupa PPG (benchmark {totalTitlesCount} mediów)</option>
                         <optgroup label="Dzienniki regionalne (20)">
@@ -4034,7 +4088,7 @@ export default function PPGscopeApp() {
                       <select
                         value={sideB.domain}
                         onChange={(e) => setCompareMediumDomain(e.target.value)}
-                        className="sm:w-72 rounded-xl border border-sky-500/40 bg-black/90 py-1.5 px-3 text-xs font-mono text-white focus:border-sky-400 focus:outline-none"
+                        className="w-full sm:w-72 max-w-full rounded-xl border border-sky-500/40 bg-black/90 py-1.5 px-3 text-xs font-mono text-white focus:border-sky-400 focus:outline-none truncate"
                       >
                         <option value="ALL">Cała grupa PPG (benchmark {totalTitlesCount} mediów)</option>
                         <optgroup label="Dzienniki regionalne (20)">
@@ -4123,8 +4177,8 @@ export default function PPGscopeApp() {
                     <div className="text-zinc-400">
                       Największa przewaga <strong className="text-teal-300">Medium A</strong>:
                       {strongestA.slice(0, 2).map((d) => (
-                        <div key={d.slug} className="flex justify-between text-zinc-200 mt-0.5">
-                          <span className="truncate max-w-[180px]">{d.code} {d.name}</span>
+                        <div key={d.slug} className="flex flex-wrap items-center justify-between text-zinc-200 mt-0.5 gap-1">
+                          <span className="truncate max-w-[160px]">{d.code} {d.name}</span>
                           <span className="text-teal-300 font-bold">+{d.diffPct} pkt ({d.pctA}% vs {d.pctB}%)</span>
                         </div>
                       ))}
@@ -4132,8 +4186,8 @@ export default function PPGscopeApp() {
                     <div className="text-zinc-400 pt-1 border-t border-white/[0.05]">
                       Największa przewaga <strong className="text-sky-300">Medium B</strong>:
                       {strongestB.slice(0, 2).map((d) => (
-                        <div key={d.slug} className="flex justify-between text-zinc-200 mt-0.5">
-                          <span className="truncate max-w-[180px]">{d.code} {d.name}</span>
+                        <div key={d.slug} className="flex flex-wrap items-center justify-between text-zinc-200 mt-0.5 gap-1">
+                          <span className="truncate max-w-[160px]">{d.code} {d.name}</span>
                           <span className="text-sky-300 font-bold">+{Math.abs(d.diffPct)} pkt ({d.pctB}% vs {d.pctA}%)</span>
                         </div>
                       ))}
@@ -4151,7 +4205,7 @@ export default function PPGscopeApp() {
                   </div>
 
                   <div className="space-y-2 text-[11px]">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
                       <span className="text-zinc-400">Czysto lokalne (L):</span>
                       <div className="flex items-center gap-2">
                         <span className="text-teal-300 font-bold">{sideA.lPct}%</span>
@@ -4160,7 +4214,7 @@ export default function PPGscopeApp() {
                         {diffBadge(sideA.lPct, sideB.lPct)}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
                       <span className="text-zinc-400">Rozwinięcie lokalne (CL):</span>
                       <div className="flex items-center gap-2">
                         <span className="text-teal-300 font-bold">{sideA.clPct}%</span>
@@ -4169,7 +4223,7 @@ export default function PPGscopeApp() {
                         {diffBadge(sideA.clPct, sideB.clPct)}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
                       <span className="text-zinc-400">Centralne bez lokalizacji (C):</span>
                       <div className="flex items-center gap-2">
                         <span className="text-teal-300 font-bold">{sideA.cPct}%</span>
@@ -4527,14 +4581,14 @@ export default function PPGscopeApp() {
                         {koA.top_politicians.slice(0, 6).map((pol, idx) => (
                           <div
                             key={pol.name}
-                            className="flex items-center justify-between rounded-lg bg-white/[0.02] px-2.5 py-1.5 text-xs font-mono border border-white/[0.04]"
+                            className="flex items-center justify-between rounded-lg bg-white/[0.02] px-2.5 py-1.5 text-xs font-mono border border-white/[0.04] gap-2 min-w-0"
                           >
-                            <div className="truncate pr-2">
-                              <span className="text-teal-400 mr-1.5">#{idx + 1}</span>
+                            <div className="min-w-0 flex-1 truncate pr-1">
+                              <span className="text-teal-400 mr-1 shrink-0">#{idx + 1}</span>
                               <strong className="text-white">{pol.name}</strong>
-                              <span className="text-[10px] text-zinc-400 ml-1.5">({pol.role})</span>
+                              <span className="text-[10px] text-zinc-400 ml-1.5 hidden sm:inline">({pol.role})</span>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0 text-[11px]">
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 text-[10px] sm:text-[11px]">
                               <span className="text-zinc-300">{pol.mentions} wzm.</span>
                               <span className="text-emerald-400">+{pol.positive_pct}%</span>
                               <span className="text-rose-400">-{pol.negative_pct}%</span>
@@ -4581,14 +4635,14 @@ export default function PPGscopeApp() {
                         {koB.top_politicians.slice(0, 6).map((pol, idx) => (
                           <div
                             key={pol.name}
-                            className="flex items-center justify-between rounded-lg bg-white/[0.02] px-2.5 py-1.5 text-xs font-mono border border-white/[0.04]"
+                            className="flex items-center justify-between rounded-lg bg-white/[0.02] px-2.5 py-1.5 text-xs font-mono border border-white/[0.04] gap-2 min-w-0"
                           >
-                            <div className="truncate pr-2">
-                              <span className="text-sky-400 mr-1.5">#{idx + 1}</span>
+                            <div className="min-w-0 flex-1 truncate pr-1">
+                              <span className="text-sky-400 mr-1 shrink-0">#{idx + 1}</span>
                               <strong className="text-white">{pol.name}</strong>
-                              <span className="text-[10px] text-zinc-400 ml-1.5">({pol.role})</span>
+                              <span className="text-[10px] text-zinc-400 ml-1.5 hidden sm:inline">({pol.role})</span>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0 text-[11px]">
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 text-[10px] sm:text-[11px]">
                               <span className="text-zinc-300">{pol.mentions} wzm.</span>
                               <span className="text-emerald-400">+{pol.positive_pct}%</span>
                               <span className="text-rose-400">-{pol.negative_pct}%</span>
@@ -5404,7 +5458,7 @@ export default function PPGscopeApp() {
                       <select
                         value={mediaAccountabilityType}
                         onChange={(e) => setMediaAccountabilityType(e.target.value)}
-                        className="rounded-lg border border-white/[0.1] bg-black/60 px-2.5 py-1 text-xs text-white focus:border-teal-500 focus:outline-none"
+                        className="w-full sm:w-auto max-w-full truncate rounded-lg border border-white/[0.1] bg-black/60 px-2.5 py-1 text-xs text-white focus:border-teal-500 focus:outline-none"
                       >
                         <option value="ALL">Wszystkie typy</option>
                         <option value="DZIENNIK_REGIONALNY">Dzienniki regionalne</option>
@@ -5421,7 +5475,7 @@ export default function PPGscopeApp() {
                             e.target.value as "impact" | "net_desc" | "net_asc" | "mentions" | "name"
                           )
                         }
-                        className="rounded-lg border border-white/[0.1] bg-black/60 px-2.5 py-1 text-xs text-white focus:border-teal-500 focus:outline-none"
+                        className="w-full sm:w-auto max-w-full truncate rounded-lg border border-white/[0.1] bg-black/60 px-2.5 py-1 text-xs text-white focus:border-teal-500 focus:outline-none"
                       >
                         <option value="impact">Sortuj: Wpływ na wynik (bezwzględny)</option>
                         <option value="net_desc">Sortuj: Najbardziej przychylne (saldo ↓)</option>
@@ -6503,7 +6557,7 @@ export default function PPGscopeApp() {
                   <select
                     value={probeDomainInput}
                     onChange={(e) => setProbeDomainInput(e.target.value)}
-                    className="rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200 font-mono focus:border-teal-500 focus:outline-none"
+                    className="w-full sm:w-auto max-w-full truncate rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200 font-mono focus:border-teal-500 focus:outline-none"
                   >
                     <option value="gazetakrakowska.pl">gazetakrakowska.pl (Dziennik regionalny - czynny)</option>
                     <option value="dziennikbaltycki.pl">dziennikbaltycki.pl (Dziennik regionalny - czynny)</option>
@@ -6626,14 +6680,14 @@ export default function PPGscopeApp() {
                     type="text"
                     value={vitalitySearchQuery}
                     onChange={(e) => setVitalitySearchQuery(e.target.value)}
-                    placeholder="Szukaj domeny lub miasta (np. puck, krakow, polskatimes)..."
-                    className="w-64 rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none"
+                    placeholder="Szukaj domeny lub miasta (np. puck, krakow)..."
+                    className="w-full sm:w-64 max-w-full rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none"
                   />
 
                   <select
                     value={vitalityStatusFilter}
                     onChange={(e) => setVitalityStatusFilter(e.target.value)}
-                    className="rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200"
+                    className="w-full sm:w-auto max-w-full truncate rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200"
                   >
                     <option value="ALL">Wszystkie statusy ({portals.length})</option>
                     <option value="AKTYWNY_UNIKALNY">Czynne i wysoko unikalne</option>
@@ -6646,7 +6700,7 @@ export default function PPGscopeApp() {
                   <select
                     value={vitalityRegionFilter}
                     onChange={(e) => setVitalityRegionFilter(e.target.value)}
-                    className="rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200"
+                    className="w-full sm:w-auto max-w-full truncate rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200"
                   >
                     <option value="ALL">Wszystkie województwa</option>
                     <option value="Małopolskie">Małopolskie</option>
@@ -6668,12 +6722,12 @@ export default function PPGscopeApp() {
                   </select>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-zinc-400">Sortuj:</span>
                   <select
                     value={vitalitySortBy}
                     onChange={(e) => setVitalitySortBy(e.target.value as "score" | "uniqueness" | "unique_daily" | "hours")}
-                    className="rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200"
+                    className="w-full sm:w-auto max-w-full truncate rounded-xl border border-white/[0.1] bg-black/60 px-3 py-2 text-xs text-zinc-200"
                   >
                     <option value="score">Wynik żywotności (0-100)</option>
                     <option value="uniqueness">% unikalnych tekstów</option>
@@ -7619,7 +7673,7 @@ export default function PPGscopeApp() {
                     <select
                       value={liveFetchDomain}
                       onChange={(e) => setLiveFetchDomain(e.target.value)}
-                      className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-200 focus:border-teal-500 focus:outline-none font-mono"
+                      className="w-full sm:w-auto max-w-full truncate rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-200 focus:border-teal-500 focus:outline-none font-mono"
                     >
                       {availableTitles.map((t) => (
                         <option key={t.domain} value={t.domain}>
@@ -7664,7 +7718,7 @@ export default function PPGscopeApp() {
                   <select
                     value={selectedDomainFilter}
                     onChange={(e) => setSelectedDomainFilter(e.target.value)}
-                    className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
+                    className="w-full sm:w-auto max-w-full truncate rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
                   >
                     <option value="wszystkie">Wszystkie dziedziny (18)</option>
                     {DOMAINS_SPEC.map((d) => (
@@ -7675,7 +7729,7 @@ export default function PPGscopeApp() {
                   <select
                     value={selectedLocalityFilter}
                     onChange={(e) => setSelectedLocalityFilter(e.target.value)}
-                    className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
+                    className="w-full sm:w-auto max-w-full truncate rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-zinc-300 focus:border-teal-500 focus:outline-none font-mono"
                   >
                     <option value="wszystkie">Wszystkie warianty lokalności</option>
                     <option value="L">L – Lokalne</option>

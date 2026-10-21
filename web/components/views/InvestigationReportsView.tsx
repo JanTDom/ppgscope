@@ -537,7 +537,7 @@ export function InvestigationReportsView() {
               Formułuj pytania, zadawaj tematy i definiuj kryteria audytu. Sprawdź, jak media Polska Press potraktowały dane wydarzenie w porównaniu z rynkiem ogólnopolskim i czy nie dopuściły się szkodliwego odpolitycznienia.
             </p>
           </div>
-          <div className="flex items-center gap-2 print:hidden">
+          <div className="flex flex-wrap items-center gap-2 print:hidden">
             <button
               onClick={handlePrintPdf}
               className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-semibold text-xs transition flex items-center gap-2 shadow-lg shadow-teal-500/20 cursor-pointer"
@@ -694,7 +694,7 @@ export function InvestigationReportsView() {
                 Kryterium analizy: {activeReport.angleLabel}
               </p>
             </div>
-            <div className="flex items-center gap-2 print:hidden">
+            <div className="flex flex-wrap items-center gap-2 print:hidden">
               <button
                 onClick={handleCopySummary}
                 className="px-3 py-1.5 rounded-lg border border-white/[0.08] hover:bg-white/[0.05] text-zinc-300 text-xs transition flex items-center gap-1.5"
@@ -757,28 +757,28 @@ export function InvestigationReportsView() {
               <div className="h-7 w-full rounded-lg overflow-hidden flex font-mono text-[10px] font-bold text-white">
                 <div
                   style={{ width: `${activeReport.attributionStats.governmentPct}%` }}
-                  className="bg-blue-600 flex items-center justify-center print:bg-blue-700"
+                  className="bg-blue-600 flex items-center justify-center print:bg-blue-700 px-1 truncate"
                   title="Rząd / Decydenci"
                 >
-                  {activeReport.attributionStats.governmentPct}% Rząd
+                  <span className="truncate">{activeReport.attributionStats.governmentPct}% Rząd</span>
                 </div>
                 <div
                   style={{ width: `${activeReport.attributionStats.bureaucracyPct}%` }}
-                  className="bg-zinc-500 flex items-center justify-center text-zinc-950 font-extrabold print:bg-gray-400"
+                  className="bg-zinc-500 flex items-center justify-center text-zinc-950 font-extrabold print:bg-gray-400 px-1 truncate"
                   title="Bezosobowy ZUS / Państwo"
                 >
-                  {activeReport.attributionStats.bureaucracyPct}% Bezosobowy ZUS / Urząd
+                  <span className="truncate">{activeReport.attributionStats.bureaucracyPct}% ZUS / Urząd</span>
                 </div>
                 <div
                   style={{ width: `${activeReport.attributionStats.oppositionPct}%` }}
-                  className="bg-rose-600 flex items-center justify-center print:bg-red-700"
+                  className="bg-rose-600 flex items-center justify-center print:bg-red-700 px-1 truncate"
                   title="Opozycja / Krytyka"
                 >
-                  {activeReport.attributionStats.oppositionPct}%
+                  <span className="truncate">{activeReport.attributionStats.oppositionPct}%</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-[11px] text-zinc-400 font-mono pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-zinc-400 font-mono pt-1">
                 <div>
                   <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-600 mr-1.5" />
                   Rząd / Premier: <strong className="text-white print:text-black">{activeReport.attributionStats.governmentPct}%</strong>
@@ -846,8 +846,8 @@ export function InvestigationReportsView() {
             <span className="text-xs text-zinc-500 font-mono">Audyt tytułów</span>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="w-full min-w-0 max-w-full overflow-x-auto">
+            <table className="w-full min-w-[560px] text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-white/[0.1] text-zinc-400 font-mono print:border-black print:text-black">
                   <th className="py-2.5 px-3">Medium</th>
