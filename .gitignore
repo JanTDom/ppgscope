@@ -50,4 +50,6 @@ data/*.backup.json
 
 # Local exports
 *.docx
+*.doc
 *.png
+*.html

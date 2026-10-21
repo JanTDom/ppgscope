@@ -8,6 +8,7 @@ import { PresentationWall, type WallScene } from "@/components/PresentationWall"
 import { MethodologyView } from "@/components/views/MethodologyView";
 import { CrossSectionsView } from "@/components/views/CrossSectionsView";
 import { TitlesView } from "@/components/views/TitlesView";
+import { InvestigationReportsView } from "@/components/views/InvestigationReportsView";
 import {
   POLITICAL_ACTORS,
   ALL_POLITICAL_ACTOR_IDS,
@@ -34,6 +35,7 @@ import {
   BarChart3,
   Layers,
   FileText,
+  FileSearch,
   Database,
   Settings,
   X,
@@ -687,6 +689,7 @@ type AppTab =
   | "articles"
   | "methodology"
   | "ko_sentiment"
+  | "investigation_reports"
   | "forensics";
 
 type ChartView = "all" | "content" | "network" | "operations";
@@ -708,6 +711,7 @@ const NAV_GROUPS: {
     label: "Analiza",
     icon: SlidersHorizontal,
     items: [
+      { id: "investigation_reports", label: "Studio raportów", meta: "AI / PDF", icon: FileSearch },
       { id: "forensics", label: "Szyba śledcza", icon: Shield },
       { id: "compare", label: "Porównywarka mediów", meta: "A / B", icon: Scale },
       { id: "ko_sentiment", label: "Wydźwięk polityczny", meta: "8 sił", icon: Vote },
@@ -2321,6 +2325,17 @@ export default function PPGscopeApp() {
             </button>
 
             <button
+              onClick={() => setActiveTab("investigation_reports")}
+              className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
+                activeTab === "investigation_reports"
+                  ? "bg-teal-500/20 text-teal-300 border border-teal-500/40 font-semibold"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+              }`}
+            >
+              <FileSearch className="h-3.5 w-3.5 text-teal-400" /> Studio raportów
+            </button>
+
+            <button
               onClick={() => setActiveTab("forensics")}
               className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
                 activeTab === "forensics"
@@ -2440,7 +2455,7 @@ export default function PPGscopeApp() {
         <IngestStatusCard status={ingestStatus} />
 
         {/* Global Context Bar: Searchable 546-Medium Selector + Locality Toggles */}
-        {activeTab !== "forensics" && (
+        {activeTab !== "forensics" && activeTab !== "investigation_reports" && (
         <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Medium Selector Dropdown + Instant Search */}
@@ -2813,6 +2828,11 @@ export default function PPGscopeApp() {
             </div>
           </div>
         )}
+
+        {/* ================================================================= */}
+        {/* TAB: STUDIO RAPORTÓW ŚLEDCZYCH I WIZERUNKOWYCH */}
+        {/* ================================================================= */}
+        {activeTab === "investigation_reports" && <InvestigationReportsView />}
 
         {/* ================================================================= */}
         {/* TAB: SZYBA ŚLEDCZA / LIVE FORENSICS OSINT */}

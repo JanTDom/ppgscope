@@ -139,3 +139,20 @@ Dokument zawiera spis kluczowych decyzji podjętych w projekcie **PPGscope**, zg
 
 
 
+
+---
+
+## ADR-010: Studio Raportów Śledczych i Wizerunkowych (Investigation & Accountability Studio) oraz Audyt Odpolitycznienia 800+
+
+* **Data:** 2026-10-21
+* **Status:** PRZYJĘTE I WDROŻONE PRODUKCYJNIE
+* **Kontekst:** Użytkownik zlecił wdrożenie w PPGscope uniwersalnego modułu do generowania raportów na żądanie na temat sposobu relacjonowania wydarzeń przez media Polska Press w porównaniu z rynkiem ogólnopolskim. Moduł miał zawierać interaktywny panel formułowania pytań i oczekiwań, wizualny raport na ekranie (z kafelkami KPI, wykresami atrybucji i matrycą nagłówków) oraz funkcję eksportu do czystego formatu PDF.
+* **Decyzja:**
+  1. **Nowy komponent `InvestigationReportsView.tsx`:**
+     - Wdrożono panel formułowania pytań z polem tematu, wyborem kąta analitycznego (`GOVERNMENT_PROMOTION`, `DEPOLITICIZATION_SEO`, `ATTACK_RESISTANCE`, `LOCAL_VS_SYNDICATE`) oraz polem własnych oczekiwań (prompt/brief).
+     - Przygotowano gotowe studia przypadków (Case Studies: *800 plus i automatyzacja wypłat*, *Odbudowa po powodzi*, *Składka zdrowotna*).
+     - Zbudowano interaktywny dashboard z metrykami atrybucji sukcesu, wskaźnikiem wyciszenia sprawcy w nagłówkach oraz matrycą porównawczą rzeczywistych nagłówków regionalnych i rynkowych.
+     - Wdrożono dedykowany arkusz stylów do druku (`@media print`), pozwalający na wygenerowanie czystego, wektorowego dokumentu PDF w formacie A4 bez elementów nawigacji.
+  2. **Integracja w `web/app/page.tsx`:**
+     - Dodano zakładkę `investigation_reports` do bocznego menu w grupie „Analiza” oraz do poziomego paska szybkiego dostępu.
+     - Zoptymalizowano widok poprzez ukrycie zbędnego paska filtrów globalnych w trakcie pracy ze studiem raportów.
