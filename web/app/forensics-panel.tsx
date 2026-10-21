@@ -231,12 +231,29 @@ export default function ForensicsPanel() {
                         ? "spowolniony rytm"
                         : source.status === "ZASTYGLA_CZOLOWKA"
                         ? "zastygła czołówka"
+                        : source.error
+                        ? "błąd źródła"
                         : "brak danych";
+
+                    const metricDetail =
+                      source.medianIntervalMinutes !== null
+                        ? `mediana: co ${source.medianIntervalMinutes} min (${source.itemCount} mat.)`
+                        : source.itemCount === 1
+                        ? "1 materiał"
+                        : source.itemCount > 1
+                        ? `${source.itemCount} materiałów`
+                        : source.error
+                        ? `błąd: ${source.error}`
+                        : "0 materiałów";
+
                     return (
                       <div key={source.sourceId} className="rounded-xl border border-white/[0.07] bg-black/20 p-2.5">
                         <div className="flex items-center justify-between gap-2">
                           <span className="truncate text-xs font-semibold text-slate-200">{source.sourceName}</span>
-                          <span className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${statusColor}`}>
+                          <span
+                            title={source.error ?? undefined}
+                            className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${statusColor}`}
+                          >
                             {statusText}
                           </span>
                         </div>
@@ -244,8 +261,8 @@ export default function ForensicsPanel() {
                           <span>
                             ostatnia: {source.ageMinutes !== null ? formatAge(source.ageMinutes) + " temu" : "brak daty"}
                           </span>
-                          <span>
-                            {source.medianIntervalMinutes !== null ? `mediana: co ${source.medianIntervalMinutes} min` : "1 materiał"}
+                          <span className={source.error ? "text-rose-300" : ""}>
+                            {metricDetail}
                           </span>
                         </div>
                       </div>

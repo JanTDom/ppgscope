@@ -6,12 +6,14 @@
 
 export const VERIFIED_ON = "2026-10-18";
 
-export const FORENSICS_USER_AGENT = "PPGscope/1.0 (+https://ppgscope.pl)";
+export const FORENSICS_USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 (PPGscope/1.0; +https://ppgscope.pl)";
 
 export interface FeedSource {
   id: string;
   name: string;
   url: string;
+  fallbackUrl?: string;
 }
 
 export interface PpgFeedSource extends FeedSource {
@@ -25,11 +27,41 @@ export interface CompetitorFeedSource extends FeedSource {
 }
 
 export const PPG_FEEDS: readonly PpgFeedSource[] = [
-  { id: "gazetakrakowska", name: "Gazeta Krakowska", url: "https://gazetakrakowska.pl/rss", region: "Małopolskie" },
-  { id: "gloswielkopolski", name: "Głos Wielkopolski", url: "https://gloswielkopolski.pl/rss", region: "Wielkopolskie" },
-  { id: "gazetawroclawska", name: "Gazeta Wrocławska", url: "https://gazetawroclawska.pl/rss", region: "Dolnośląskie" },
-  { id: "dziennikbaltycki", name: "Dziennik Bałtycki", url: "https://dziennikbaltycki.pl/rss", region: "Pomorskie" },
-  { id: "dziennikzachodni", name: "Dziennik Zachodni", url: "https://dziennikzachodni.pl/rss", region: "Śląskie" },
+  {
+    id: "gazetakrakowska",
+    name: "Gazeta Krakowska",
+    url: "https://gazetakrakowska.pl/rss",
+    fallbackUrl: "https://gazetakrakowska.pl/rss/gazetakrakowska.xml",
+    region: "Małopolskie",
+  },
+  {
+    id: "gloswielkopolski",
+    name: "Głos Wielkopolski",
+    url: "https://gloswielkopolski.pl/rss",
+    fallbackUrl: "https://gloswielkopolski.pl/rss/gloswielkopolski.xml",
+    region: "Wielkopolskie",
+  },
+  {
+    id: "gazetawroclawska",
+    name: "Gazeta Wrocławska",
+    url: "https://gazetawroclawska.pl/rss",
+    fallbackUrl: "https://gazetawroclawska.pl/rss/gazetawroclawska.xml",
+    region: "Dolnośląskie",
+  },
+  {
+    id: "dziennikbaltycki",
+    name: "Dziennik Bałtycki",
+    url: "https://dziennikbaltycki.pl/rss",
+    fallbackUrl: "https://dziennikbaltycki.pl/rss/dziennikbaltycki.xml",
+    region: "Pomorskie",
+  },
+  {
+    id: "dziennikzachodni",
+    name: "Dziennik Zachodni",
+    url: "https://dziennikzachodni.pl/rss",
+    fallbackUrl: "https://dziennikzachodni.pl/rss/dziennikzachodni.xml",
+    region: "Śląskie",
+  },
 ];
 
 export const COMPETITOR_FEEDS: readonly CompetitorFeedSource[] = [
