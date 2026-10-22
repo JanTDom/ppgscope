@@ -1,34 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
+import { generateInvestigationReport, type InvestigationArticle } from "@/lib/investigation-report";
 import {
   FileSearch,
   Sparkles,
-  Download,
   Printer,
   Copy,
   Check,
   AlertTriangle,
-  TrendingDown,
-  TrendingUp,
-  BarChart3,
   Layers,
-  ArrowRight,
-  Filter,
   RefreshCw,
   Scale,
-  ShieldAlert,
-  HelpCircle,
   Newspaper,
   CheckCircle2,
   XCircle,
-  Calendar,
-  Building2,
-  Share2,
 } from "lucide-react";
 
 export type AnalysisAngle =
   | "GOVERNMENT_PROMOTION"
+  | "TUSK_PROMOTION"
   | "DEPOLITICIZATION_SEO"
   | "ATTACK_RESISTANCE"
   | "LOCAL_VS_SYNDICATE";
@@ -81,6 +72,20 @@ export interface GeneratedReportData {
     recommendedCorrection: string;
     expectedGain: string;
   }[];
+  sourceInfo?: {
+    sourceLabel: string;
+    datasetMode: string;
+    datasetGeneratedAt?: string;
+    totalArticles: number;
+    matchedArticles: number;
+    matchMethod: string;
+    status: "EVIDENCE_FOUND" | "NO_MATCHES";
+  };
+  attributionLabels?: {
+    primary: string;
+    institutional: string;
+    counterNarrative: string;
+  };
 }
 
 const PRESETS: InvestigationPreset[] = [
@@ -381,12 +386,20 @@ const PRESETS: InvestigationPreset[] = [
   },
 ];
 
-export function InvestigationReportsView() {
+export function InvestigationReportsView({
+  articles,
+  datasetGeneratedAt,
+  datasetMode = "synthetic_fixture",
+}: {
+  articles: InvestigationArticle[];
+  datasetGeneratedAt?: string;
+  datasetMode?: string;
+}) {
   const [topicQuery, setTopicQuery] = useState(PRESETS[0].topic);
   const [selectedAngle, setSelectedAngle] = useState<AnalysisAngle>("GOVERNMENT_PROMOTION");
   const [userExpectations, setUserExpectations] = useState(PRESETS[0].userExpectations);
   const [selectedPresetId, setSelectedPresetId] = useState<string>("800_plus_deregulation");
-  const [activeReport, setActiveReport] = useState<GeneratedReportData>(PRESETS[0].reportData);
+  const [activeReport, setActiveReport] = useState<GeneratedReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedSummary, setCopiedSummary] = useState(false);
 
@@ -395,119 +408,25 @@ export function InvestigationReportsView() {
     setTopicQuery(preset.topic);
     setSelectedAngle(preset.angle);
     setUserExpectations(preset.userExpectations);
-    setActiveReport(preset.reportData);
+    setActiveReport(null);
   };
 
   const handleGenerateReport = () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      // Znajdź istniejący preset lub stwórz dynamiczny raport
-      const existing = PRESETS.find((p) => p.id === selectedPresetId);
-      if (existing && existing.topic === topicQuery && existing.angle === selectedAngle) {
-        setActiveReport(existing.reportData);
-      } else {
-        // Dynamiczna generacja dla zapytania użytkownika
-        setActiveReport({
-          topicTitle: topicQuery,
-          angleLabel:
-            selectedAngle === "GOVERNMENT_PROMOTION"
-              ? "Promocja sprawczości rządu i atrybucja sukcesu"
-              : selectedAngle === "DEPOLITICIZATION_SEO"
-              ? "Wyciszenie polityczne i ucieczka w SEO"
-              : selectedAngle === "ATTACK_RESISTANCE"
-              ? "Odporność na kontrnarrację opozycji"
-              : "Lokalność vs centralny wsad agencyjny",
-          summaryExecutive: `Audyt relacjonowania tematu „${topicQuery}” w oparciu o kryterium: ${userExpectations || "badanie atrybucji sprawstwa i rzetelności prasy regionalnej"}. Dzienniki PPG w większości wyciszyły bezpośredni kontekst rządowy, sprowadzając temat do zanonimizowanego komunikatu instytucjonalnego.`,
-          attributionStats: {
-            governmentPct: 18,
-            bureaucracyPct: 68,
-            oppositionPct: 14,
-          },
-          headlineExposure: {
-            ppgPct: 20,
-            portalsPct: 80,
-            rightWingPct: 70,
-            businessPct: 40,
-          },
-          geographicSplit: {
-            metropolisScore: 72,
-            countyScore: 22,
-          },
-          keyMetrics: [
-            {
-              label: "Obecność decydentów w nagłówkach PPG",
-              value: "20%",
-              sublabel: "W mediach horyzontalnych: 80%",
-              status: "bad",
-            },
-            {
-              label: "Atrybucja na rzecz urzędów",
-              value: "68%",
-              sublabel: "Brak przypisania sukcesu autorom",
-              status: "bad",
-            },
-            {
-              label: "Powtarzalność treści (syndykacja)",
-              value: "86%",
-              sublabel: "Zunifikowany szablon w mutacjach",
-              status: "warning",
-            },
-            {
-              label: "Skuteczność dotarcia w powiatach",
-              value: "22 / 100",
-              sublabel: "Porażka wizerunkowa w regionach",
-              status: "bad",
-            },
-          ],
-          headlineCases: [
-            {
-              source: "Polska Press (Regiony)",
-              sourceType: "PPG",
-              headline: `„${topicQuery}: nowe przepisy i zasady. Sprawdź, co się zmienia”`,
-              protagonist: "Instytucja / Przepisy",
-              impact: "Neutralny (wyzerowanie sprawstwa politycznego)",
-            },
-            {
-              source: "Portale ogólnopolskie (Onet/WP)",
-              sourceType: "PORTAL",
-              headline: `„Rząd wprowadza zmiany w sprawie: ${topicQuery}. Tusk zapowiada konkrety”`,
-              protagonist: "Donald Tusk / Rząd",
-              impact: "Wysoki zysk wizerunkowy",
-            },
-            {
-              source: "Media prawicowe",
-              sourceType: "OPPOSITION",
-              headline: `„Kolejne puste obietnice koalicji. Awantura wokół: ${topicQuery}”`,
-              protagonist: "Rząd (jako cel ataku)",
-              impact: "Atak polityczny bez riposty w PPG",
-            },
-          ],
-          strategicLosses: [
-            `Wyzerowanie korzyści wizerunkowej: odbiorcy przypisali sprawę instytucjom państwowym, a nie rządowi.`,
-            `Niewykorzystanie zasięgu w powiatach: zaniechanie budowy poparcia w trudnych okręgach wyborczych.`,
-            `Bierność wobec ataków opozycji: brak wyjaśnienia kontekstu i korzyści dla zwykłych obywateli.`,
-          ],
-          editorialCorrections: [
-            {
-              element: "Nagłówek",
-              ppgMistake: `„${topicQuery} – sprawdź wytyczne i terminy”`,
-              recommendedCorrection: `„Rząd realizuje obietnicę: ${topicQuery} z korzyścią dla mieszkańców”`,
-              expectedGain: "Jasna atrybucja i budowanie zaufania",
-            },
-            {
-              element: "Lead",
-              ppgMistake: "Urzędowe wyliczenie paragrafów i biurokratyczny język",
-              recommendedCorrection: "Prosty, zrozumiały język pokazujący, co konkretnie zyskuje rodzina lub pracownik",
-              expectedGain: "Wzrost poparcia w Polsce powiatowej",
-            },
-          ],
-        });
-      }
-      setIsGenerating(false);
-    }, 600);
+    const generated = generateInvestigationReport({
+      articles,
+      topic: topicQuery.trim(),
+      expectations: userExpectations.trim(),
+      angle: selectedAngle,
+      datasetGeneratedAt,
+      datasetMode,
+    });
+    setActiveReport(generated);
+    setIsGenerating(false);
   };
 
   const handleCopySummary = () => {
+    if (!activeReport) return;
     if (!navigator.clipboard) return;
     const textToCopy = `RAPORT PPGscope: ${activeReport.topicTitle}\nKąt: ${activeReport.angleLabel}\n\nSTRESZCZENIE WYKONAWCZE:\n${activeReport.summaryExecutive}\n\nKLUCZOWE WSKAŹNIKI:\n${activeReport.keyMetrics.map((m) => `• ${m.label}: ${m.value} (${m.sublabel})`).join("\n")}\n\nSTRATY WIZERUNKOWE:\n${activeReport.strategicLosses.map((l) => `- ${l}`).join("\n")}`;
     navigator.clipboard.writeText(textToCopy);
@@ -544,14 +463,6 @@ export function InvestigationReportsView() {
             >
               <Printer className="h-4 w-4" /> Drukuj / Zapisz PDF
             </button>
-            <a
-              href="/Raport_800plus_Tusk_PPG_vs_Media.docx"
-              download
-              className="px-3 py-2.5 rounded-xl border border-white/[0.12] hover:bg-white/[0.05] text-zinc-300 text-xs transition flex items-center gap-1.5"
-              title="Pobierz dokument Word (.docx)"
-            >
-              <Download className="h-4 w-4 text-zinc-400" /> Word (.docx)
-            </a>
           </div>
         </div>
       </div>
@@ -602,7 +513,10 @@ export function InvestigationReportsView() {
             <input
               type="text"
               value={topicQuery}
-              onChange={(e) => setTopicQuery(e.target.value)}
+              onChange={(e) => {
+                setTopicQuery(e.target.value);
+                setActiveReport(null);
+              }}
               placeholder="np. '800 plus – jeden wniosek', 'Pomoc dla powodzian', 'CPK', 'Składka zdrowotna'..."
               className="w-full px-4 py-3 rounded-xl border border-white/[0.1] bg-[#07080a] text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition"
             />
@@ -615,7 +529,10 @@ export function InvestigationReportsView() {
               <textarea
                 rows={3}
                 value={userExpectations}
-                onChange={(e) => setUserExpectations(e.target.value)}
+                onChange={(e) => {
+                  setUserExpectations(e.target.value);
+                  setActiveReport(null);
+                }}
                 placeholder="Napisz, co konkretnie ma sprawdzić raport (np. czy media PPG przypisują zasługę premierowi, czy uciekają w poradnik ZUS, jak relacjonują krytykę opozycji)..."
                 className="w-full px-4 py-2.5 rounded-xl border border-white/[0.1] bg-[#07080a] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-teal-500 transition resize-none leading-relaxed"
               />
@@ -631,6 +548,7 @@ export function InvestigationReportsView() {
               <div className="space-y-2">
                 {[
                   { id: "GOVERNMENT_PROMOTION", label: "Promocja sprawczości rządu", desc: "Czy przypisano sukces autorom, czy nastąpiła ucieczka w ZUS?" },
+              { id: "TUSK_PROMOTION", label: "Promocja sprawczości Donalda Tuska", desc: "Czy materiały pokazują, co konkretnie Donald Tusk zrobił lub zdecydował?" },
                   { id: "DEPOLITICIZATION_SEO", label: "Ucieczka w poradnictwo SEO", desc: "Czy temat sprowadzono do suchego poradnika pod algorytm Google?" },
                   { id: "ATTACK_RESISTANCE", label: "Odporność na ataki opozycji", desc: "Czy media objaśniły wątpliwości, czy powieliły krytykę?" },
                   { id: "LOCAL_VS_SYNDICATE", label: "Lokalność vs centralny wsad", desc: "Czy redakcje lokalne pisały same, czy powieliły depeszę z Warszawy?" },
@@ -638,7 +556,10 @@ export function InvestigationReportsView() {
                   <button
                     key={angle.id}
                     type="button"
-                    onClick={() => setSelectedAngle(angle.id as AnalysisAngle)}
+                    onClick={() => {
+                      setSelectedAngle(angle.id as AnalysisAngle);
+                      setActiveReport(null);
+                    }}
                     className={`w-full p-2.5 rounded-xl border text-left transition cursor-pointer ${
                       selectedAngle === angle.id
                         ? "border-teal-500/70 bg-teal-500/10 text-white"
@@ -676,6 +597,7 @@ export function InvestigationReportsView() {
       {/* ========================================================================= */}
       {/* PANEL 2: WYNIK RAPORTU (PRINTABLE REPORT CONTAINER) */}
       {/* ========================================================================= */}
+      {activeReport ? (
       <div className="space-y-6 bg-[#07080a] text-zinc-100 print:bg-white print:text-black">
         {/* REPORT HEADER BAR */}
         <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 p-6 space-y-4 print:border-b-2 print:border-black print:rounded-none print:p-0 print:pb-4">
@@ -685,7 +607,9 @@ export function InvestigationReportsView() {
                 <span className="px-2.5 py-0.5 rounded-md bg-teal-500/20 border border-teal-500/40 text-teal-400 text-[10px] font-mono font-bold uppercase print:text-black print:border-black">
                   RAPORT WIZERUNKOWY
                 </span>
-                <span className="text-xs text-zinc-400 font-mono">Data analizy: 21 października 2026 r.</span>
+                <span className="text-xs text-zinc-400 font-mono">
+                  Snapshot: {activeReport.sourceInfo?.datasetGeneratedAt || "brak daty"}
+                </span>
               </div>
               <h2 className="text-xl md:text-2xl font-bold text-white mt-1 print:text-black">
                 {activeReport.topicTitle}
@@ -718,6 +642,22 @@ export function InvestigationReportsView() {
             </span>
             {activeReport.summaryExecutive}
           </div>
+
+          {activeReport.sourceInfo && (
+            <div className={`rounded-xl border p-4 text-xs leading-relaxed ${activeReport.sourceInfo.status === "EVIDENCE_FOUND" ? "border-teal-500/30 bg-teal-500/[0.06] text-teal-100" : "border-amber-500/40 bg-amber-500/[0.06] text-amber-100"}`}>
+              <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-wider">
+                <span className="font-bold">Zakres dowodowy</span>
+                <span className="rounded border border-current px-1.5 py-0.5">{activeReport.sourceInfo.status === "EVIDENCE_FOUND" ? "dopasowanie znalezione" : "brak dopasowania"}</span>
+              </div>
+              <div className="mt-2 grid gap-1 text-zinc-300 sm:grid-cols-2">
+                <span>Źródło: <strong className="text-white">{activeReport.sourceInfo.sourceLabel}</strong></span>
+                <span>Dopasowane: <strong className="text-white">{activeReport.sourceInfo.matchedArticles.toLocaleString("pl-PL")}</strong> / {activeReport.sourceInfo.totalArticles.toLocaleString("pl-PL")}</span>
+                <span>Tryb danych: <strong className="text-white">{activeReport.sourceInfo.datasetMode}</strong></span>
+                <span>Reguła: <strong className="text-white">temat → tytuł / lead / metadane</strong></span>
+              </div>
+              <p className="mt-2 text-zinc-400">{activeReport.sourceInfo.matchMethod}</p>
+            </div>
+          )}
         </div>
 
         {/* KPI METRIC CARDS */}
@@ -747,9 +687,9 @@ export function InvestigationReportsView() {
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
               <h3 className="text-sm font-bold text-white flex items-center gap-2 print:text-black">
                 <Scale className="h-4 w-4 text-teal-400 print:text-black" />
-                Komu odbiorcy przypisują zasługę w regionach?
+                Jak rozkłada się atrybucja w dopasowanych tekstach?
               </h3>
-              <span className="text-[11px] font-mono text-zinc-500">Percepcja czytelników</span>
+              <span className="text-[11px] font-mono text-zinc-500">Wskaźnik tekstowy, nie sondaż</span>
             </div>
 
             <div className="space-y-3 pt-1">
@@ -758,43 +698,43 @@ export function InvestigationReportsView() {
                 <div
                   style={{ width: `${activeReport.attributionStats.governmentPct}%` }}
                   className="bg-blue-600 flex items-center justify-center print:bg-blue-700 px-1 truncate"
-                  title="Rząd / Decydenci"
+                  title={activeReport.attributionLabels?.primary || "Rząd / decydenci"}
                 >
-                  <span className="truncate">{activeReport.attributionStats.governmentPct}% Rząd</span>
+                  <span className="truncate">{activeReport.attributionStats.governmentPct}% {activeReport.attributionLabels?.primary || "Rząd"}</span>
                 </div>
                 <div
                   style={{ width: `${activeReport.attributionStats.bureaucracyPct}%` }}
                   className="bg-zinc-500 flex items-center justify-center text-zinc-950 font-extrabold print:bg-gray-400 px-1 truncate"
-                  title="Bezosobowy ZUS / Państwo"
+                  title={activeReport.attributionLabels?.institutional || "Instytucje / procedury"}
                 >
-                  <span className="truncate">{activeReport.attributionStats.bureaucracyPct}% ZUS / Urząd</span>
+                  <span className="truncate">{activeReport.attributionStats.bureaucracyPct}% {activeReport.attributionLabels?.institutional || "Instytucje"}</span>
                 </div>
                 <div
                   style={{ width: `${activeReport.attributionStats.oppositionPct}%` }}
                   className="bg-rose-600 flex items-center justify-center print:bg-red-700 px-1 truncate"
-                  title="Opozycja / Krytyka"
+                  title={activeReport.attributionLabels?.counterNarrative || "Krytyka / kontrnarracja"}
                 >
-                  <span className="truncate">{activeReport.attributionStats.oppositionPct}%</span>
+                  <span className="truncate">{activeReport.attributionStats.oppositionPct}% {activeReport.attributionLabels?.counterNarrative || "Krytyka"}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-zinc-400 font-mono pt-1">
                 <div>
                   <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-600 mr-1.5" />
-                  Rząd / Premier: <strong className="text-white print:text-black">{activeReport.attributionStats.governmentPct}%</strong>
+                  {activeReport.attributionLabels?.primary || "Rząd / Premier"}: <strong className="text-white print:text-black">{activeReport.attributionStats.governmentPct}%</strong>
                 </div>
                 <div>
                   <span className="inline-block w-2.5 h-2.5 rounded-full bg-zinc-500 mr-1.5" />
-                  ZUS / Przepisy: <strong className="text-amber-400 print:text-black">{activeReport.attributionStats.bureaucracyPct}%</strong>
+                  {activeReport.attributionLabels?.institutional || "Instytucje / procedury"}: <strong className="text-amber-400 print:text-black">{activeReport.attributionStats.bureaucracyPct}%</strong>
                 </div>
                 <div>
                   <span className="inline-block w-2.5 h-2.5 rounded-full bg-rose-600 mr-1.5" />
-                  Opozycja / Atak: <strong className="text-rose-400 print:text-black">{activeReport.attributionStats.oppositionPct}%</strong>
+                  {activeReport.attributionLabels?.counterNarrative || "Krytyka / atak"}: <strong className="text-rose-400 print:text-black">{activeReport.attributionStats.oppositionPct}%</strong>
                 </div>
               </div>
 
               <p className="text-xs text-zinc-400 italic pt-1 leading-relaxed">
-                Diagnoza: Ponad 70% społecznego zysku zostało przejęte przez bezosobową machinę urzędniczą. Prasa regionalna zdepolityzowała temat do tego stopnia, że czytelnik nie kojarzy ułatwień z działaniem rządu.
+                Diagnoza: ten panel pokazuje udział rozpoznanych wzorców w dopasowanych tekstach. Nie mierzy percepcji odbiorców ani nie dowodzi, komu społeczeństwo przypisało zasługę.
               </p>
             </div>
           </div>
@@ -806,15 +746,15 @@ export function InvestigationReportsView() {
                 <Newspaper className="h-4 w-4 text-teal-400 print:text-black" />
                 Obecność decydenta w nagłówkach artykułów
               </h3>
-              <span className="text-[11px] font-mono text-zinc-500">Benchmark rynkowy</span>
+              <span className="text-[11px] font-mono text-zinc-500">W dopasowanych tytułach</span>
             </div>
 
             <div className="space-y-3 pt-1">
-              {[
-                { label: "Polska Press (Dzienniki regionalne)", value: activeReport.headlineExposure.ppgPct, color: "bg-rose-500", highlight: true },
-                { label: "Portale horyzontalne (Onet, WP, Interia)", value: activeReport.headlineExposure.portalsPct, color: "bg-teal-500", highlight: false },
-                { label: "Media prawicowe (wPolityce, Do Rzeczy)", value: activeReport.headlineExposure.rightWingPct, color: "bg-blue-600", highlight: false },
-                { label: "Media gospodarcze (Money.pl, DGP)", value: activeReport.headlineExposure.businessPct, color: "bg-zinc-600", highlight: false },
+                {[
+                { label: "Nazwisko Donalda Tuska w tytule", value: activeReport.headlineExposure.ppgPct, color: "bg-rose-500", highlight: true },
+                { label: "Rząd / premier w tytule", value: activeReport.headlineExposure.portalsPct, color: "bg-teal-500", highlight: false },
+                { label: "Instytucja / procedura w tytule", value: activeReport.headlineExposure.rightWingPct, color: "bg-blue-600", highlight: false },
+                { label: "Autor nazwany w metadanych", value: activeReport.headlineExposure.businessPct, color: "bg-zinc-600", highlight: false },
               ].map((row, i) => (
                 <div key={i} className="space-y-1">
                   <div className="flex justify-between text-xs">
@@ -830,7 +770,7 @@ export function InvestigationReportsView() {
               ))}
 
               <p className="text-xs text-zinc-400 italic pt-1 leading-relaxed">
-                Wniosek: Dzienniki regionalne PPG zajmują ostatnie miejsce pod względem ekspozycji premiera w tytułach. W portalu Onet czytelnik od razu widzi nazwisko autora zmian, w PPG widzi jedynie słowo „ZUS”.
+                Wniosek: wartości odnoszą się wyłącznie do dopasowanych rekordów w aktualnym zbiorze PPGscope. Nie są benchmarkiem rynku ogólnopolskiego, dopóki takie źródła nie znajdą się w danych wejściowych.
               </p>
             </div>
           </div>
@@ -853,11 +793,11 @@ export function InvestigationReportsView() {
                   <th className="py-2.5 px-3">Medium</th>
                   <th className="py-2.5 px-3">Rzeczywisty nagłówek artykułu</th>
                   <th className="py-2.5 px-3">Bohater tytułu</th>
-                  <th className="py-2.5 px-3">Wpływ na wizerunek rządu</th>
+                  <th className="py-2.5 px-3">Status dowodowy</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04] print:divide-gray-300">
-                {activeReport.headlineCases.map((c, i) => (
+                {activeReport.headlineCases.length ? activeReport.headlineCases.map((c, i) => (
                   <tr key={i} className="hover:bg-white/[0.02]">
                     <td className="py-3 px-3 font-semibold text-white print:text-black whitespace-nowrap">
                       {c.source}
@@ -878,7 +818,11 @@ export function InvestigationReportsView() {
                       </span>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={4} className="py-8 px-3 text-center text-zinc-500">Brak dopasowanych nagłówków — nie wygenerowano przykładów zastępczych.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -890,7 +834,7 @@ export function InvestigationReportsView() {
           <div className="p-6 rounded-2xl border border-rose-500/30 bg-rose-500/5 space-y-3 print:border-gray-300 print:bg-white">
             <h3 className="text-sm font-bold text-rose-300 flex items-center gap-2 print:text-black">
               <AlertTriangle className="h-4 w-4 text-rose-400 print:text-black" />
-              Kardynalne straty wizerunkowe rządu przez bierność PPG
+              Bilans dowodów i ograniczeń
             </h3>
             <ul className="space-y-2 text-xs text-zinc-300 print:text-black">
               {activeReport.strategicLosses.map((loss, idx) => (
@@ -923,18 +867,25 @@ export function InvestigationReportsView() {
 
         {/* STOPKA RAPORTU WIDOKU */}
         <div className="border-t border-white/[0.08] pt-4 flex flex-col sm:flex-row justify-between items-center text-xs text-zinc-500 font-mono print:border-black print:text-black">
-          <div>Wygenerowano automatycznie w silniku PPGscope Accountability Engine</div>
+          <div>Wygenerowano z danych PPGscope / recent_articles</div>
           <div className="flex items-center gap-3">
             <button onClick={handlePrintPdf} className="hover:text-teal-400 underline cursor-pointer print:hidden">
               Drukuj do PDF
             </button>
-            <span className="print:hidden">·</span>
-            <a href="/Raport_800plus_Tusk_PPG_vs_Media.docx" download className="hover:text-teal-400 underline print:hidden">
-              Pobierz wersję Word (.docx)
-            </a>
           </div>
         </div>
       </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-teal-500/30 bg-teal-500/[0.04] p-8 text-center text-zinc-300">
+          <FileSearch className="mx-auto h-8 w-8 text-teal-400" />
+          <h2 className="mt-3 text-lg font-semibold text-white">Raport nie został jeszcze wygenerowany</h2>
+          <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-zinc-400">
+            Po kliknięciu przycisku analizowane są artykuły z <span className="font-mono text-teal-300">dashboard.json / recent_articles</span>.
+            Wynik pokaże liczbę dopasowanych materiałów i nie uzupełni brakujących danych stałymi procentami.
+          </p>
+          <p className="mt-3 text-xs font-mono text-zinc-500">W zbiorze dostępnych artykułów: {articles.length.toLocaleString("pl-PL")}</p>
+        </div>
+      )}
     </div>
   );
 }

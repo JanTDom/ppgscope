@@ -2886,7 +2886,13 @@ export default function PPGscopeApp() {
         {/* ================================================================= */}
         {/* TAB: STUDIO RAPORTÓW ŚLEDCZYCH I WIZERUNKOWYCH */}
         {/* ================================================================= */}
-        {activeTab === "investigation_reports" && <InvestigationReportsView />}
+        {activeTab === "investigation_reports" && (
+          <InvestigationReportsView
+            articles={data?.recent_articles ?? []}
+            datasetGeneratedAt={data?.generated_at}
+            datasetMode={provenance?.mode ?? "synthetic_fixture"}
+          />
+        )}
 
         {/* ================================================================= */}
         {/* TAB: SZYBA ŚLEDCZA / LIVE FORENSICS OSINT */}
