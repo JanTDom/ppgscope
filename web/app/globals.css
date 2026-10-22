@@ -107,6 +107,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .ppg-app-shell > main { max-width: none; padding: 28px 32px 48px; }
 .ppg-app-shell > main > * { animation: ppg-fade-in .32s ease both; }
 .ppg-app-shell > footer { border-color: rgba(159, 186, 199, 0.10); background: #070b0e; }
+.ppg-data-scope { box-shadow: inset 0 1px 0 rgba(255,255,255,.025); }
+.ppg-data-scope-label { display: block; margin-bottom: 2px; color: var(--ppg-subtle); font-family: var(--font-geist-mono), monospace; font-size: 9px; letter-spacing: .10em; text-transform: uppercase; }
+.ppg-data-scope > div:last-child > div { min-width: 0; }
+.ppg-data-scope > div:last-child p { overflow-wrap: anywhere; }
+.ppg-report-angle-group-label, .ppg-report-selection-label { color: var(--ppg-subtle); font-family: var(--font-geist-mono), monospace; font-size: 9px; font-weight: 650; letter-spacing: .11em; text-transform: uppercase; }
+.ppg-report-angle-group-label { padding: 2px 2px 0; }
 
 .ppg-auth-screen { position: relative; overflow: hidden; background: radial-gradient(circle at 50% 12%, rgba(87, 224, 197, 0.11), transparent 24rem), radial-gradient(circle at 8% 82%, rgba(117, 184, 255, 0.07), transparent 22rem), #070a0d; }
 .ppg-auth-screen::before { position: absolute; inset: 0; background-image: linear-gradient(rgba(159,186,199,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(159,186,199,.035) 1px, transparent 1px); background-size: 44px 44px; content: ""; mask-image: linear-gradient(to bottom, black, transparent 80%); pointer-events: none; }
@@ -217,6 +223,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   gap: 6px;
   width: 100%;
   max-width: 100%;
+  scroll-padding-inline: 8px;
+  overscroll-behavior-x: contain;
 }
 @media (min-width: 1024px) {
   .ppg-mobile-tabs-bar {
@@ -240,12 +248,20 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid transparent;
   transition: all 0.15s ease;
+  min-height: 32px;
 }
 .ppg-mobile-tab-btn.is-active {
   color: #ffffff;
   background: rgba(87, 224, 197, 0.12);
   border-color: rgba(87, 224, 197, 0.35);
   font-weight: 600;
+}
+@media (max-width: 640px) {
+  .ppg-data-scope { border-radius: 14px; }
+  .ppg-data-scope > div:first-child { gap: 10px; }
+  .ppg-data-scope .ppg-data-scope-label { font-size: 8px; }
+  .ppg-data-scope > div:first-child > div:last-child > span:first-child { max-width: 48%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ppg-mobile-tab-btn { padding-inline: 8px; font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

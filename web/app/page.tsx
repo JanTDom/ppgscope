@@ -590,61 +590,90 @@ interface IngestStatusPayload {
 }
 
 
-function DataTrustNotice({ provenance }: { provenance: DataProvenance | null }) {
-  if (!provenance) return null;
-  const isLive = provenance.mode === "live";
+function DataScopeStrip({
+  provenance,
+  ingestStatus,
+  ingestUnavailable,
+}: {
+  provenance: DataProvenance | null;
+  ingestStatus: IngestStatusPayload | null;
+  ingestUnavailable: boolean;
+}) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  if (!provenance && !ingestStatus && !ingestUnavailable) return null;
+
+  const isLive = provenance?.mode === "live";
+  const run = ingestStatus?.latest_run;
+  const ingestHealthy = run?.status === "success";
+  const ingestLabel = ingestUnavailable
+    ? "INGEST NIEDOSTĘPNY"
+    : run
+      ? run.status === "success" ? "INGEST · OK" : `INGEST · ${run.status.toUpperCase()}`
+      : "INGEST · ODCZYT";
+  const timestamp = provenance?.generated_at
+    ? new Date(provenance.generated_at).toLocaleString("pl-PL")
+    : "brak daty";
+
   return (
-    <section className={`rounded-2xl border p-4 ${isLive ? "border-teal-400/20 bg-teal-400/[0.06]" : "border-amber-400/25 bg-amber-400/[0.07]"}`} aria-label="Status wiarygodności danych">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-3">
-          <div className={`mt-0.5 rounded-xl p-2 ${isLive ? "bg-teal-400/10 text-teal-200" : "bg-amber-400/10 text-amber-200"}`}>
+    <section
+      className={`ppg-data-scope rounded-2xl border ${isLive ? "border-teal-400/20 bg-teal-400/[0.05]" : "border-amber-400/25 bg-amber-400/[0.065]"}`}
+      aria-label="Zakres i status danych"
+    >
+      <div className="flex flex-col gap-3 px-3.5 py-3 sm:px-4 sm:py-3.5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className={`hidden shrink-0 rounded-xl p-2 sm:block ${isLive ? "bg-teal-400/10 text-teal-200" : "bg-amber-400/10 text-amber-200"}`}>
             {isLive ? <Radio className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-semibold text-white">{provenance.display_label}</p>
-              <DataTrustBadge provenance={provenance} compact />
-            </div>
-            <p className="mt-1 max-w-4xl text-xs leading-5 text-zinc-300">{provenance.source_summary}</p>
-          </div>
-        </div>
-        <div className="shrink-0 text-left text-[10px] font-mono uppercase tracking-[0.08em] text-zinc-500 lg:text-right">
-          <div>Timestamp payloadu</div>
-          <div className="mt-1 text-zinc-200">{new Date(provenance.generated_at).toLocaleString("pl-PL")}</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function IngestStatusCard({ status }: { status: IngestStatusPayload | null }) {
-  const run = status?.latest_run;
-  if (!status || !run) return null;
-  const healthy = run.status === "success";
-  return (
-    <section className={`rounded-2xl border p-4 ${healthy ? "border-teal-400/20 bg-teal-400/[0.05]" : "border-amber-400/25 bg-amber-400/[0.06]"}`} aria-label="Status cyklicznego ingestu">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-3">
-          <div className={`mt-0.5 rounded-xl p-2 ${healthy ? "bg-teal-400/10 text-teal-200" : "bg-amber-400/10 text-amber-200"}`}>
-            <Radio className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-semibold text-white">Cykliczny ingest źródeł</p>
-              <span className={`rounded-full border px-2 py-1 text-[9px] font-mono uppercase tracking-[0.08em] ${healthy ? "border-teal-400/30 text-teal-200" : "border-amber-400/30 text-amber-200"}`}>
-                {run.status === "success" ? "PRODUKCJA · OK" : run.status.toUpperCase()}
+              <p className="text-sm font-semibold text-white">{provenance?.display_label || "Status danych"}</p>
+              {provenance ? <DataTrustBadge provenance={provenance} compact /> : null}
+              <span className={`rounded-full border px-2 py-1 text-[9px] font-mono uppercase tracking-[0.08em] ${ingestUnavailable || (run && !ingestHealthy) ? "border-amber-400/30 text-amber-200" : "border-teal-400/30 text-teal-200"}`}>
+                {ingestLabel}
               </span>
             </div>
-            <p className="mt-1 text-xs leading-5 text-zinc-300">RSS/sitemap → trwały storage. Każda metryka ma dowód obserwacji, artykułów i URL-i źródłowych.</p>
+            <p className="mt-1 truncate text-[11px] leading-5 text-zinc-300 sm:text-xs">
+              {provenance?.source_summary || "Zakres danych jest ładowany."}
+            </p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-x-5 gap-y-2 text-[10px] font-mono uppercase tracking-[0.08em] text-zinc-500 sm:grid-cols-4 lg:text-right">
-          <span><b className="block text-sm text-white">{run.sources_succeeded}/{run.sources_attempted}</b>źródeł</span>
-          <span><b className="block text-sm text-white">{run.articles_written.toLocaleString("pl-PL")}</b>artykułów</span>
-          <span><b className="block text-sm text-white">{run.metrics_written}</b>proofów</span>
-          <span><b className="block text-sm text-white">{new Date(run.finished_at || run.started_at).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}</b>ostatni cykl UTC</span>
+        <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end">
+          <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-zinc-500">Snapshot · {timestamp}</span>
+          <button
+            type="button"
+            onClick={() => setDetailsOpen((open) => !open)}
+            className="rounded-lg border border-white/[0.1] bg-white/[0.04] px-2.5 py-1.5 text-[11px] font-medium text-zinc-200 transition hover:border-teal-400/30 hover:bg-teal-400/[0.08] hover:text-white"
+            aria-expanded={detailsOpen}
+          >
+            {detailsOpen ? "Zwiń szczegóły" : "O źródle danych"}
+          </button>
         </div>
       </div>
+
+      {detailsOpen ? (
+        <div className="grid gap-3 border-t border-white/[0.08] px-3.5 py-3 text-xs leading-5 text-zinc-300 sm:grid-cols-2 sm:px-4 lg:grid-cols-4">
+          <div>
+            <span className="ppg-data-scope-label">Źródło</span>
+            <p>{provenance?.source_class || "—"}</p>
+          </div>
+          <div>
+            <span className="ppg-data-scope-label">Zakres</span>
+            <p>{provenance?.display_label || "—"}</p>
+          </div>
+          <div>
+            <span className="ppg-data-scope-label">Ingest</span>
+            {run ? (
+              <p>{run.sources_succeeded}/{run.sources_attempted} źródeł · {run.articles_written.toLocaleString("pl-PL")} artykułów · {run.metrics_written} proofów</p>
+            ) : (
+              <p className="text-amber-200">Status ingestu niedostępny</p>
+            )}
+          </div>
+          <div>
+            <span className="ppg-data-scope-label">Zasada</span>
+            <p>{provenance?.honesty_note || "Wyniki wymagają interpretacji w kontekście źródła i zakresu."}</p>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -797,6 +826,7 @@ export default function PPGscopeApp() {
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [provenance, setProvenance] = useState<DataProvenance | null>(null);
   const [ingestStatus, setIngestStatus] = useState<IngestStatusPayload | null>(null);
+  const [ingestUnavailable, setIngestUnavailable] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<AppTab>("executive_briefing");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -1022,9 +1052,15 @@ export default function PPGscopeApp() {
         const json = await dataRes.json();
         setData(json);
         if (provenanceRes.ok) setProvenance(await provenanceRes.json());
-        if (ingestRes.ok) setIngestStatus(await ingestRes.json());
+        if (ingestRes.ok) {
+          setIngestStatus(await ingestRes.json());
+          setIngestUnavailable(false);
+        } else {
+          setIngestUnavailable(true);
+        }
       } catch (err) {
         console.error("Błąd ładowania danych dashboard.json:", err);
+        setIngestUnavailable(true);
       } finally {
         setLoading(false);
       }
@@ -2022,12 +2058,13 @@ export default function PPGscopeApp() {
                 Hasło dostępu do systemu:
               </label>
               <div className="relative">
-                <input
+              <input
                   type="password"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
                   placeholder="Wprowadź hasło analityczne..."
                   className="w-full rounded-xl border border-white/[0.1] bg-black/60 py-2.5 pl-3.5 pr-10 text-sm text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 font-mono"
+                autoComplete="current-password"
                   autoFocus
                 />
                 <Lock className="absolute right-3 top-3 h-4 w-4 text-zinc-500" />
@@ -2343,6 +2380,7 @@ export default function PPGscopeApp() {
                 type="button"
                 onClick={() => setActiveTab(item.id)}
                 className={`ppg-mobile-tab-btn ${isActive ? "is-active" : ""}`}
+                aria-current={isActive ? "page" : undefined}
               >
                 <ItemIcon className={`h-3.5 w-3.5 ${isActive ? "text-teal-300" : "text-zinc-500"}`} />
                 <span>{item.label}</span>
@@ -2503,8 +2541,7 @@ export default function PPGscopeApp() {
       {/* Main Container */}
       <main className="mx-auto max-w-7xl w-full min-w-0 p-3 sm:p-6 space-y-6 overflow-x-hidden">
 
-        <DataTrustNotice provenance={provenance} />
-        <IngestStatusCard status={ingestStatus} />
+        <DataScopeStrip provenance={provenance} ingestStatus={ingestStatus} ingestUnavailable={ingestUnavailable} />
 
         {/* Global Context Bar: Searchable 546-Medium Selector + Locality Toggles */}
         {activeTab !== "forensics" && activeTab !== "investigation_reports" && (

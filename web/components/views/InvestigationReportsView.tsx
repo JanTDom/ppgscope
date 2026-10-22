@@ -33,6 +33,27 @@ export interface InvestigationPreset {
   reportData: GeneratedReportData;
 }
 
+const ANALYSIS_ANGLE_GROUPS: Array<{
+  label: string;
+  options: Array<{ id: AnalysisAngle; label: string; desc: string }>;
+}> = [
+  {
+    label: "Atrybucja sprawczości",
+    options: [
+      { id: "GOVERNMENT_PROMOTION", label: "Promocja sprawczości rządu", desc: "Czy przypisano sukces autorom, czy nastąpiła ucieczka w ZUS?" },
+      { id: "TUSK_PROMOTION", label: "Promocja sprawczości Donalda Tuska", desc: "Czy materiały pokazują, co konkretnie Donald Tusk zrobił lub zdecydował?" },
+    ],
+  },
+  {
+    label: "Strategia narracyjna",
+    options: [
+      { id: "DEPOLITICIZATION_SEO", label: "Ucieczka w poradnictwo SEO", desc: "Czy temat sprowadzono do suchego poradnika pod algorytm Google?" },
+      { id: "ATTACK_RESISTANCE", label: "Odporność na ataki opozycji", desc: "Czy media objaśniły wątpliwości, czy powieliły krytykę?" },
+      { id: "LOCAL_VS_SYNDICATE", label: "Lokalność vs centralny wsad", desc: "Czy redakcje lokalne pisały same, czy powieliły depeszę z Warszawy?" },
+    ],
+  },
+];
+
 export interface GeneratedReportData {
   topicTitle: string;
   angleLabel: string;
@@ -402,6 +423,7 @@ export function InvestigationReportsView({
   const [activeReport, setActiveReport] = useState<GeneratedReportData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedSummary, setCopiedSummary] = useState(false);
+  const selectedAngleOption = ANALYSIS_ANGLE_GROUPS.flatMap((group) => group.options).find((option) => option.id === selectedAngle);
 
   const handleSelectPreset = (preset: InvestigationPreset) => {
     setSelectedPresetId(preset.id);
@@ -540,37 +562,43 @@ export function InvestigationReportsView({
           </div>
 
           {/* KOLUMNA 2: KĄT ANALITYCZNY I AKCJA */}
-          <div className="space-y-4">
+          <div className="ppg-report-angle-column space-y-4 lg:sticky lg:top-24 lg:self-start">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5 font-mono">
                 <span>2. GŁÓWNY KĄT ANALITYCZNY:</span>
               </label>
               <div className="space-y-2">
-                {[
-                  { id: "GOVERNMENT_PROMOTION", label: "Promocja sprawczości rządu", desc: "Czy przypisano sukces autorom, czy nastąpiła ucieczka w ZUS?" },
-              { id: "TUSK_PROMOTION", label: "Promocja sprawczości Donalda Tuska", desc: "Czy materiały pokazują, co konkretnie Donald Tusk zrobił lub zdecydował?" },
-                  { id: "DEPOLITICIZATION_SEO", label: "Ucieczka w poradnictwo SEO", desc: "Czy temat sprowadzono do suchego poradnika pod algorytm Google?" },
-                  { id: "ATTACK_RESISTANCE", label: "Odporność na ataki opozycji", desc: "Czy media objaśniły wątpliwości, czy powieliły krytykę?" },
-                  { id: "LOCAL_VS_SYNDICATE", label: "Lokalność vs centralny wsad", desc: "Czy redakcje lokalne pisały same, czy powieliły depeszę z Warszawy?" },
-                ].map((angle) => (
-                  <button
-                    key={angle.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedAngle(angle.id as AnalysisAngle);
-                      setActiveReport(null);
-                    }}
-                    className={`w-full p-2.5 rounded-xl border text-left transition cursor-pointer ${
-                      selectedAngle === angle.id
-                        ? "border-teal-500/70 bg-teal-500/10 text-white"
-                        : "border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:bg-white/[0.04]"
-                    }`}
-                  >
-                    <div className="text-xs font-semibold text-zinc-200">{angle.label}</div>
-                    <div className="text-[10px] text-zinc-500">{angle.desc}</div>
-                  </button>
+                {ANALYSIS_ANGLE_GROUPS.map((group) => (
+                  <div key={group.label} className="space-y-2">
+                    <p className="ppg-report-angle-group-label">{group.label}</p>
+                    {group.options.map((angle) => (
+                      <button
+                        key={angle.id}
+                        type="button"
+                        aria-pressed={selectedAngle === angle.id}
+                        onClick={() => {
+                          setSelectedAngle(angle.id);
+                          setActiveReport(null);
+                        }}
+                        className={`w-full rounded-xl border p-2.5 text-left transition cursor-pointer ${
+                          selectedAngle === angle.id
+                            ? "border-teal-500/70 bg-teal-500/10 text-white"
+                            : "border-white/[0.06] bg-white/[0.02] text-zinc-400 hover:bg-white/[0.04]"
+                        }`}
+                      >
+                        <div className="text-xs font-semibold text-zinc-200">{angle.label}</div>
+                        <div className="text-[10px] leading-4 text-zinc-500">{angle.desc}</div>
+                      </button>
+                    ))}
+                  </div>
                 ))}
               </div>
+            </div>
+
+            <div className="rounded-xl border border-teal-500/20 bg-teal-500/[0.06] p-3">
+              <span className="ppg-report-selection-label">Wybrany kąt</span>
+              <p className="mt-1 text-sm font-semibold text-teal-100">{selectedAngleOption?.label || "Wybierz kąt analityczny"}</p>
+              <p className="mt-1 text-[11px] leading-4 text-teal-100/65">Raport oceni materiały pod kątem tej konkretnej tezy, a nie ogólnego wrażenia.</p>
             </div>
 
             <button
