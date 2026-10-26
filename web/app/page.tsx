@@ -1065,11 +1065,24 @@ export default function PPGscopeApp() {
     return () => window.clearTimeout(timer);
   }, [isAuthenticated]);
 
-  const triggerLiveScan = useCallback(async (domainToScan?: string) => {
+  const triggerLiveScan = useCallback(async (
+    domainToScan?: string,
+    opts?: { preset?: string; topic?: string; actor?: string; q?: string }
+  ) => {
     setTimeout(() => setIsLiveScanning(true), 0);
     try {
       const target = domainToScan || selectedMediumDomain || "ALL";
-      const res = await fetch(`/api/articles/live?domain=${encodeURIComponent(target)}&limit=150`, { cache: "no-store" });
+      const params = new URLSearchParams({
+        domain: target,
+        limit: "150",
+      });
+      const activePreset = opts?.preset || (timePreset !== "custom" ? timePreset : "30d");
+      if (activePreset) params.set("preset", activePreset);
+      if (opts?.topic) params.set("topic", opts.topic);
+      if (opts?.actor) params.set("actor", opts.actor);
+      if (opts?.q) params.set("q", opts.q);
+
+      const res = await fetch(`/api/articles/live?${params.toString()}`, { cache: "no-store" });
       const json = await res.json();
       if (res.ok && json.ok && Array.isArray(json.articles) && json.articles.length > 0) {
         const incoming = json.articles as ArticleItem[];
@@ -1092,14 +1105,16 @@ export default function PPGscopeApp() {
           };
         });
         setLiveSessionArticles(incoming);
-        setLiveFetchNotice(`Przeskanowano na żywo serwery PPG: ${incoming.length} publikacji w locie (${json.articles_24h_count ?? incoming.length} z ostatnich 24h).`);
+        setLiveFetchNotice(
+          `Przeskanowano na żywo sieć PPG (${opts?.actor ? `podmiot: ${opts.actor.toUpperCase()}` : opts?.topic ? `dziedzina: ${opts.topic}` : "strumień ogólny"}): ${incoming.length} publikacji w locie (${json.articles_24h_count ?? incoming.length} z ostatnich 24h).`
+        );
       }
     } catch (err) {
       console.error("Błąd skanowania na żywo:", err);
     } finally {
       setIsLiveScanning(false);
     }
-  }, [selectedMediumDomain]);
+  }, [selectedMediumDomain, timePreset]);
 
   // Fetch dashboard dataset
   useEffect(() => {
@@ -2182,6 +2197,7 @@ export default function PPGscopeApp() {
 
   const activeNavItem = NAV_GROUPS.flatMap((group) => group.items).find((item) => item.id === activeTab);
   const periodLabel = timePreset === "24h" ? "Ostatnie 24 godziny" : timePreset === "7d" ? "Ostatnie 7 dni" : timePreset === "30d" ? "Ostatnie 30 dni" : timePreset === "90d" ? "Ostatnie 90 dni" : timePreset === "1y" ? "Ostatni rok" : "Cała baza";
+  const periodShortLabel = timePreset === "24h" ? "24h" : timePreset === "7d" ? "7 dni" : timePreset === "30d" ? "30 dni" : timePreset === "90d" ? "90 dni" : timePreset === "1y" ? "1 rok" : timePreset === "all" ? "wszystkie" : "okres";
 
   return (
     <div className="ppg-app-shell min-h-screen bg-[#07080a] text-zinc-100 selection:bg-teal-500 selection:text-black">
@@ -3012,8 +3028,16 @@ export default function PPGscopeApp() {
                 </p>
               </div>
 
-              {/* Exact Article Count Audit */}
+              {/* Exact Article Count Audit + Live In-flight Scan */}
               <div className="flex items-center gap-3">
+                <button
+                  onClick={() => triggerLiveScan(selectedMediumDomain || "ALL", { preset: timePreset })}
+                  disabled={isLiveScanning}
+                  className="rounded-xl border border-teal-500/40 bg-teal-500/15 px-3.5 py-2 text-xs font-mono font-semibold text-teal-300 hover:bg-teal-500/25 transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isLiveScanning ? "animate-spin" : ""}`} />
+                  Przeskanuj sieć w locie ({periodShortLabel})
+                </button>
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 text-right font-mono">
                   <span className="text-[10px] uppercase text-emerald-400 block font-bold">Zbadany wolumen</span>
                   <span className="text-sm font-bold text-white">
@@ -3469,6 +3493,14 @@ export default function PPGscopeApp() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => triggerLiveScan("ALL", { preset: timePreset })}
+                      disabled={isLiveScanning}
+                      className="rounded-xl border border-teal-500/40 bg-teal-500/15 px-3.5 py-2 text-xs font-mono font-semibold text-teal-300 hover:bg-teal-500/25 transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${isLiveScanning ? "animate-spin" : ""}`} />
+                      Przeskanuj sieć w locie ({periodShortLabel})
+                    </button>
                     <button
                       onClick={() => window.print()}
                       className="rounded-xl border border-amber-500/40 bg-amber-500/15 px-3.5 py-2 text-xs font-mono font-semibold text-amber-200 hover:bg-amber-500/25 transition-all flex items-center gap-2"
@@ -4870,9 +4902,19 @@ export default function PPGscopeApp() {
                       Wybór ugrupowania lub podmiotu politycznego (8 sił):
                     </span>
                   </div>
-                  <span className="text-[11px] font-mono text-zinc-400">
-                    Kliknij podmiot, aby przełączyć analizę wydźwięku, strukturę tonu i czołowych reprezentantów
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => triggerLiveScan("ALL", { actor: selectedPoliticalActor, preset: timePreset })}
+                      disabled={isLiveScanning}
+                      className="rounded-lg border border-teal-500/40 bg-teal-500/15 px-3 py-1 text-[11px] font-mono font-semibold text-teal-300 hover:bg-teal-500/25 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                    >
+                      <RefreshCw className={`h-3 w-3 ${isLiveScanning ? "animate-spin" : ""}`} />
+                      Przeskanuj sieć w locie dla {activeConfig.shortName}
+                    </button>
+                    <span className="text-[11px] font-mono text-zinc-400 hidden xl:inline">
+                      Kliknij podmiot, aby przełączyć analizę wydźwięku
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">

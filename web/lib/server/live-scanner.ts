@@ -289,16 +289,50 @@ export async function fetchLivePortalArticles(
   return [];
 }
 
-// In-Memory Short-Lived Cache (60s) to prevent hammering publisher servers
+// In-Memory Short-Lived Cache (45s) to prevent hammering publisher servers
 interface CacheEntry {
   timestamp: number;
   articles: LiveScannedArticle[];
 }
 
-const memoryCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 60 * 1000;
+export interface LiveScanOptions {
+  preset?: string;
+  topic?: string;
+  actor?: string;
+  q?: string;
+}
 
-export async function scanLiveArticles(targetDomain = "ALL"): Promise<{
+export const ACTOR_KEYWORDS_MAP: Record<string, string> = {
+  ko: '(Tusk OR "Koalicja Obywatelska" OR Trzaskowski OR Sikorski)',
+  pis: '(Kaczyński OR "Prawo i Sprawiedliwość" OR Morawiecki OR Błaszczak)',
+  psl: '(Kosiniak-Kamysz OR PSL OR "Polskie Stronnictwo Ludowe" OR Klimczak)',
+  polska2050: '(Hołownia OR "Polska 2050" OR Pełczyńska-Nałęcz)',
+  lewica: '(Czarzasty OR Lewica OR Biedroń OR Zandberg OR Dziemianowicz)',
+  konfederacja: '(Mentzen OR Bosak OR Konfederacja OR Braun)',
+  nawrocki: '("Karol Nawrocki" OR "dr Karol Nawrocki" OR "prezes IPN")',
+  rozwoj_plus: '("Rozwój Plus" OR "Tak Dla Rozwoju" OR Horała OR CPK OR atom)',
+};
+
+export const TOPIC_KEYWORDS_MAP: Record<string, string> = {
+  zdarzenia: '(wypadek OR pożar OR policja OR areszt)',
+  sport: '(sport OR mecz OR liga OR piłkarz)',
+  gospodarka: '(gospodarka OR biznes OR inflacja OR stopy OR podatki)',
+  infrastruktura: '(droga OR kolej OR pociąg OR remont OR korki OR obwodnica)',
+  obronnosc: '(wojsko OR żołnierz OR armia OR obronność OR zbrojenia OR MON OR NATO)',
+  zdrowie: '(szpital OR pacjent OR NFZ OR lekarz)',
+  edukacja: '(szkoła OR edukacja OR uniwersytet)',
+  srodowisko: '(pogoda OR klimat OR smog OR deszcz OR powódź)',
+  rolnictwo: '(rolnictwo OR rolnik OR dopłaty OR zbiory OR wieś)',
+  kultura: '(teatr OR kino OR film OR koncert OR wystawa OR muzeum)',
+};
+
+const memoryCache = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 45 * 1000;
+
+export async function scanLiveArticles(
+  targetDomain = "ALL",
+  options?: LiveScanOptions
+): Promise<{
   ok: boolean;
   scanned_at: string;
   source: string;
@@ -307,7 +341,8 @@ export async function scanLiveArticles(targetDomain = "ALL"): Promise<{
   articles_24h_count: number;
   articles: LiveScannedArticle[];
 }> {
-  const cacheKey = targetDomain.toLowerCase();
+  const optKey = options ? `${options.preset || ""}-${options.topic || ""}-${options.actor || ""}-${options.q || ""}` : "std";
+  const cacheKey = `${targetDomain.toLowerCase()}_${optKey}`;
   const cached = memoryCache.get(cacheKey);
   const now = Date.now();
 
@@ -316,7 +351,7 @@ export async function scanLiveArticles(targetDomain = "ALL"): Promise<{
     return {
       ok: true,
       scanned_at: new Date(cached.timestamp).toISOString(),
-      source: "memory_stream_cache_60s",
+      source: "memory_stream_cache_45s",
       target: targetDomain,
       total_articles: cached.articles.length,
       articles_24h_count: a24h,
@@ -326,12 +361,71 @@ export async function scanLiveArticles(targetDomain = "ALL"): Promise<{
 
   let rawArticles: LiveScannedArticle[] = [];
 
-  if (targetDomain !== "ALL") {
+  // Determine query string if options are supplied
+  let queryText = options?.q?.trim() || "";
+  if (!queryText && options?.actor && ACTOR_KEYWORDS_MAP[options.actor]) {
+    queryText = ACTOR_KEYWORDS_MAP[options.actor];
+  } else if (!queryText && options?.topic && TOPIC_KEYWORDS_MAP[options.topic]) {
+    queryText = TOPIC_KEYWORDS_MAP[options.topic];
+  }
+
+  const whenClause =
+    options?.preset === "24h"
+      ? "when:24h"
+      : options?.preset === "7d"
+      ? "when:7d"
+      : options?.preset === "30d"
+      ? "when:30d"
+      : options?.preset === "90d"
+      ? "when:90d"
+      : options?.preset === "1y"
+      ? "when:1y"
+      : "";
+
+  if (queryText || whenClause) {
+    // Targeted in-flight Google News RSS scan
+    const selectedDailies =
+      targetDomain !== "ALL"
+        ? [KEY_PPG_DAILIES.find((d) => d.domain === targetDomain) || { domain: targetDomain, name: targetDomain, region: "Polska" }]
+        : KEY_PPG_DAILIES.slice(0, 10);
+
+    const queryResults = await Promise.allSettled(
+      selectedDailies.map(async (d) => {
+        const fullQ = `site:${d.domain} ${queryText} ${whenClause}`.trim();
+        const url = `https://news.google.com/rss/search?q=${encodeURIComponent(fullQ)}&hl=pl&gl=PL&ceid=PL:pl`;
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 4000);
+          const resp = await fetch(url, {
+            headers: BROWSER_HEADERS,
+            signal: controller.signal,
+            cache: "no-store",
+          });
+          clearTimeout(timer);
+          if (resp.ok) {
+            const xml = await resp.text();
+            if (xml.includes("<item>")) {
+              return parseRssFeed(xml, d.domain, d.region);
+            }
+          }
+        } catch {
+          //
+        }
+        return [];
+      })
+    );
+
+    for (const r of queryResults) {
+      if (r.status === "fulfilled" && r.value.length > 0) {
+        rawArticles.push(...r.value);
+      }
+    }
+  } else if (targetDomain !== "ALL") {
     const targetMeta = KEY_PPG_DAILIES.find((d) => d.domain === targetDomain);
     const region = targetMeta?.region || "Polska";
     rawArticles = await fetchLivePortalArticles(targetDomain, region);
   } else {
-    // Scan representative sample of top PPG regional dailies + i.pl concurrently
+    // Standard broad live scan across top PPG dailies
     const selectedDailies = KEY_PPG_DAILIES.slice(0, 14);
     const results = await Promise.allSettled(
       selectedDailies.map((d) => fetchLivePortalArticles(d.domain, d.region, 3500))
@@ -344,12 +438,15 @@ export async function scanLiveArticles(targetDomain = "ALL"): Promise<{
     }
   }
 
-  // Deduplicate by URL
+  // Deduplicate by URL and Title
   const seenUrls = new Set<string>();
+  const seenTitles = new Set<string>();
   const deduplicated: LiveScannedArticle[] = [];
   for (const art of rawArticles) {
-    if (!seenUrls.has(art.url)) {
+    const normTitle = art.title.toLowerCase().trim();
+    if (!seenUrls.has(art.url) && !seenTitles.has(normTitle)) {
       seenUrls.add(art.url);
+      seenTitles.add(normTitle);
       deduplicated.push(art);
     }
   }
@@ -366,7 +463,7 @@ export async function scanLiveArticles(targetDomain = "ALL"): Promise<{
   return {
     ok: true,
     scanned_at: new Date(now).toISOString(),
-    source: "live_network_probe_no_db",
+    source: "live_network_probe_in_flight_no_db",
     target: targetDomain,
     total_articles: deduplicated.length,
     articles_24h_count: articles24h,

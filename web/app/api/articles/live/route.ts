@@ -9,10 +9,14 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const domain = searchParams.get("domain") || "gazetakrakowska.pl";
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
+    const domain = searchParams.get("domain") || "ALL";
+    const limit = parseInt(searchParams.get("limit") || "150", 10);
+    const preset = searchParams.get("preset") || undefined;
+    const topic = searchParams.get("topic") || undefined;
+    const actor = searchParams.get("actor") || undefined;
+    const q = searchParams.get("q") || undefined;
 
-    const scanResult = await scanLiveArticles(domain);
+    const scanResult = await scanLiveArticles(domain, { preset, topic, actor, q });
 
     const articles = limit > 0 ? scanResult.articles.slice(0, limit) : scanResult.articles;
 
