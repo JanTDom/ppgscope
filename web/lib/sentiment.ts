@@ -1723,56 +1723,52 @@ export function calculateAllPoliticalSentiments(
       if (actorId === "psl" || actorId === "pis") domainMultiplier = 1.5;
     }
 
-    const effectiveTotal = Math.max(10, totalPoliticalCount > 0 ? totalPoliticalCount : targetArticles.length || 500);
+    const effectiveTotal = Math.max(0, totalPoliticalCount > 0 ? totalPoliticalCount : targetArticles.length);
     const dynamicShare = Math.min(0.85, config.defaultShare * spanShareMultiplier * domainMultiplier);
 
     let dynamicPosRatio: number;
     let dynamicNegRatio: number;
     let actorMentionsCount: number;
 
-    if (totalPoliticalCount > targetArticles.length * 1.5) {
-      // Full-scale network mode: project share across the entire medium / network political volume
-      const observedShare =
-        targetArticles.length > 0 && evalTotal > 0
-          ? evalTotal / targetArticles.length
-          : dynamicShare;
-      const blendedShare = evalTotal > 0 ? observedShare * 0.65 + dynamicShare * 0.35 : dynamicShare;
-      actorMentionsCount = Math.max(1, Math.round(effectiveTotal * blendedShare));
-      dynamicPosRatio =
-        evalTotal > 0
-          ? evalPos / evalTotal
-          : spanDays <= 30
-          ? config.basePosRatio
-          : config.basePosRatio * 0.92;
-      dynamicNegRatio =
-        evalTotal > 0
-          ? evalNeg / evalTotal
-          : spanDays <= 30
-          ? config.baseNegRatio
-          : config.baseNegRatio * 1.08;
+    const isLargeScale = effectiveTotal >= 50;
+
+    if (isLargeScale) {
+      // Full-scale network or large-medium mode: scale all actors consistently across effectiveTotal
+      actorMentionsCount = Math.max(1, Math.round(effectiveTotal * dynamicShare));
+      if (evalTotal >= 4) {
+        dynamicPosRatio = (evalPos / evalTotal) * 0.6 + config.basePosRatio * 0.4;
+        dynamicNegRatio = (evalNeg / evalTotal) * 0.6 + config.baseNegRatio * 0.4;
+      } else if (evalTotal > 0) {
+        dynamicPosRatio = (evalPos / evalTotal) * 0.35 + config.basePosRatio * 0.65;
+        dynamicNegRatio = (evalNeg / evalTotal) * 0.35 + config.baseNegRatio * 0.65;
+      } else {
+        dynamicPosRatio =
+          spanDays <= 1
+            ? config.basePosRatio * 1.08
+            : spanDays <= 7
+            ? config.basePosRatio * 1.04
+            : spanDays <= 30
+            ? config.basePosRatio
+            : config.basePosRatio * 0.92;
+        dynamicNegRatio =
+          spanDays <= 1
+            ? config.baseNegRatio * 0.92
+            : spanDays <= 7
+            ? config.baseNegRatio * 0.96
+            : spanDays <= 30
+            ? config.baseNegRatio
+            : config.baseNegRatio * 1.08;
+      }
     } else if (evalTotal > 0) {
+      // Sample / mock mode with observed hits
       actorMentionsCount = evalTotal;
       dynamicPosRatio = evalPos / evalTotal;
       dynamicNegRatio = evalNeg / evalTotal;
     } else {
-      // Fallback for minimal unit test mocks or low-sample views
-      actorMentionsCount = Math.max(1, Math.round(effectiveTotal * dynamicShare));
-      dynamicPosRatio =
-        spanDays <= 1
-          ? config.basePosRatio * 1.2
-          : spanDays <= 7
-          ? config.basePosRatio * 1.1
-          : spanDays <= 30
-          ? config.basePosRatio
-          : config.basePosRatio * 0.92;
-      dynamicNegRatio =
-        spanDays <= 1
-          ? config.baseNegRatio * 0.9
-          : spanDays <= 7
-          ? config.baseNegRatio * 0.95
-          : spanDays <= 30
-          ? config.baseNegRatio
-          : config.baseNegRatio * 1.08;
+      // Sample / mock mode with zero observed hits
+      actorMentionsCount = 0;
+      dynamicPosRatio = 0.0;
+      dynamicNegRatio = 0.0;
     }
 
     const posCount = Math.round(actorMentionsCount * dynamicPosRatio);
