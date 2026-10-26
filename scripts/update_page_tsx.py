@@ -254,7 +254,7 @@ export default function PPGscopeApp() {
   // Time Period Filtering State
   const [timePreset, setTimePreset] = useState<"24h" | "7d" | "30d" | "90d" | "1y" | "all" | "custom">("30d");
   const [customStartDate, setCustomStartDate] = useState("2024-03-09");
-  const [customEndDate, setCustomEndDate] = useState("2026-10-18");
+  const [customEndDate, setCustomEndDate] = useState("2026-10-26");
   const [clientNow, setClientNow] = useState<number | null>(null);
 
   // Table & directory filters
