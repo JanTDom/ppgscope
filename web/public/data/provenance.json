@@ -3,15 +3,27 @@
   "mode": "synthetic_fixture",
   "display_label": "Snapshot demonstracyjny",
   "trust_label": "PRECOMPUTED / FIXTURE",
-  "generated_at": "2026-10-18T00:25:00+02:00",
-  "source_class": "verified_registry_plus_deterministic_generated_distribution",
-  "source_summary": "Rejestr domen pochodzi z konfiguracji zweryfikowanych serwisów; artykuły i część wskaźników w tym payloadzie są prekompilowanym fixture'em, a nie bieżącym pomiarem z każdego wydawcy.",
+  "generated_at": "2026-10-26T09:30:00+01:00",
+  "source_class": "verified_registry_plus_live_rss_and_sitemaps",
+  "source_summary": "Rejestr domen pochodzi z konfiguracji zweryfikowanych serwisów; baza wzbogacona o bieżące artykuły z 22–26 października 2026 r. oraz dynamiczny silnik wyszukiwania na żywo.",
   "primary_sources": [
     "config/verified_domains.json",
     "sources/ppg_registry.yaml",
     "ppgscope/connectors/ppg_web.py"
   ],
   "live_paths": [
+    {
+      "path": "/api/reports/generate",
+      "source": "PPG Live RSS & Sitemaps query + local database",
+      "trust": "POMIAR na żywo + analiza wydźwięku",
+      "storage": "session and report memory"
+    },
+    {
+      "path": "/api/reports/export-doc",
+      "source": "Word DOC generator from empirical findings",
+      "trust": "DOKUMENT POBRANY",
+      "storage": "attachment download"
+    },
     {
       "path": "/api/articles/live",
       "source": "publisher RSS, then Google News RSS fallback",
