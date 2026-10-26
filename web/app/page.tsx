@@ -3311,19 +3311,69 @@ export default function PPGscopeApp() {
           const activeComp =
             compBench.find((b) => b.region === selectedCompetitorRegion) || compBench[0];
 
-          // Obliczenie w 100% dynamicznych wskaźników 24h z faktycznych artykułów w pamięci
-          const staticBase = new Date("2026-10-26T14:00:00Z");
-          const now = clientNow ? new Date(clientNow) : staticBase;
-          const start24h = new Date(now.getTime() - 24 * 3600 * 1000);
-          const live24hArticles = (data?.recent_articles || []).filter((a) => {
+          // Obliczenie w 100% dynamicznych wskaźników dla wybranego przedziału czasowego (timePreset)
+          const livePeriodArticles = (data?.recent_articles || []).filter((a) => {
             const pub = new Date(a.published_at);
-            return pub >= start24h && pub <= now;
+            return pub >= dateRange.start && pub <= dateRange.end;
           });
-          const live24hTotal = live24hArticles.length || briefing?.network_24h_summary?.total_articles_24h || 0;
-          const live24hUnique = live24hArticles.filter((a) => !a.is_duplicate).length || briefing?.network_24h_summary?.unique_articles_24h || live24hTotal;
-          const live24hLocalCount = live24hArticles.filter((a) => a.locality === "L" || a.locality === "CL").length;
-          const live24hLocalPct = live24hTotal > 0 ? Math.round((live24hLocalCount / live24hTotal) * 1000) / 10 : (briefing?.network_24h_summary?.local_and_localized_share_pct || 0);
-          const live24hPortals = new Set(live24hArticles.map((a) => a.portal_domain)).size || briefing?.network_24h_summary?.active_unique_portals_count || 20;
+          const livePeriodTotal = livePeriodArticles.length || briefing?.network_24h_summary?.total_articles_24h || 0;
+          const livePeriodUnique = livePeriodArticles.filter((a) => !a.is_duplicate).length || briefing?.network_24h_summary?.unique_articles_24h || livePeriodTotal;
+          const livePeriodLocalCount = livePeriodArticles.filter((a) => a.locality === "L" || a.locality === "CL").length;
+          const livePeriodLocalPct = livePeriodTotal > 0 ? Math.round((livePeriodLocalCount / livePeriodTotal) * 1000) / 10 : (briefing?.network_24h_summary?.local_and_localized_share_pct || 0);
+          const livePeriodPortals = new Set(livePeriodArticles.map((a) => a.portal_domain)).size || briefing?.network_24h_summary?.active_unique_portals_count || 20;
+
+          const periodShortLabel = timePreset === "24h" ? "24h" : timePreset === "7d" ? "7 dni" : timePreset === "30d" ? "30 dni" : timePreset === "90d" ? "90 dni" : timePreset === "1y" ? "1 rok" : timePreset === "all" ? "wszystkie" : "okres";
+
+          const regionalDailiesList = [
+            { domain: "dziennikbaltycki.pl", portal: "Dziennik Bałtycki", region: "Pomorskie" },
+            { domain: "gazetakrakowska.pl", portal: "Gazeta Krakowska", region: "Małopolskie" },
+            { domain: "dziennikzachodni.pl", portal: "Dziennik Zachodni", region: "Śląskie" },
+            { domain: "gloswielkopolski.pl", portal: "Głos Wielkopolski", region: "Wielkopolskie" },
+            { domain: "gazetawroclawska.pl", portal: "Gazeta Wrocławska", region: "Dolnośląskie" },
+            { domain: "dzienniklodzki.pl", portal: "Dziennik Łódzki", region: "Łódzkie" },
+            { domain: "pomorska.pl", portal: "Gazeta Pomorska", region: "Kujawsko-Pomorskie" },
+            { domain: "nowiny24.pl", portal: "Nowiny", region: "Podkarpackie" },
+            { domain: "echodnia.eu", portal: "Echo Dnia", region: "Świętokrzyskie" },
+            { domain: "dziennikpolski24.pl", portal: "Dziennik Polski", region: "Małopolskie" },
+            { domain: "kurierlubelski.pl", portal: "Kurier Lubelski", region: "Lubelskie" },
+            { domain: "poranny.pl", portal: "Kurier Poranny", region: "Podlaskie" },
+            { domain: "nto.pl", portal: "Nowa Trybuna Opolska", region: "Opolskie" },
+            { domain: "gazetalubuska.pl", portal: "Gazeta Lubuska", region: "Lubuskie" },
+            { domain: "gp24.pl", portal: "Głos Pomorza", region: "Pomorskie" },
+            { domain: "gk24.pl", portal: "Głos Koszaliński", region: "Zachodniopomorskie" },
+            { domain: "gs24.pl", portal: "Głos Szczeciński", region: "Zachodniopomorskie" },
+            { domain: "expressbydgoski.pl", portal: "Express Bydgoski", region: "Kujawsko-Pomorskie" },
+            { domain: "expressilustrowany.pl", portal: "Express Ilustrowany", region: "Łódzkie" },
+            { domain: "nowosci.com.pl", portal: "Nowości Toruńskie", region: "Kujawsko-Pomorskie" },
+          ];
+
+          const calculatedDailies = regionalDailiesList.map((d) => {
+            const dArts = livePeriodArticles.filter((a) => a.portal_domain === d.domain);
+            const total = dArts.length;
+            const l = dArts.filter((a) => a.locality === "L").length;
+            const cl = dArts.filter((a) => a.locality === "CL").length;
+            const localPct = total > 0 ? ((l + cl) / total) * 100 : 0;
+            const purePct = total > 0 ? (l / total) * 100 : 0;
+            return {
+              domain: d.domain,
+              portal: d.portal,
+              region: d.region,
+              total,
+              local_l_cl_pct: Math.round(localPct * 10) / 10,
+              pure_local_l_pct: Math.round(purePct * 10) / 10,
+              hero_dwell_h: 2.4,
+            };
+          }).filter((d) => d.total > 0);
+
+          calculatedDailies.sort((a, b) => b.local_l_cl_pct - a.local_l_cl_pct || b.total - a.total);
+
+          const activeTop5 = calculatedDailies.length >= 5
+            ? calculatedDailies.slice(0, 5).map((d, i) => ({ ...d, rank: i + 1 }))
+            : briefing?.top5_locality_dailies || [];
+
+          const activeBottom5 = calculatedDailies.length >= 5
+            ? calculatedDailies.slice(-5).reverse().map((d, i) => ({ ...d, rank: calculatedDailies.length - i }))
+            : briefing?.bottom5_locality_dailies || [];
 
           // Parse Internal CSV Matcher rows and match with PPG domain & locality profile
           const parsedInternalRows = internalCsvInput
@@ -3402,7 +3452,7 @@ export default function PPGscopeApp() {
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
                       <span className="rounded-md bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-amber-300 font-bold">
-                        Poranny przegląd doby · 07:30 Europe/Warsaw
+                        Przegląd zarządczy · Okres: {periodLabel} · 07:30 Europe/Warsaw
                       </span>
                       <span className="rounded-md bg-teal-500/15 border border-teal-500/30 px-2.5 py-0.5 text-[10px] font-mono text-teal-300">
                         Wersja v2.2 OSINT + Adapter GA4 / Piano
@@ -3423,7 +3473,7 @@ export default function PPGscopeApp() {
                       onClick={() => window.print()}
                       className="rounded-xl border border-amber-500/40 bg-amber-500/15 px-3.5 py-2 text-xs font-mono font-semibold text-amber-200 hover:bg-amber-500/25 transition-all flex items-center gap-2"
                     >
-                      <Download className="h-3.5 w-3.5 text-amber-300" /> Drukuj / Zapisz PDF (Briefing 7:30)
+                      <Download className="h-3.5 w-3.5 text-amber-300" /> Drukuj / Zapisz PDF ({periodShortLabel})
                     </button>
                   </div>
                 </div>
@@ -3432,30 +3482,30 @@ export default function PPGscopeApp() {
                 {briefing && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-5 font-mono">
                     <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
-                      <span className="text-[10px] uppercase text-zinc-400 block">Produkcja sieci (24h)</span>
+                      <span className="text-[10px] uppercase text-zinc-400 block">Produkcja sieci ({periodShortLabel})</span>
                       <span className="text-xl font-bold text-white">
-                        {live24hTotal.toLocaleString("pl-PL")}
+                        {livePeriodTotal.toLocaleString("pl-PL")}
                       </span>
                       <span className="text-[10px] text-teal-400 block mt-0.5">546 monitorowanych domen</span>
                     </div>
                     <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
-                      <span className="text-[10px] uppercase text-zinc-400 block">Teksty unikalne (24h)</span>
+                      <span className="text-[10px] uppercase text-zinc-400 block">Teksty unikalne ({periodShortLabel})</span>
                       <span className="text-xl font-bold text-emerald-400">
-                        {live24hUnique.toLocaleString("pl-PL")}
+                        {livePeriodUnique.toLocaleString("pl-PL")}
                       </span>
                       <span className="text-[10px] text-zinc-400 block mt-0.5">Oryginały bez klonów MinHash</span>
                     </div>
                     <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
                       <span className="text-[10px] uppercase text-zinc-400 block">Lokalność sieci (L + CL)</span>
                       <span className="text-xl font-bold text-teal-300">
-                        {live24hLocalPct}%
+                        {livePeriodLocalPct}%
                       </span>
                       <span className="text-[10px] text-zinc-400 block mt-0.5">Cel grupy: &gt;= 55,0%</span>
                     </div>
                     <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
                       <span className="text-[10px] uppercase text-zinc-400 block">Żywe redakcje</span>
                       <span className="text-xl font-bold text-white">
-                        {live24hPortals}
+                        {livePeriodPortals}
                       </span>
                       <span className="text-[10px] text-emerald-400 block mt-0.5">Status AKTYWNY_UNIKALNY</span>
                     </div>
@@ -3547,9 +3597,9 @@ export default function PPGscopeApp() {
 
                     <div className="space-y-2.5">
                       <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold block">
-                        Top 5 dzienników — najwyższy udział pracy lokalnej (L + CL)
+                        Top 5 dzienników — najwyższy udział pracy lokalnej (L + CL) · {periodShortLabel}
                       </span>
-                      {briefing.top5_locality_dailies.map((d) => (
+                      {activeTop5.map((d) => (
                         <div
                           key={d.domain}
                           onClick={() => {
@@ -3576,9 +3626,9 @@ export default function PPGscopeApp() {
 
                     <div className="space-y-2.5 pt-2 border-t border-white/[0.06]">
                       <span className="text-[10px] font-mono uppercase tracking-wider text-rose-400 font-bold block">
-                        Ostatnie 5 dzienników — najwyższy odsetek przedruków centralnych (C)
+                        Ostatnie 5 dzienników — najwyższy odsetek przedruków centralnych (C) · {periodShortLabel}
                       </span>
-                      {briefing.bottom5_locality_dailies.map((d) => (
+                      {activeBottom5.map((d) => (
                         <div
                           key={d.domain}
                           onClick={() => {
