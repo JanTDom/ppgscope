@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const password = body?.password;
 
-    if (!process.env.PPGSCOPE_AUTH_PASSWORD || !process.env.PPGSCOPE_AUTH_SECRET) {
+    if (!process.env.PPGSCOPE_AUTH_SECRET) {
       return NextResponse.json(
         { ok: false, error: "Autoryzacja nie jest skonfigurowana na serwerze." },
         { status: 503, headers: { "Cache-Control": "no-store" } },

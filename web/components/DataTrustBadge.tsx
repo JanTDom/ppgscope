@@ -1,7 +1,7 @@
 import React from "react";
 
 export interface DataProvenance {
-  mode: "live" | "synthetic_fixture" | "mixed" | "snapshot" | "synthetic";
+  mode: "live" | "synthetic_fixture" | "mixed" | "snapshot" | "synthetic" | "live_streaming";
   trust_label: string;
   display_label: string;
   source_summary: string;
@@ -16,7 +16,7 @@ export function DataTrustBadge({
   provenance: DataProvenance | null;
   compact?: boolean;
 }) {
-  const isLive = provenance?.mode === "live";
+  const isLive = provenance?.mode === "live" || provenance?.mode === "live_streaming";
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border font-mono uppercase tracking-[0.08em] ${

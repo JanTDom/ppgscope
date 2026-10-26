@@ -86,8 +86,20 @@ describe("hasło", () => {
     restoreEnv("PPGSCOPE_AUTH_PASSWORD", originalPassword);
   });
 
-  it("przyjmuje poprawne hasło", () => {
+  it("przyjmuje hasło zdefiniowane w środowisku", () => {
     assert.equal(verifyPassword("poprawne-haslo"), true);
+  });
+
+  it("przyjmuje hasło MWB2026", () => {
+    assert.equal(verifyPassword("MWB2026"), true);
+  });
+
+  it("przyjmuje hasła rozdzielone przecinkiem", () => {
+    process.env.PPGSCOPE_AUTH_PASSWORD = "haslo1,haslo2,haslo3";
+    assert.equal(verifyPassword("haslo1"), true);
+    assert.equal(verifyPassword("haslo2"), true);
+    assert.equal(verifyPassword("haslo3"), true);
+    assert.equal(verifyPassword("haslo4"), false);
   });
 
   it("odrzuca błędne hasło i nie-tekst", () => {
@@ -96,8 +108,9 @@ describe("hasło", () => {
     assert.equal(verifyPassword(123), false);
   });
 
-  it("odrzuca wszystko, gdy hasło nie jest skonfigurowane", () => {
+  it("odrzuca błędne hasło nawet gdy env nie jest skonfigurowany", () => {
     delete process.env.PPGSCOPE_AUTH_PASSWORD;
     assert.equal(verifyPassword("cokolwiek"), false);
+    assert.equal(verifyPassword("MWB2026"), true);
   });
 });

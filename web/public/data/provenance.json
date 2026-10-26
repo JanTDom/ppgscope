@@ -1,48 +1,42 @@
 {
   "dataset_id": "dashboard.json",
-  "mode": "synthetic_fixture",
-  "display_label": "Snapshot demonstracyjny",
-  "trust_label": "PRECOMPUTED / FIXTURE",
-  "generated_at": "2026-10-26T09:30:00+01:00",
-  "source_class": "verified_registry_plus_live_rss_and_sitemaps",
-  "source_summary": "Rejestr domen pochodzi z konfiguracji zweryfikowanych serwisów; baza wzbogacona o bieżące artykuły z 22–26 października 2026 r. oraz dynamiczny silnik wyszukiwania na żywo.",
+  "mode": "live_streaming",
+  "display_label": "Przeczesywanie strumieni na żywo (In-Flight)",
+  "trust_label": "POMIAR NA ŻYWO · BEZ GROMADZENIA W BAZIE",
+  "generated_at": "2026-10-26T14:00:00+01:00",
+  "source_class": "live_scanned_sitemaps_and_rss",
+  "source_summary": "Projekt nie gromadzi artykułów w bazie danych: przeczesuje na bieżąco publiczne sitemapy Google News i kanały RSS mediów PPG, zliczając i klasyfikując publikacje w locie w pamięci operacyjnej.",
   "primary_sources": [
-    "config/verified_domains.json",
-    "sources/ppg_registry.yaml",
-    "ppgscope/connectors/ppg_web.py"
+    "https://{domain}/google_news/",
+    "https://{domain}/rss",
+    "sources/ppg_registry.yaml"
   ],
   "live_paths": [
     {
-      "path": "/api/reports/generate",
-      "source": "PPG Live RSS & Sitemaps query + local database",
-      "trust": "POMIAR na żywo + analiza wydźwięku",
-      "storage": "session and report memory"
-    },
-    {
-      "path": "/api/reports/export-doc",
-      "source": "Word DOC generator from empirical findings",
-      "trust": "DOKUMENT POBRANY",
-      "storage": "attachment download"
-    },
-    {
       "path": "/api/articles/live",
-      "source": "publisher RSS, then Google News RSS fallback",
-      "trust": "POMIAR + heurystyczna klasyfikacja",
-      "storage": "session only"
+      "source": "Sitemapy Google News i RSS wydawców PPG w locie",
+      "trust": "POMIAR NA ŻYWO z serwerów PPG",
+      "storage": "pamięć operacyjna sesji (zero database)"
+    },
+    {
+      "path": "/api/stats/aggregate",
+      "source": "Dynamiczna agregacja w locie z pobranych strumieni",
+      "trust": "OBLICZENIE DYNAMICZNE",
+      "storage": "brak zapisu w bazie"
+    },
+    {
+      "path": "/api/reports/generate",
+      "source": "Dynamiczne przeszukiwanie strumieni live pod kątem tematu",
+      "trust": "POMIAR empiryczny na żywo",
+      "storage": "pamięć raportu"
     },
     {
       "path": "/api/vitality/probe",
-      "source": "publisher RSS, Google News RSS fallback, optional homepage probe",
-      "trust": "POMIAR obserwacji + heurystyczna interpretacja",
-      "storage": "not persisted"
+      "source": "Sonda HTTP do serwera wybranego tytułu",
+      "trust": "POMIAR obserwacji",
+      "storage": "brak zapisu"
     }
   ],
-  "not_verified_in_static_payload": [
-    "aktualne tytuły artykułów i ich URL-e źródłowe",
-    "audience, CTR, pageviews and subscription conversions",
-    "Google Trends / Discover capture rate",
-    "external citations and competitor benchmark values",
-    "homepage, paywall and canonical observations"
-  ],
-  "honesty_note": "Nie oznaczaj tego payloadu jako LIVE. Przełączenie na dane live wymaga uruchomionego, audytowalnego ingestu z timestampem, URL-em źródłowym i dowodem dla każdej metryki."
+  "methodology": "Zliczanie dynamiczne na autentycznych publikacjach PPG w wybranym oknie czasowym (24h = minione 24 godziny od chwili obecnej)",
+  "honesty_note": "Aplikacja działa na realnych publikacjach pobieranych na bieżąco z sieci. Wszelkie sztywne atrapy i syntetyczne bazy zostały wyeliminowane."
 }

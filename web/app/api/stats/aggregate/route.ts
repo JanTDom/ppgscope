@@ -1,25 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-import fs from "fs";
 import { requireApiSession } from "../../../../lib/api-auth";
+import { scanLiveArticles } from "../../../../lib/server/live-scanner";
 
-interface AggregateArticle {
-  published_at?: string;
-  portal_domain?: string;
-  domain?: string;
-  locality?: string;
-}
-
-interface AggregateCube {
-  global?: unknown;
-  per_medium?: Record<string, unknown>;
-}
-
-interface DashboardAggregateData {
-  generated_at?: string;
-  recent_articles?: AggregateArticle[];
-  server_aggregates?: Record<string, AggregateCube>;
-}
 
 export async function GET(req: NextRequest) {
   const unauthorized = requireApiSession(req);
@@ -27,44 +9,14 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const preset = searchParams.get("preset") || "30d";
+    const preset = searchParams.get("preset") || "24h";
     const domainFilter = searchParams.get("domain") || "ALL";
 
-    // Read cached server-side dashboard data
-    const dataPath = path.join(process.cwd(), "public", "data", "dashboard.json");
-    if (!fs.existsSync(dataPath)) {
-      return NextResponse.json({ error: "Dashboard data not found" }, { status: 404 });
-    }
+    // 1. Fetch live scanned articles directly in-flight from publisher feeds (no database)
+    const scan = await scanLiveArticles(domainFilter);
+    const articles = scan.articles;
 
-    const rawData = fs.readFileSync(dataPath, "utf-8");
-    const dashboard = JSON.parse(rawData) as DashboardAggregateData;
-
-    // If pre-computed server aggregates exist for this preset
-    if (dashboard.server_aggregates && dashboard.server_aggregates[preset]) {
-      const presetCube = dashboard.server_aggregates[preset];
-      if (domainFilter === "ALL" && presetCube.global) {
-        return NextResponse.json({
-          ok: true,
-          source: "server_preaggregated_cube",
-          preset,
-          domain: domainFilter,
-          aggregates: presetCube.global,
-        });
-      }
-      if (domainFilter !== "ALL" && presetCube.per_medium?.[domainFilter]) {
-        return NextResponse.json({
-          ok: true,
-          source: "server_preaggregated_cube",
-          preset,
-          domain: domainFilter,
-          aggregates: presetCube.per_medium[domainFilter],
-        });
-      }
-    }
-
-    // Dynamic server-side aggregation for specific media domain or custom filter
-    const articles = dashboard.recent_articles || [];
-    const now = new Date(dashboard.generated_at || Date.now());
+    const now = new Date();
     let start: Date;
 
     if (preset === "24h") {
@@ -128,7 +80,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      source: "server_dynamic_aggregation",
+      source: "live_in_flight_aggregation_no_db",
+      scanned_at: scan.scanned_at,
       preset,
       domain: domainFilter,
       aggregates: {
@@ -142,7 +95,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Błąd agregacji danych.";
+    const message = err instanceof Error ? err.message : "Błąd dynamicznej agregacji danych.";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
