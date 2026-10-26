@@ -3311,6 +3311,20 @@ export default function PPGscopeApp() {
           const activeComp =
             compBench.find((b) => b.region === selectedCompetitorRegion) || compBench[0];
 
+          // Obliczenie w 100% dynamicznych wskaźników 24h z faktycznych artykułów w pamięci
+          const staticBase = new Date("2026-10-26T14:00:00Z");
+          const now = clientNow ? new Date(clientNow) : staticBase;
+          const start24h = new Date(now.getTime() - 24 * 3600 * 1000);
+          const live24hArticles = (data?.recent_articles || []).filter((a) => {
+            const pub = new Date(a.published_at);
+            return pub >= start24h && pub <= now;
+          });
+          const live24hTotal = live24hArticles.length || briefing?.network_24h_summary?.total_articles_24h || 0;
+          const live24hUnique = live24hArticles.filter((a) => !a.is_duplicate).length || briefing?.network_24h_summary?.unique_articles_24h || live24hTotal;
+          const live24hLocalCount = live24hArticles.filter((a) => a.locality === "L" || a.locality === "CL").length;
+          const live24hLocalPct = live24hTotal > 0 ? Math.round((live24hLocalCount / live24hTotal) * 1000) / 10 : (briefing?.network_24h_summary?.local_and_localized_share_pct || 0);
+          const live24hPortals = new Set(live24hArticles.map((a) => a.portal_domain)).size || briefing?.network_24h_summary?.active_unique_portals_count || 20;
+
           // Parse Internal CSV Matcher rows and match with PPG domain & locality profile
           const parsedInternalRows = internalCsvInput
             .split("\n")
@@ -3420,28 +3434,28 @@ export default function PPGscopeApp() {
                     <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
                       <span className="text-[10px] uppercase text-zinc-400 block">Produkcja sieci (24h)</span>
                       <span className="text-xl font-bold text-white">
-                        {briefing.network_24h_summary.total_articles_24h.toLocaleString("pl-PL")}
+                        {live24hTotal.toLocaleString("pl-PL")}
                       </span>
                       <span className="text-[10px] text-teal-400 block mt-0.5">546 monitorowanych domen</span>
                     </div>
                     <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
                       <span className="text-[10px] uppercase text-zinc-400 block">Teksty unikalne (24h)</span>
                       <span className="text-xl font-bold text-emerald-400">
-                        {briefing.network_24h_summary.unique_articles_24h.toLocaleString("pl-PL")}
+                        {live24hUnique.toLocaleString("pl-PL")}
                       </span>
                       <span className="text-[10px] text-zinc-400 block mt-0.5">Oryginały bez klonów MinHash</span>
                     </div>
                     <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
                       <span className="text-[10px] uppercase text-zinc-400 block">Lokalność sieci (L + CL)</span>
                       <span className="text-xl font-bold text-teal-300">
-                        {briefing.network_24h_summary.local_and_localized_share_pct}%
+                        {live24hLocalPct}%
                       </span>
                       <span className="text-[10px] text-zinc-400 block mt-0.5">Cel grupy: &gt;= 55,0%</span>
                     </div>
                     <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
                       <span className="text-[10px] uppercase text-zinc-400 block">Żywe redakcje</span>
                       <span className="text-xl font-bold text-white">
-                        {briefing.network_24h_summary.active_unique_portals_count}
+                        {live24hPortals}
                       </span>
                       <span className="text-[10px] text-emerald-400 block mt-0.5">Status AKTYWNY_UNIKALNY</span>
                     </div>
@@ -4776,15 +4790,7 @@ export default function PPGscopeApp() {
             };
 
           const rawArticles: SamplePoliticalArticle[] =
-            selectedPoliticalActor === "ko" && (data?.sample_ko_articles?.length ?? 0) > 0 && sentimentDomainScope === "all_political"
-              ? (data?.sample_ko_articles || []).map((a) => ({
-                  ...a,
-                  actor_id: "ko" as PoliticalActorId,
-                  sentiment: (a.sentiment_ko || a.sentiment || "neutral") as "positive" | "neutral" | "negative",
-                  domain: "wladza",
-                  domain_label: "01 Władza i polityka",
-                }))
-              : activeSentimentData.sample_articles && activeSentimentData.sample_articles.length > 0
+            activeSentimentData.sample_articles && activeSentimentData.sample_articles.length > 0
               ? activeSentimentData.sample_articles
               : activeConfig.curatedSampleArticles.map((s) => ({ ...s, actor_id: selectedPoliticalActor }));
 

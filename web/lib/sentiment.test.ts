@@ -50,9 +50,13 @@ describe("Wydźwięk sceny politycznej — Detekcja podmiotów", () => {
     // Zabezpieczenie przed polskim przyimkiem "po"
     const sportText = "Siatkarze z regionu awansowali do fazy play-off po dramatycznym tie-breaku.";
     assert.ok(!detectPoliticalActors(sportText).includes("ko"), "Przyimek 'po' nie może być uznany za partię PO");
+
+    // Zabezpieczenie przed marką sprzętu AL-KO
+    const alkoText = "AL-KO Superpuchar Polski. Kapitan poprowadził drużynę po triumf w Częstochowie.";
+    assert.ok(!detectPoliticalActors(alkoText).includes("ko"), "Marka sprzętowa AL-KO nie może być uznana za Koalicję Obywatelską");
   });
 
-  it("wykrywa PiS po politykach i nazwach partii", () => {
+  it("wykrywa PiS po politykach i nazwach partii, eliminując słowa pisaliśmy/napisali", () => {
     const text1 = "Prezes Jarosław Kaczyński przemawiał na konwencji.";
     assert.ok(detectPoliticalActors(text1).includes("pis"));
 
@@ -61,6 +65,10 @@ describe("Wydźwięk sceny politycznej — Detekcja podmiotów", () => {
 
     const text3 = "Klub Prawo i Sprawiedliwość złożył wniosek o wotum nieufności.";
     assert.ok(detectPoliticalActors(text3).includes("pis"));
+
+    // Zabezpieczenie przed 'pisaliśmy'
+    const nonPistext = "Pisaliśmy w Kurierze o nowym taryfikatorze mandatów dla kierowców.";
+    assert.ok(!detectPoliticalActors(nonPistext).includes("pis"), "Słowo 'pisaliśmy' nie może być uznane za PiS");
   });
 
   it("wykrywa PSL i ludowców w sprawach rolniczych i infrastrukturalnych", () => {
@@ -85,7 +93,7 @@ describe("Wydźwięk sceny politycznej — Detekcja podmiotów", () => {
     assert.ok(detectPoliticalActors(text3).includes("polska2050"));
   });
 
-  it("wykrywa Lewicę i Partię Razem w sprawach pracy i mieszkań", () => {
+  it("wykrywa Lewicę i Partię Razem w sprawach pracy i mieszkań, ignorując market Biedronka i zwrot tym razem", () => {
     const text1 = "Włodzimierz Czarzasty i Robert Biedroń podsumowali konsultacje.";
     assert.ok(detectPoliticalActors(text1).includes("lewica"));
 
@@ -94,6 +102,14 @@ describe("Wydźwięk sceny politycznej — Detekcja podmiotów", () => {
 
     const text3 = "Adrian Zandberg z Partii Razem zabrał głos w debacie o mieszkalnictwie.";
     assert.ok(detectPoliticalActors(text3).includes("lewica"));
+
+    // Zabezpieczenie przed marketem Biedronka
+    const marketText = "Klienci rzucili się na promocje w Biedronce przed 1 listopada.";
+    assert.ok(!detectPoliticalActors(marketText).includes("lewica"), "Sklep Biedronka nie może być uznany za Roberta Biedronia");
+
+    // Zabezpieczenie przed zwrotem 'tym razem'
+    const matchText = "Tym razem Niebiescy pokonali rywali i zdobyli komplet punktów.";
+    assert.ok(!detectPoliticalActors(matchText).includes("lewica"), "Zwrot 'tym razem' nie może być uznany za Partię Razem");
   });
 
   it("wykrywa Konfederację w sprawach podatków i deregulacji", () => {
@@ -107,7 +123,7 @@ describe("Wydźwięk sceny politycznej — Detekcja podmiotów", () => {
     assert.ok(detectPoliticalActors(text3).includes("konfederacja"));
   });
 
-  it("wykrywa Karola Nawrockiego w inicjatywach społecznych i historycznych", () => {
+  it("wykrywa Karola Nawrockiego w inicjatywach społecznych i historycznych, ignorując Daniela Nawrockiego", () => {
     const text1 = "Karol Nawrocki odwiedził Małopolskę i spotkał się z mieszkańcami.";
     assert.ok(detectPoliticalActors(text1).includes("nawrocki"));
 
@@ -116,6 +132,10 @@ describe("Wydźwięk sceny politycznej — Detekcja podmiotów", () => {
 
     const text3 = "Sztab Karola Nawrockiego zebrał wymagane podpisy poparcia.";
     assert.ok(detectPoliticalActors(text3).includes("nawrocki"));
+
+    // Zabezpieczenie przed Danielem Nawrockim
+    const danielText = "Daniel Nawrocki i jego piękna partnerka na gali w Warszawie.";
+    assert.ok(!detectPoliticalActors(danielText).includes("nawrocki"), "Daniel Nawrocki nie może być mylony z Karolem Nawrockim");
   });
 
   it("wykrywa Rozwój Plus i ruch Tak Dla Rozwoju w kontekście CPK i atomu", () => {
