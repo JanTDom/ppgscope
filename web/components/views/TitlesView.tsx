@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Database, ExternalLink } from "lucide-react";
+import { Database, Download, ExternalLink } from "lucide-react";
 
 export interface TitleItem {
   id: string;
@@ -50,6 +50,36 @@ export function TitlesView({
       (t.region && t.region.toLowerCase().includes(titleSearch.toLowerCase())),
   );
 
+  const handleExportCsv = () => {
+    const headers = ["ID", "Nazwa", "Domena", "Region", "Typ", "Status żywotności", "Etykieta", "Unikalność (%)", "Artykuły unikalne/d", "Artykuły łącznie/d"];
+    const rows = filteredTitles.map((t) => {
+      const vit = portalVitalityAudit?.portals.find((p) => p.domain === t.domain);
+      return [
+        t.id,
+        `"${(t.name || "").replace(/"/g, '""')}"`,
+        t.domain,
+        t.region || "",
+        t.type || "",
+        vit?.vitality_status || "BRAK_DANYCH",
+        `"${(vit?.vitality_label || "").replace(/"/g, '""')}"`,
+        vit?.uniqueness_pct != null ? vit.uniqueness_pct : "",
+        vit?.unique_articles_count != null ? vit.unique_articles_count : "",
+        vit?.daily_articles_count != null ? vit.daily_articles_count : "",
+      ];
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(";"), ...rows.map((r) => r.join(";"))].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `rejestr_portali_ppg_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6">
@@ -70,6 +100,14 @@ export function TitlesView({
             placeholder="Szukaj portalu lub miasta..."
             className="rounded-xl border border-white/[0.1] bg-black/60 py-2 px-3 text-xs text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none font-mono"
           />
+          <button
+            onClick={handleExportCsv}
+            className="flex items-center gap-1.5 rounded-xl border border-teal-500/30 bg-teal-500/10 px-3 py-2 text-xs font-medium text-teal-300 hover:bg-teal-500 hover:text-black transition-all"
+            title="Eksportuj przefiltrowaną listę portali do pliku CSV"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Eksportuj CSV ({filteredTitles.length})</span>
+          </button>
         </div>
       </div>
 

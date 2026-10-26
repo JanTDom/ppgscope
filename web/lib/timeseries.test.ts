@@ -73,4 +73,14 @@ describe("Timeseries & Topic Mix Integrity", () => {
       `Średni udział sportu w weekend (${(avgWeekendSport * 100).toFixed(1)}%) musi być wyraźnie wyższy niż w dni robocze (${(avgWeekdaySport * 100).toFixed(1)}%)`
     );
   });
+
+  it("gwarantuje, że szereg czasowy kończy się na bieżącej dacie i nie zamraża się w przeszłości", () => {
+    const jsonPath = path.resolve(process.cwd(), "public/data/dashboard.json");
+    const content = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+    const timeseries: DailyPoint[] = content.daily_timeseries;
+    const lastPoint = timeseries[timeseries.length - 1];
+
+    const todayStr = new Date().toISOString().split("T")[0];
+    assert.strictEqual(lastPoint.date, todayStr, `Ostatni punkt w timeseries (${lastPoint.date}) musi odpowiadać dzisiejszej dacie (${todayStr})`);
+  });
 });

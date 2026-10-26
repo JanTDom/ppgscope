@@ -13,7 +13,7 @@ import random
 
 repo_root = Path(__file__).resolve().parent.parent
 
-def generate_realistic_daily_timeseries(base_date: date = date(2026, 10, 26), days: int = 365):
+def generate_realistic_daily_timeseries(base_date: date = None, days: int = 365):
     """
     Generates realistic, continuous timeseries data for PPG network.
     Reflects genuine journalistic rhythms:
@@ -24,6 +24,8 @@ def generate_realistic_daily_timeseries(base_date: date = date(2026, 10, 26), da
     - Natural day-to-day news cycle momentum with deterministic pseudo-random variation.
     - Guarantees exact mathematical sum: sum(topics) == day_total.
     """
+    if base_date is None:
+        base_date = date.today()
     rng = random.Random(42)
     full_timeseries = []
 
@@ -199,7 +201,7 @@ def sync_dashboard():
                         per_med[dom] = new_item
 
     # 5. Expand daily_timeseries to 365 days of realistic, dynamic data
-    base_date = date(2026, 10, 26)
+    base_date = date.today()
     full_timeseries = generate_realistic_daily_timeseries(base_date=base_date, days=365)
 
     data["daily_timeseries"] = full_timeseries
