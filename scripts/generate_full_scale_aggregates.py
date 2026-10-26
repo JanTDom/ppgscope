@@ -341,21 +341,25 @@ THEMATIC_KO_POLITICIANS["gratka.pl"] = THEMATIC_KO_POLITICIANS["strefabiznesu.pl
 
 # Specialized 18-domain multipliers per thematic portal
 THEMATIC_DOMAIN_PROFILES = {
-    "sportowy24.pl": {"sport": 18.5, "czas_wolny": 2.4, "zdrowie": 1.6, "wladza": 0.25, "zdarzenia": 0.35},
-    "gol24.pl": {"sport": 21.0, "czas_wolny": 1.8, "rozrywka": 1.4, "wladza": 0.20, "zdarzenia": 0.30},
+    "sportowy24.pl": {"sport": 18.5, "czas_wolny": 2.4, "zdrowie": 1.6, "wladza": 0.0, "zdarzenia": 0.35},
+    "gol24.pl": {"sport": 21.0, "czas_wolny": 1.8, "rozrywka": 1.4, "wladza": 0.0, "zdarzenia": 0.30},
     "strefabiznesu.pl": {"gospodarka": 8.5, "przestrzen": 3.4, "infrastruktura": 2.2, "wladza": 1.4, "sport": 0.15, "zdarzenia": 0.25},
-    "strefaagro.pl": {"rolnictwo": 22.0, "srodowisko": 4.8, "gospodarka": 2.6, "styl_zycia": 1.8, "sport": 0.10, "rozrywka": 0.10},
-    "strefaedukacji.pl": {"edukacja": 16.5, "kultura": 2.6, "historia": 2.4, "spolecznosc": 1.4, "sport": 0.30, "zdarzenia": 0.30},
+    "strefaagro.pl": {"rolnictwo": 22.0, "srodowisko": 4.8, "gospodarka": 2.6, "styl_zycia": 1.8, "sport": 0.10, "rozrywka": 0.10, "wladza": 0.0},
+    "strefaedukacji.pl": {"edukacja": 16.5, "kultura": 2.6, "historia": 2.4, "spolecznosc": 1.4, "sport": 0.30, "zdarzenia": 0.30, "wladza": 0.0},
     "strefaobronnosci.pl": {"obronnosc": 14.5, "swiat": 4.2, "wladza": 2.1, "zdarzenia": 1.5, "rozrywka": 0.05, "styl_zycia": 0.10},
-    "stronakobiet.pl": {"styl_zycia": 13.0, "rozrywka": 6.5, "zdrowie": 4.2, "kultura": 2.2, "obronnosc": 0.10, "rolnictwo": 0.20},
-    "stronazdrowia.pl": {"zdrowie": 18.0, "styl_zycia": 4.5, "srodowisko": 2.2, "edukacja": 1.5, "sport": 0.40, "obronnosc": 0.10},
-    "motofakty.pl": {"infrastruktura": 6.8, "zdarzenia": 2.4, "gospodarka": 2.2, "srodowisko": 1.8, "styl_zycia": 1.5, "kultura": 0.15},
-    "regiomoto.pl": {"infrastruktura": 6.4, "zdarzenia": 2.6, "gospodarka": 2.0, "styl_zycia": 1.4, "kultura": 0.15},
-    "regiodom.pl": {"przestrzen": 14.0, "gospodarka": 3.6, "infrastruktura": 2.5, "styl_zycia": 2.8, "srodowisko": 2.0, "obronnosc": 0.10},
-    "gratka.pl": {"przestrzen": 11.5, "gospodarka": 4.8, "infrastruktura": 3.2, "styl_zycia": 2.0, "obronnosc": 0.15},
-    "telemagazyn.pl": {"rozrywka": 18.0, "kultura": 7.5, "styl_zycia": 3.2, "sport": 1.8, "rolnictwo": 0.10, "obronnosc": 0.15},
-    "gra.pl": {"rozrywka": 14.0, "kultura": 6.2, "czas_wolny": 5.5, "edukacja": 1.8, "rolnictwo": 0.05},
-    "naszahistoria.pl": {"historia": 20.0, "kultura": 4.5, "obronnosc": 2.4, "swiat": 2.0, "rozrywka": 0.15},
+    "stronakobiet.pl": {"styl_zycia": 15.0, "rozrywka": 6.5, "zdrowie": 4.2, "kultura": 2.2, "wladza": 0.0, "obronnosc": 0.0, "rolnictwo": 0.0},
+    "stronazdrowia.pl": {"zdrowie": 18.0, "styl_zycia": 4.5, "srodowisko": 2.2, "edukacja": 1.5, "wladza": 0.0, "sport": 0.40, "obronnosc": 0.0},
+    "motofakty.pl": {"infrastruktura": 6.8, "zdarzenia": 2.4, "gospodarka": 2.2, "srodowisko": 1.8, "styl_zycia": 1.5, "kultura": 0.15, "wladza": 0.0},
+    "regiomoto.pl": {"infrastruktura": 6.4, "zdarzenia": 2.6, "gospodarka": 2.0, "styl_zycia": 1.4, "kultura": 0.15, "wladza": 0.0},
+    "regiodom.pl": {"przestrzen": 14.0, "gospodarka": 3.6, "infrastruktura": 2.5, "styl_zycia": 2.8, "srodowisko": 2.0, "wladza": 0.0, "obronnosc": 0.0},
+    "gratka.pl": {"przestrzen": 11.5, "gospodarka": 4.8, "infrastruktura": 3.2, "styl_zycia": 2.0, "wladza": 0.0, "obronnosc": 0.0},
+    "telemagazyn.pl": {"rozrywka": 18.0, "kultura": 7.5, "styl_zycia": 3.2, "sport": 1.8, "wladza": 0.0, "rolnictwo": 0.0, "obronnosc": 0.0},
+    "gra.pl": {"rozrywka": 14.0, "kultura": 6.2, "czas_wolny": 5.5, "edukacja": 1.8, "wladza": 0.0, "rolnictwo": 0.0},
+    "naszahistoria.pl": {"historia": 20.0, "kultura": 4.5, "obronnosc": 2.4, "swiat": 2.0, "rozrywka": 0.15, "wladza": 0.2},
+    "shownews.pl": {"rozrywka": 18.0, "styl_zycia": 6.0, "kultura": 4.0, "wladza": 0.0, "obronnosc": 0.0, "rolnictwo": 0.0},
+    "stronakuchni.pl": {"styl_zycia": 18.0, "kultura": 3.0, "wladza": 0.0, "obronnosc": 0.0, "rolnictwo": 0.0},
+    "gotujmy.pl": {"styl_zycia": 18.0, "kultura": 2.0, "wladza": 0.0, "obronnosc": 0.0, "rolnictwo": 0.0},
+    "stronapodrozy.pl": {"czas_wolny": 18.0, "kultura": 4.0, "wladza": 0.0, "obronnosc": 0.0, "rolnictwo": 0.0},
     "i.pl": {"wladza": 2.45, "swiat": 3.10, "obronnosc": 1.85, "gospodarka": 1.45, "spolecznosc": 0.45},
 }
 
@@ -578,7 +582,7 @@ def build_breakdown(
     # Calculate KO / PO Political Sentiment Metrics dynamically per period and medium
     # Scope: exclusively within 01 Władza i polityka where KO/PO appears
     wladza_item = next((dom for dom in domains_result if dom["slug"] == "wladza"), None)
-    wladza_total = max(1, wladza_item["total"] if wladza_item else round(total_volume * 0.088))
+    wladza_total = wladza_item["total"] if wladza_item else round(total_volume * 0.088)
 
     base_ko_share = prof["ko_share"]
     base_pos = prof["pos_ratio"]
@@ -597,7 +601,32 @@ def build_breakdown(
         pos_ratio = min(0.35, max(0.09, base_pos + 0.016 * jitter))
         neg_ratio = min(0.48, max(0.14, base_neg - 0.014 * jitter))
 
-    ko_total = max(1, round(wladza_total * ko_share))
+    ko_total = round(wladza_total * ko_share) if wladza_total > 0 else 0
+
+    if ko_total == 0:
+        ko_sentiment = {
+            "scope": "01 Władza i polityka (artykuły z obecnością KO / PO)",
+            "total_political_articles": wladza_total,
+            "ko_mentions_count": 0,
+            "ko_mentions_pct": 0.0,
+            "breakdown": {
+                "positive": {"count": 0, "pct": 0.0},
+                "neutral": {"count": 0, "pct": 0.0},
+                "negative": {"count": 0, "pct": 0.0},
+            },
+            "net_sentiment_score": 0.0,
+            "top_politicians": [],
+        }
+        return {
+            "totalCount": total_volume,
+            "countC": count_c_total,
+            "countCL": count_cl_total,
+            "countL": count_l_total,
+            "localContentShare": round(local_share * 1000) / 10,
+            "localizationIndex": round(loc_index * 1000) / 10,
+            "domains": domains_result,
+            "ko_sentiment": ko_sentiment,
+        }
 
     # Compute exact percentages and counts without small-sample integer collapse
     if ko_total >= 100:
@@ -677,12 +706,12 @@ def generate():
 
     # Publishing volumes per period across the entire 546-portal network
     GLOBAL_VOLUMES = {
-        "24h": 10800,
-        "7d": 75600,
-        "30d": 324000,
-        "90d": 972000,
-        "1y": 3942000,
-        "all": 10297165,  # 953 days since March 9, 2024
+        "24h": 10480,
+        "7d": 73360,
+        "30d": 314400,
+        "90d": 943200,
+        "1y": 3825200,
+        "all": 9987400,
     }
 
     # Cadence per media type (articles per day)
