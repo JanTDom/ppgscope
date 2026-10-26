@@ -1651,7 +1651,7 @@ export interface InputSentimentArticle {
  */
 export function calculateAllPoliticalSentiments(
   articles: InputSentimentArticle[],
-  totalPoliticalCount: number,
+  totalPoliticalCount?: number,
   spanDays: number = 30,
   domainScope: string = "all_political",
   weightingMode: SentimentWeightingMode = "raw",
@@ -1683,13 +1683,17 @@ export function calculateAllPoliticalSentiments(
       ? "03 Obronność"
       : domainScope;
 
+  const effectiveTotal = targetArticles.length;
+
   for (const actorId of ALL_POLITICAL_ACTOR_IDS) {
     const config = POLITICAL_ACTORS[actorId];
 
-    // Evaluate live matching articles
+    // Evaluate live matching articles strictly from the genuine input dataset
     let evalPos = 0;
     let evalNeg = 0;
     let evalNeu = 0;
+    const liveActorArticles: SamplePoliticalArticle[] = [];
+    const politicianStats: Record<string, { mentions: number; pos: number; neg: number; neu: number }> = {};
 
     for (const art of targetArticles) {
       const fullText = `${art.title} ${art.lead || ""}`;
@@ -1698,110 +1702,7 @@ export function calculateAllPoliticalSentiments(
         if (ev.sentiment === "positive") evalPos++;
         else if (ev.sentiment === "negative") evalNeg++;
         else if (ev.sentiment === "neutral") evalNeu++;
-      }
-    }
 
-    const evalTotal = evalPos + evalNeg + evalNeu;
-
-    // Time span dynamic scaling factor
-    const spanShareMultiplier =
-      spanDays <= 1 ? 1.08 : spanDays <= 7 ? 1.04 : spanDays <= 30 ? 1.0 : spanDays <= 90 ? 0.96 : 0.93;
-    
-    // Domain multiplier: some actors are stronger in specific domains (e.g. PSL in rolnictwo/infrastruktura, Rozwój+ in infrastruktura/gospodarka)
-    let domainMultiplier = 1.0;
-    if (domainScope === "rolnictwo") {
-      if (actorId === "psl" || actorId === "pis") domainMultiplier = 1.45;
-      else domainMultiplier = 0.6;
-    } else if (domainScope === "infrastruktura") {
-      if (actorId === "rozwoj_plus" || actorId === "psl") domainMultiplier = 1.6;
-      else domainMultiplier = 0.85;
-    } else if (domainScope === "gospodarka") {
-      if (actorId === "konfederacja" || actorId === "ko" || actorId === "rozwoj_plus" || actorId === "lewica") domainMultiplier = 1.25;
-    } else if (domainScope === "zdrowie") {
-      if (actorId === "ko") domainMultiplier = 1.4;
-    } else if (domainScope === "obronnosc") {
-      if (actorId === "psl" || actorId === "pis") domainMultiplier = 1.5;
-    }
-
-    const effectiveTotal = Math.max(0, totalPoliticalCount > 0 ? totalPoliticalCount : targetArticles.length);
-    const dynamicShare = Math.min(0.85, config.defaultShare * spanShareMultiplier * domainMultiplier);
-
-    let dynamicPosRatio: number;
-    let dynamicNegRatio: number;
-    let actorMentionsCount: number;
-
-    const isLargeScale = effectiveTotal >= 50;
-
-    if (isLargeScale) {
-      // Full-scale network or large-medium mode: scale all actors consistently across effectiveTotal
-      actorMentionsCount = Math.max(1, Math.round(effectiveTotal * dynamicShare));
-      if (evalTotal >= 4) {
-        dynamicPosRatio = (evalPos / evalTotal) * 0.6 + config.basePosRatio * 0.4;
-        dynamicNegRatio = (evalNeg / evalTotal) * 0.6 + config.baseNegRatio * 0.4;
-      } else if (evalTotal > 0) {
-        dynamicPosRatio = (evalPos / evalTotal) * 0.35 + config.basePosRatio * 0.65;
-        dynamicNegRatio = (evalNeg / evalTotal) * 0.35 + config.baseNegRatio * 0.65;
-      } else {
-        dynamicPosRatio =
-          spanDays <= 1
-            ? config.basePosRatio * 1.08
-            : spanDays <= 7
-            ? config.basePosRatio * 1.04
-            : spanDays <= 30
-            ? config.basePosRatio
-            : config.basePosRatio * 0.92;
-        dynamicNegRatio =
-          spanDays <= 1
-            ? config.baseNegRatio * 0.92
-            : spanDays <= 7
-            ? config.baseNegRatio * 0.96
-            : spanDays <= 30
-            ? config.baseNegRatio
-            : config.baseNegRatio * 1.08;
-      }
-    } else if (evalTotal > 0) {
-      // Sample / mock mode with observed hits
-      actorMentionsCount = evalTotal;
-      dynamicPosRatio = evalPos / evalTotal;
-      dynamicNegRatio = evalNeg / evalTotal;
-    } else {
-      // Sample / mock mode with zero observed hits
-      actorMentionsCount = 0;
-      dynamicPosRatio = 0.0;
-      dynamicNegRatio = 0.0;
-    }
-
-    const posCount = Math.round(actorMentionsCount * dynamicPosRatio);
-    const negCount = Math.round(actorMentionsCount * dynamicNegRatio);
-    const neuCount = Math.max(0, actorMentionsCount - (posCount + negCount));
-
-    const posPct = actorMentionsCount > 0 ? Math.round(dynamicPosRatio * 1000) / 10 : 0.0;
-    const negPct = actorMentionsCount > 0 ? Math.round(dynamicNegRatio * 1000) / 10 : 0.0;
-    const neuPct = actorMentionsCount > 0 ? Math.round((100.0 - posPct - negPct) * 10) / 10 : 0.0;
-    const netScore = actorMentionsCount > 0 ? Math.round((posPct - negPct) * 10) / 10 : 0.0;
-
-    const shiftPos = Math.round((posPct - config.basePosRatio * 100) * 10) / 10;
-    const shiftNeg = Math.round((negPct - config.baseNegRatio * 100) * 10) / 10;
-
-    const politicians: PoliticianSentimentItem[] = config.topPoliticiansTemplate.map((p) => {
-      const polP = Math.max(2, Math.min(90, Math.round((p.baseP + shiftPos) * 10) / 10));
-      const polN = Math.max(2, Math.min(90, Math.round((p.baseN + shiftNeg) * 10) / 10));
-      const polNeu = Math.max(0, Math.round((100.0 - polP - polN) * 10) / 10);
-      return {
-        name: p.name,
-        role: p.role,
-        mentions: Math.max(1, Math.round(actorMentionsCount * p.share)),
-        positive_pct: polP,
-        neutral_pct: polNeu,
-        negative_pct: polN,
-      };
-    });
-
-    const liveActorArticles: SamplePoliticalArticle[] = [];
-    for (const art of targetArticles) {
-      const fullText = `${art.title} ${art.lead || ""}`;
-      const ev = evaluatePoliticalSentiment(fullText, actorId);
-      if (ev.sentiment !== "no_actor") {
         liveActorArticles.push({
           id: art.id || `live-${actorId}-${liveActorArticles.length + 1}`,
           title: art.title,
@@ -1818,26 +1719,53 @@ export function calculateAllPoliticalSentiments(
           domain_label: art.domain_name || "01 Władza i polityka",
           actor_id: actorId,
         });
+
+        if (Array.isArray(ev.detected_entities)) {
+          for (const ent of ev.detected_entities) {
+            if (!politicianStats[ent]) {
+              politicianStats[ent] = { mentions: 0, pos: 0, neg: 0, neu: 0 };
+            }
+            politicianStats[ent].mentions++;
+            if (ev.sentiment === "positive") politicianStats[ent].pos++;
+            else if (ev.sentiment === "negative") politicianStats[ent].neg++;
+            else politicianStats[ent].neu++;
+          }
+        }
       }
     }
 
-    const samples: SamplePoliticalArticle[] =
-      liveActorArticles.length > 0
-        ? liveActorArticles.slice(0, 15)
-        : config.curatedSampleArticles
-            .filter((s) => {
-              if (domainScope === "all_political") return true;
-              return s.domain === domainScope;
-            })
-            .map((s) => ({
-              ...s,
-              actor_id: actorId,
-            }));
+    const evalTotal = evalPos + evalNeg + evalNeu;
+    const actorMentionsCount = evalTotal;
 
-    // If no samples match specific domain filter, fallback to all samples for this actor
-    const finalSamples = samples.length > 0
-      ? samples
-      : config.curatedSampleArticles.map((s) => ({ ...s, actor_id: actorId }));
+    const posCount = evalPos;
+    const negCount = evalNeg;
+    const neuCount = evalNeu;
+
+    const posPct = actorMentionsCount > 0 ? Math.round((posCount / actorMentionsCount) * 1000) / 10 : 0.0;
+    const negPct = actorMentionsCount > 0 ? Math.round((negCount / actorMentionsCount) * 1000) / 10 : 0.0;
+    const neuPct = actorMentionsCount > 0 ? Math.max(0, Math.round((100.0 - posPct - negPct) * 10) / 10) : 0.0;
+    const netScore = actorMentionsCount > 0 ? Math.round((posPct - negPct) * 10) / 10 : 0.0;
+    const mentionsPct = effectiveTotal > 0 ? Math.round((actorMentionsCount / effectiveTotal) * 1000) / 10 : 0.0;
+
+    // Politicians ranked by actual observed mentions in matching articles
+    const politicians: PoliticianSentimentItem[] = Object.entries(politicianStats)
+      .sort((a, b) => b[1].mentions - a[1].mentions)
+      .slice(0, 6)
+      .map(([name, s]) => {
+        const pP = s.mentions > 0 ? Math.round((s.pos / s.mentions) * 1000) / 10 : 0;
+        const pN = s.mentions > 0 ? Math.round((s.neg / s.mentions) * 1000) / 10 : 0;
+        const pNeu = s.mentions > 0 ? Math.max(0, Math.round((100.0 - pP - pN) * 10) / 10) : 0;
+        return {
+          name,
+          role: "Wykryty w publikacjach",
+          mentions: s.mentions,
+          positive_pct: pP,
+          neutral_pct: pNeu,
+          negative_pct: pN,
+        };
+      });
+
+    const samples: SamplePoliticalArticle[] = liveActorArticles.slice(0, 15);
 
     const rawNet = netScore;
     const shift = actorShifts?.[actorId] ?? 0;
@@ -1852,9 +1780,9 @@ export function calculateAllPoliticalSentiments(
       domain_scope: domainScope,
       total_political_articles: effectiveTotal,
       mentions_count: actorMentionsCount,
-      mentions_pct: effectiveTotal > 0 ? Math.round(dynamicShare * 1000) / 10 : 0.0,
+      mentions_pct: mentionsPct,
       ko_mentions_count: actorMentionsCount,
-      ko_mentions_pct: effectiveTotal > 0 ? Math.round(dynamicShare * 1000) / 10 : 0.0,
+      ko_mentions_pct: mentionsPct,
       breakdown: {
         positive: { count: posCount, pct: posPct },
         neutral: { count: neuCount, pct: neuPct },
@@ -1862,7 +1790,7 @@ export function calculateAllPoliticalSentiments(
       },
       net_sentiment_score: effectiveNet,
       top_politicians: politicians,
-      sample_articles: finalSamples,
+      sample_articles: samples,
       raw_net_sentiment_score: rawNet,
       weighting_mode: weightingMode,
       weighting_shift: shift,
@@ -2055,6 +1983,7 @@ export const REGION_AFFINITY: Record<string, Partial<Record<PoliticalActorId, { 
 export function calculateMediaAccountability(
   titles: { id: string; name: string; domain: string; region: string; type?: string; articles_count?: number }[],
   perMediumAggregates:
+    | InputSentimentArticle[]
     | Record<
         string,
         {
@@ -2078,7 +2007,8 @@ export function calculateMediaAccountability(
   domainScope: string = "all_political",
   weightingMode: SentimentWeightingMode = "raw",
   regionalBasket: RegionalBasketMode = "ALL",
-  internalTelemetryMap?: Record<string, number>
+  internalTelemetryMap?: Record<string, number>,
+  providedArticles?: InputSentimentArticle[]
 ): MediaAccountabilityResult {
   const config = POLITICAL_ACTORS[actorId];
 
@@ -2103,9 +2033,9 @@ export function calculateMediaAccountability(
     spanDays <= 1 ? 1.08 : spanDays <= 7 ? 1.04 : spanDays <= 30 ? 1.0 : spanDays <= 90 ? 0.96 : 0.93;
 
   const isDailyCheck = (t: { type?: string }) =>
-    t.type === "DZIENNIK_REGIONALNY" || t.type === "Dziennik regionalny";
+    Boolean(t.type && (t.type === "DZIENNIK_REGIONALNY" || t.type === "Dziennik regionalny"));
   const isNationalCheck = (t: { domain: string; type?: string }) =>
-    t.domain === "i.pl" || t.type === "PORTAL_KRAJOWY";
+    Boolean(t.domain === "i.pl" || (t.type && t.type === "PORTAL_KRAJOWY"));
 
   const NON_POLITICAL_DOMAINS = new Set([
     "shownews.pl",
@@ -2138,6 +2068,23 @@ export function calculateMediaAccountability(
     return true;
   });
 
+  const isArticleArray = Array.isArray(perMediumAggregates) || Array.isArray(providedArticles);
+  const realArticlesList: InputSentimentArticle[] = Array.isArray(perMediumAggregates)
+    ? perMediumAggregates
+    : (providedArticles ?? []);
+
+  // Map real articles by domain if articles are provided
+  const realArticlesByDomain = new Map<string, InputSentimentArticle[]>();
+  if (isArticleArray) {
+    for (const art of realArticlesList) {
+      const dom = art.portal_domain || "unknown";
+      if (!realArticlesByDomain.has(dom)) {
+        realArticlesByDomain.set(dom, []);
+      }
+      realArticlesByDomain.get(dom)!.push(art);
+    }
+  }
+
   const hashDomain = (str: string): number => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -2147,77 +2094,108 @@ export function calculateMediaAccountability(
   };
 
   const rawList: MediumSentimentBreakdown[] = targetTitles.map((t) => {
-    const medAgg = perMediumAggregates?.[t.domain];
-    const totalCount =
-      medAgg?.totalCount ||
-      t.articles_count ||
-      (isNationalCheck(t) ? (spanDays <= 1 ? 185 : spanDays * 180) : isDailyCheck(t) ? (spanDays <= 1 ? 80 : spanDays * 78) : (spanDays <= 1 ? 20 : spanDays * 18));
-
-    let baselineScopeTotal = 0;
-    if (domainScope === "all_political") {
-      const wladza =
-        medAgg?.domains?.find((x) => x.slug === "wladza")?.total ??
-        Math.round(totalCount * (isNationalCheck(t) ? 0.16 : isDailyCheck(t) ? 0.09 : 0.05));
-      const gospodarka =
-        medAgg?.domains?.find((x) => x.slug === "gospodarka")?.total ?? Math.round(totalCount * 0.06);
-      const infra =
-        medAgg?.domains?.find((x) => x.slug === "infrastruktura")?.total ?? Math.round(totalCount * 0.05);
-      const rolnictwo =
-        medAgg?.domains?.find((x) => x.slug === "rolnictwo")?.total ?? Math.round(totalCount * 0.04);
-      baselineScopeTotal = Math.max(
-        wladza + Math.round(gospodarka * 0.3) + Math.round(infra * 0.35) + Math.round(rolnictwo * 0.35),
-        Math.round(totalCount * (isNationalCheck(t) ? 0.18 : isDailyCheck(t) ? 0.10 : 0.06))
-      );
-    } else {
-      baselineScopeTotal =
-        medAgg?.domains?.find((x) => x.slug === domainScope)?.total ?? Math.round(totalCount * 0.05);
-    }
-
-    const h = hashDomain(t.domain + "_" + actorId);
-    const domainJitter = ((Math.abs(h) % 1000) / 500) - 1.0; // [-1.0, 1.0]
-
-    const hasKoAgg = actorId === "ko" && medAgg?.ko_sentiment && (medAgg.ko_sentiment.ko_mentions_count ?? 0) > 0;
-
+    let totalCount = 0;
     let mentions = 0;
+    let posCount = 0;
+    let negCount = 0;
+    let neuCount = 0;
     let posPct = 0;
     let negPct = 0;
     let neuPct = 0;
     let net = 0;
-    let posCount = 0;
-    let negCount = 0;
-    let neuCount = 0;
 
-    if (hasKoAgg) {
-      const k = medAgg!.ko_sentiment!;
-      mentions = Math.max(1, Math.round((k.ko_mentions_count || 1) * domainMultiplier));
-      posPct = k.breakdown.positive.pct;
-      negPct = k.breakdown.negative.pct;
-      neuPct = k.breakdown.neutral.pct;
-      net = k.net_sentiment_score;
-      posCount = Math.round(mentions * (posPct / 100.0));
-      negCount = Math.round(mentions * (negPct / 100.0));
-      neuCount = Math.max(0, mentions - posCount - negCount);
+    if (isArticleArray) {
+      // 100% PURE EMPIRICAL EVALUATION FROM GENUINE ARTICLES
+      const arts = realArticlesByDomain.get(t.domain) || [];
+      const scopedArts =
+        domainScope === "all_political"
+          ? arts
+          : arts.filter((a) => (a.domain || "spolecznosc") === domainScope);
+
+      totalCount = scopedArts.length;
+      for (const art of scopedArts) {
+        const fullText = `${art.title} ${art.lead || ""}`;
+        const ev = evaluatePoliticalSentiment(fullText, actorId);
+        if (ev.sentiment !== "no_actor") {
+          mentions++;
+          if (ev.sentiment === "positive") posCount++;
+          else if (ev.sentiment === "negative") negCount++;
+          else if (ev.sentiment === "neutral") neuCount++;
+        }
+      }
+
+      if (mentions > 0) {
+        posPct = Math.round((posCount / mentions) * 1000) / 10;
+        negPct = Math.round((negCount / mentions) * 1000) / 10;
+        neuPct = Math.max(0, Math.round((100.0 - posPct - negPct) * 10) / 10);
+        net = Math.round((posPct - negPct) * 10) / 10;
+      }
     } else {
-      const actorShare = Math.max(0.04, config.defaultShare + 0.04 * domainJitter);
-      mentions = Math.max(1, Math.round(baselineScopeTotal * actorShare * domainMultiplier));
-      const affinity = REGION_AFFINITY[t.region]?.[actorId] || { posDelta: 0, negDelta: 0 };
-      const jitterPos = domainJitter * 0.038;
-      const jitterNeg = -domainJitter * 0.038;
+      // Legacy mock aggregate input handler (for unit tests passing mock aggregates)
+      const mockAggs = perMediumAggregates as Record<string, any> | undefined;
+      const medAgg = mockAggs?.[t.domain];
+      totalCount =
+        medAgg?.totalCount ||
+        t.articles_count ||
+        (isNationalCheck(t) ? (spanDays <= 1 ? 185 : spanDays * 180) : isDailyCheck(t) ? (spanDays <= 1 ? 80 : spanDays * 78) : (spanDays <= 1 ? 20 : spanDays * 18));
 
-      const posRatio = Math.max(0.04, Math.min(0.70, (config.basePosRatio + (affinity.posDelta || 0) + jitterPos) * spanFactor));
-      const negRatio = Math.max(0.04, Math.min(0.70, (config.baseNegRatio + (affinity.negDelta || 0) + jitterNeg) * (2 - spanFactor)));
+      let baselineScopeTotal = 0;
+      if (domainScope === "all_political") {
+        const wladza =
+          medAgg?.domains?.find((x: any) => x.slug === "wladza")?.total ??
+          Math.round(totalCount * (isNationalCheck(t) ? 0.16 : isDailyCheck(t) ? 0.09 : 0.05));
+        const gospodarka =
+          medAgg?.domains?.find((x: any) => x.slug === "gospodarka")?.total ?? Math.round(totalCount * 0.06);
+        const infra =
+          medAgg?.domains?.find((x: any) => x.slug === "infrastruktura")?.total ?? Math.round(totalCount * 0.05);
+        const rolnictwo =
+          medAgg?.domains?.find((x: any) => x.slug === "rolnictwo")?.total ?? Math.round(totalCount * 0.04);
+        baselineScopeTotal = Math.max(
+          wladza + Math.round(gospodarka * 0.3) + Math.round(infra * 0.35) + Math.round(rolnictwo * 0.35),
+          Math.round(totalCount * (isNationalCheck(t) ? 0.18 : isDailyCheck(t) ? 0.10 : 0.06))
+        );
+      } else {
+        baselineScopeTotal =
+          medAgg?.domains?.find((x: any) => x.slug === domainScope)?.total ?? Math.round(totalCount * 0.05);
+      }
 
-      posPct = Math.round(posRatio * 1000) / 10;
-      negPct = Math.round(negRatio * 1000) / 10;
-      neuPct = Math.max(0, Math.round((100.0 - posPct - negPct) * 10) / 10);
-      net = Math.round((posPct - negPct) * 10) / 10;
-      posCount = Math.round(mentions * posRatio);
-      negCount = Math.round(mentions * negRatio);
-      neuCount = Math.max(0, mentions - posCount - negCount);
+      const h = hashDomain(t.domain + "_" + actorId);
+      const domainJitter = ((Math.abs(h) % 1000) / 500) - 1.0; // [-1.0, 1.0]
+
+      const hasKoAgg = actorId === "ko" && medAgg?.ko_sentiment && (medAgg.ko_sentiment.ko_mentions_count ?? 0) > 0;
+
+      if (hasKoAgg) {
+        const k = medAgg!.ko_sentiment!;
+        mentions = Math.max(1, Math.round((k.ko_mentions_count || 1) * domainMultiplier));
+        posPct = k.breakdown.positive.pct;
+        negPct = k.breakdown.negative.pct;
+        neuPct = k.breakdown.neutral.pct;
+        net = k.net_sentiment_score;
+        posCount = Math.round(mentions * (posPct / 100.0));
+        negCount = Math.round(mentions * (negPct / 100.0));
+        neuCount = Math.max(0, mentions - posCount - negCount);
+      } else {
+        const actorShare = Math.max(0.04, (config.defaultShare || 0.3) + 0.04 * domainJitter);
+        mentions = Math.max(1, Math.round(baselineScopeTotal * actorShare * domainMultiplier));
+        const affinity = REGION_AFFINITY[t.region]?.[actorId] || { posDelta: 0, negDelta: 0 };
+        const jitterPos = domainJitter * 0.038;
+        const jitterNeg = -domainJitter * 0.038;
+
+        const posRatio = Math.max(0.04, Math.min(0.70, ((config.basePosRatio || 0.2) + (affinity.posDelta || 0) + jitterPos) * spanFactor));
+        const negRatio = Math.max(0.04, Math.min(0.70, ((config.baseNegRatio || 0.25) + (affinity.negDelta || 0) + jitterNeg) * (2 - spanFactor)));
+
+        posPct = Math.round(posRatio * 1000) / 10;
+        negPct = Math.round(negRatio * 1000) / 10;
+        neuPct = Math.max(0, Math.round((100.0 - posPct - negPct) * 10) / 10);
+        net = Math.round((posPct - negPct) * 10) / 10;
+        posCount = Math.round(mentions * posRatio);
+        negCount = Math.round(mentions * negRatio);
+        neuCount = Math.max(0, mentions - posCount - negCount);
+      }
     }
 
     const effWeight = computeEffectiveMediumWeight(t.domain, t.type, weightingMode, internalTelemetryMap);
-    const weightedMentions = Math.max(1, Math.round(mentions * effWeight.weight));
+    const weightedMentions = Math.round(mentions * effWeight.weight);
 
     return {
       domain: t.domain,

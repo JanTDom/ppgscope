@@ -206,9 +206,12 @@ describe("Wydźwięk sceny politycznej — Ewaluacja nastrojów i standard KRRiT
 describe("Wydźwięk sceny politycznej — Agregacja wielodziedzinowa (Cross-Domain)", () => {
   it("oblicza metryki dla wszystkich 8 aktorów bez zwracania zera", () => {
     const mockArticles = [
+      { title: "Donald Tusk zapowiada wielkie inwestycje w infrastrukturę", lead: "Koalicja Obywatelska na Pomorzu", domain: "infrastruktura" },
       { title: "Kosiniak-Kamysz ogłasza rekordowe inwestycje", lead: "Sukces negocjacyjny PSL", domain: "infrastruktura" },
       { title: "Czarzasty i Lewica w Sejmie", lead: "Relacja z obrad klubu", domain: "wladza" },
       { title: "Kaczyński krytykuje rząd za chaos i podwyżki podatków", lead: "Klub PiS zwołuje konferencję", domain: "gospodarka" },
+      { title: "Szymon Hołownia i Polska 2050 o nowej ustawie", lead: "Konferencja prasowa marszałka", domain: "wladza" },
+      { title: "Mentzen z Konfederacji proponuje obniżkę podatków", lead: "Projekt zmian w PIT i CIT", domain: "gospodarka" },
       { title: "Rozwój Plus zbiera podpisy pod CPK", lead: "Wielki sukces ruchu Tak Dla Rozwoju", domain: "infrastruktura" },
       { title: "Karol Nawrocki spotkał się z mieszkańcami", lead: "Prezes IPN w Małopolsce", domain: "historia" },
       { title: "Siekierski w Brukseli rozmawia o dopłatach rolnych", lead: "PSL walczy o interes wsi", domain: "rolnictwo" },
@@ -229,6 +232,18 @@ describe("Wydźwięk sceny politycznej — Agregacja wielodziedzinowa (Cross-Dom
       const sum = Math.round(data.breakdown.positive.pct + data.breakdown.neutral.pct + data.breakdown.negative.pct);
       assert.ok(Math.abs(sum - 100) <= 1, `Suma procentów wynosi ${sum}, oczekiwano ~100`);
     }
+  });
+
+  it("prawdomównie zwraca 0 wzmianek dla aktora nieobecnego w artykułach (zero halucynacji)", () => {
+    const onlyPSL = [
+      { title: "Kosiniak-Kamysz na dożynkach w Wielkopolsce", lead: "Lider PSL o dopłatach dla rolników", domain: "rolnictwo" },
+    ];
+    const res = calculateAllPoliticalSentiments(onlyPSL, 1, 30, "all_political");
+    assert.equal(res.psl.mentions_count, 1);
+    assert.equal(res.ko.mentions_count, 0);
+    assert.equal(res.ko.net_sentiment_score, 0);
+    assert.equal(res.ko.top_politicians.length, 0);
+    assert.equal(res.ko.sample_articles?.length, 0);
   });
 
   it("obsługuje filtrowanie według dziedziny (np. gospodarka, infrastruktura, rolnictwo)", () => {

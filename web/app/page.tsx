@@ -1356,18 +1356,7 @@ export default function PPGscopeApp() {
   // =========================================================================
 
   const domainBreakdown: DomainBreakdownResult = useMemo(() => {
-    // If full-scale server aggregates exist for the selected preset, use them for network-scale representation
-    if (timePreset !== "custom" && data?.server_aggregates?.[timePreset]) {
-      const agg = data.server_aggregates[timePreset];
-      if (selectedMediumDomain === "ALL" && agg.global) {
-        return agg.global;
-      }
-      if (selectedMediumDomain !== "ALL" && agg.per_medium?.[selectedMediumDomain]) {
-        return agg.per_medium[selectedMediumDomain];
-      }
-    }
-
-    // Dynamic real calculation on genuine in-flight scanned articles (zero fixed fixtures)
+    // Dynamic real calculation strictly on genuine scanned articles (zero fixtures, zero synthetic models)
     const totalCount = filteredArticles.length;
     const domains = DOMAINS_SPEC;
 
@@ -1534,8 +1523,11 @@ export default function PPGscopeApp() {
         provenance: cfg.provenance,
       };
     }
-    const pKey = timePreset === "custom" ? "30d" : timePreset;
-    const perMediumMap = data.server_aggregates?.[pKey]?.per_medium;
+    const windowArticles = (data?.recent_articles || []).filter((a) => {
+      const pub = new Date(a.published_at ?? "");
+      return pub >= dateRange.start && pub <= dateRange.end;
+    });
+
     const spanDays =
       timePreset === "24h"
         ? 1
@@ -1553,7 +1545,7 @@ export default function PPGscopeApp() {
 
     return calculateMediaAccountability(
       data.titles,
-      perMediumMap,
+      windowArticles,
       selectedPoliticalActor,
       rawNet,
       spanDays,
@@ -1577,8 +1569,10 @@ export default function PPGscopeApp() {
   // Shifts per actor computed across the media network
   const actorWeightingShifts = useMemo(() => {
     if (sentimentWeightingMode === "raw" || !data?.titles) return {};
-    const pKey = timePreset === "custom" ? "30d" : timePreset;
-    const perMediumMap = data.server_aggregates?.[pKey]?.per_medium;
+    const windowArticles = (data?.recent_articles || []).filter((a) => {
+      const pub = new Date(a.published_at ?? "");
+      return pub >= dateRange.start && pub <= dateRange.end;
+    });
     const spanDays =
       timePreset === "24h"
         ? 1
@@ -1597,7 +1591,7 @@ export default function PPGscopeApp() {
       const rawNet = rawPoliticalSentiments[act]?.net_sentiment_score ?? 0;
       const acc = calculateMediaAccountability(
         data.titles,
-        perMediumMap,
+        windowArticles,
         act,
         rawNet,
         spanDays,
@@ -1647,19 +1641,27 @@ export default function PPGscopeApp() {
   // Global network domain percentages for comparison when a single medium is selected
   const globalDomainPctMap = useMemo(() => {
     const map: Record<string, number> = {};
-    const pKey = timePreset === "custom" ? "30d" : timePreset;
-    const globalAgg = data?.server_aggregates?.[pKey]?.global;
-    if (globalAgg?.domains) {
-      globalAgg.domains.forEach((d) => {
-        map[d.slug] = d.pct;
-      });
-    } else {
+    const allArts = data?.recent_articles || [];
+    const total = allArts.length;
+    if (total === 0) {
       DOMAINS_SPEC.forEach((d) => {
-        map[d.slug] = 5.5;
+        map[d.slug] = 0;
       });
+      return map;
     }
+    const counts: Record<string, number> = {};
+    DOMAINS_SPEC.forEach((d) => {
+      counts[d.slug] = 0;
+    });
+    for (const a of allArts) {
+      const slug = a.domain || "spolecznosc";
+      counts[slug] = (counts[slug] || 0) + 1;
+    }
+    DOMAINS_SPEC.forEach((d) => {
+      map[d.slug] = Math.round(((counts[d.slug] || 0) / total) * 1000) / 10;
+    });
     return map;
-  }, [data, timePreset]);
+  }, [data?.recent_articles]);
 
   // Vitality record for currently selected medium
   const selectedPortalVitality = useMemo(() => {
@@ -1667,49 +1669,33 @@ export default function PPGscopeApp() {
     return data.portal_vitality_audit.portals.find((p) => p.domain === selectedMediumDomain) || null;
   }, [data, selectedMediumDomain]);
 
-  // Dynamic Authorship Breakdown for Selected Medium & Time Window (works for all 546 portals)
+  // Dynamic Authorship Breakdown for Selected Medium & Time Window (pure empirical observation)
   const authorshipStats = useMemo(() => {
-    const total = domainBreakdown.totalCount;
+    const total = filteredArticles.length;
     if (total === 0) {
       return { named: 0, anon: 0, wire: 0, partner: 0, namedPct: 0, anonPct: 0, wirePct: 0, partnerPct: 0 };
     }
-    if (filteredArticles.length >= 15) {
-      const fTotal = filteredArticles.length;
-      const nPct = Math.round((filteredArticles.filter((a) => a.byline_type === "named").length / fTotal) * 1000) / 10;
-      const aPct = Math.round((filteredArticles.filter((a) => a.byline_type === "anonymous").length / fTotal) * 1000) / 10;
-      const wPct = Math.round((filteredArticles.filter((a) => a.byline_type === "wire").length / fTotal) * 1000) / 10;
-      const pPct = Math.max(0, Math.round((100.0 - nPct - aPct - wPct) * 10) / 10);
-      return {
-        named: Math.round((total * nPct) / 100),
-        anon: Math.round((total * aPct) / 100),
-        wire: Math.round((total * wPct) / 100),
-        partner: Math.round((total * pPct) / 100),
-        namedPct: nPct,
-        anonPct: aPct,
-        wirePct: wPct,
-        partnerPct: pPct,
-      };
-    }
+    const namedCount = filteredArticles.filter((a) => a.byline_type === "named" || Boolean(a.author_name)).length;
+    const anonCount = filteredArticles.filter((a) => a.byline_type === "anonymous").length;
+    const wireCount = filteredArticles.filter((a) => a.byline_type === "wire" || a.is_duplicate).length;
+    const partnerCount = filteredArticles.filter((a) => a.byline_type === "partner").length;
 
-    // Derive from portal's vitality & uniqueness profile across all 546 portals
-    const uniqPct = selectedPortalVitality ? selectedPortalVitality.uniqueness_pct : 46.4;
-    const cronPct = selectedPortalVitality ? selectedPortalVitality.cron_scheduled_pct : 28.5;
-    const namedPct = Math.min(72.0, Math.max(8.0, Math.round((uniqPct * 0.92 + 6.5) * 10) / 10));
-    const partnerPct = Math.min(14.0, Math.max(2.5, Math.round((4.2 + (cronPct > 40 ? 2.8 : 1.1)) * 10) / 10));
-    const wirePct = Math.min(55.0, Math.max(8.0, Math.round(((100.0 - uniqPct) * 0.42) * 10) / 10));
-    const anonPct = Math.max(4.0, Math.round((100.0 - namedPct - wirePct - partnerPct) * 10) / 10);
+    const namedPct = Math.round((namedCount / total) * 1000) / 10;
+    const anonPct = Math.round((anonCount / total) * 1000) / 10;
+    const wirePct = Math.round((wireCount / total) * 1000) / 10;
+    const partnerPct = Math.max(0, Math.round((100.0 - namedPct - anonPct - wirePct) * 10) / 10);
 
     return {
-      named: Math.round((total * namedPct) / 100),
-      anon: Math.round((total * anonPct) / 100),
-      wire: Math.round((total * wirePct) / 100),
-      partner: Math.max(0, total - Math.round((total * namedPct) / 100) - Math.round((total * anonPct) / 100) - Math.round((total * wirePct) / 100)),
+      named: namedCount,
+      anon: anonCount,
+      wire: wireCount,
+      partner: partnerCount,
       namedPct,
       anonPct,
       wirePct,
       partnerPct,
     };
-  }, [filteredArticles, domainBreakdown.totalCount, selectedPortalVitality]);
+  }, [filteredArticles]);
 
   // Dynamic Locality Breakdown for Selected Medium & Time Window (uses full-scale domainBreakdown)
   const localityStats = useMemo(() => {
@@ -1737,16 +1723,7 @@ export default function PPGscopeApp() {
   const selectedPortalFullAudit = useMemo(() => {
     if (selectedMediumDomain === "ALL" || !selectedMediumObj) return null;
 
-    // Deterministic portal seed from domain characters
-    let hash = 0;
-    for (let i = 0; i < selectedMediumDomain.length; i++) {
-      hash = (hash * 31 + selectedMediumDomain.charCodeAt(i)) % 1000003;
-    }
-    const norm = (hash % 1000) / 1000; // [0, 1)
-
-    const isDaily = selectedMediumObj.type.toLowerCase().includes("dziennik");
-    const isHyperlocal = selectedMediumDomain.includes("naszemiasto") || selectedMediumObj.type.toLowerCase().includes("lokalny");
-    const isNational = selectedMediumDomain === "i.pl";
+    const total = filteredArticles.length;
 
     // Top 4 domains for this specific medium + their delta vs PPG network average
     const sortedDomains = [...domainBreakdown.domains]
@@ -1757,43 +1734,22 @@ export default function PPGscopeApp() {
       }))
       .sort((a, b) => b.pct - a.pct);
 
-    // Monetization & Discover metrics for this portal
-    const paywallPct = isDaily
-      ? Math.round((15.2 + norm * 8.4) * 10) / 10
-      : isHyperlocal
-      ? Math.round((3.4 + norm * 4.2) * 10) / 10
-      : Math.round((6.8 + norm * 5.5) * 10) / 10;
+    // Monetization & Discover metrics strictly computed on genuine articles
+    const paywallCount = filteredArticles.filter((a) => a.url?.includes("/ar/c1-") || a.title?.includes("[PLUS]")).length;
+    const paywallPct = total > 0 ? Math.round((paywallCount / total) * 1000) / 10 : 0.0;
 
-    const sponsoredPct = isDaily
-      ? Math.round((5.8 + norm * 3.1) * 10) / 10
-      : isHyperlocal
-      ? Math.round((3.9 + norm * 2.8) * 10) / 10
-      : Math.round((7.4 + norm * 4.2) * 10) / 10;
+    const sponsoredCount = filteredArticles.filter(
+      (a) => a.title?.toLowerCase().includes("[sponsor]") || a.byline_type === "partner"
+    ).length;
+    const sponsoredPct = total > 0 ? Math.round((sponsoredCount / total) * 1000) / 10 : 0.0;
 
-    const discoverBaitPct = isNational
-      ? 31.4
-      : isHyperlocal
-      ? Math.round((19.5 + norm * 14.2) * 10) / 10
-      : Math.round((14.8 + norm * 9.6) * 10) / 10;
+    const discoverCount = filteredArticles.filter(
+      (a) => (a.domain === "rozrywka" || a.domain === "styl_zycia") && a.locality === "C"
+    ).length;
+    const discoverBaitPct = total > 0 ? Math.round((discoverCount / total) * 1000) / 10 : 0.0;
 
-    // Homepage Radar & Lifecycle Mutations for this portal
-    const agendaGapScore = Math.round((16.5 + norm * 21.0) * 10) / 10;
-    const headlineMutations30d = Math.max(2, Math.round(domainBreakdown.totalCount * (0.042 + norm * 0.025) / 12));
-    const paywallLockedLater30d = Math.max(1, Math.round(headlineMutations30d * (isDaily ? 0.38 : 0.16)));
-    const tombstoneDeleted30d = Math.max(0, Math.round(headlineMutations30d * 0.09));
-
-    // External Echo & TERYT grounding for this portal
-    const originalityScore = selectedPortalVitality
-      ? Math.round((selectedPortalVitality.uniqueness_pct * 0.85 + (isDaily ? 18.0 : 6.0)) * 10) / 10
-      : Math.round((42.0 + norm * 28.0) * 10) / 10;
-    const externalCitations30d = isDaily
-      ? Math.round(85 + norm * 140)
-      : isNational
-      ? 312
-      : Math.round(8 + norm * 34);
-    const localInstitutionsCount = isHyperlocal || isDaily
-      ? Math.round(domainBreakdown.countL * (0.44 + norm * 0.18))
-      : Math.round(domainBreakdown.countCL * 0.25);
+    const uniqueCount = filteredArticles.filter((a) => !a.is_duplicate).length;
+    const originalityScore = total > 0 ? Math.round((uniqueCount / total) * 1000) / 10 : 100.0;
 
     return {
       domain: selectedMediumDomain,
@@ -1805,22 +1761,32 @@ export default function PPGscopeApp() {
       paywallPct,
       sponsoredPct,
       discoverBaitPct,
-      agendaGapScore,
-      headlineMutations30d,
-      paywallLockedLater30d,
-      tombstoneDeleted30d,
-      originalityScore: Math.min(98.0, originalityScore),
-      externalCitations30d,
-      localInstitutionsCount,
+      agendaGapScore: 0.0,
+      headlineMutations30d: 0,
+      paywallLockedLater30d: 0,
+      tombstoneDeleted30d: 0,
+      originalityScore: Math.min(100.0, originalityScore),
+      externalCitations30d: 0,
+      localInstitutionsCount: domainBreakdown.countL,
     };
-  }, [selectedMediumDomain, selectedMediumObj, domainBreakdown, globalDomainPctMap, selectedPortalVitality]);
+  }, [selectedMediumDomain, selectedMediumObj, filteredArticles, domainBreakdown, globalDomainPctMap]);
 
   // Head-to-Head Comparison Data (Medium A vs Medium B across all 360-degree criteria)
   const comparisonData = useMemo(() => {
     if (!data) return null;
-    const pKey = timePreset === "custom" ? "30d" : timePreset;
-    const cube = data.server_aggregates?.[pKey];
-    if (!cube) return null;
+
+    const spanDays =
+      timePreset === "24h"
+        ? 1
+        : timePreset === "7d"
+        ? 7
+        : timePreset === "30d"
+        ? 30
+        : timePreset === "90d"
+        ? 90
+        : timePreset === "1y"
+        ? 365
+        : Math.max(1, Math.round((dateRange.end.getTime() - dateRange.start.getTime()) / (86400 * 1000)));
 
     const domA = selectedMediumDomain === "ALL" ? "gazetakrakowska.pl" : selectedMediumDomain;
     const domB =
@@ -1829,6 +1795,11 @@ export default function PPGscopeApp() {
         : domA === "dziennikbaltycki.pl"
         ? "gazetakrakowska.pl"
         : "dziennikbaltycki.pl";
+
+    const allArts = (data?.recent_articles || []).filter((a) => {
+      const pub = new Date(a.published_at ?? "");
+      return pub >= dateRange.start && pub <= dateRange.end;
+    });
 
     const buildSide = (dom: string) => {
       const isGroup = dom === "ALL";
@@ -1843,58 +1814,94 @@ export default function PPGscopeApp() {
             status: "DZIAŁA",
           };
 
-      const agg = isGroup ? cube.global : cube.per_medium?.[dom] || cube.global;
-      const vit = isGroup ? null : data.portal_vitality_audit?.portals.find((p) => p.domain === dom) || null;
+      const sideArticles = isGroup ? allArts : allArts.filter((a) => a.portal_domain === dom);
+      const total = sideArticles.length;
 
-      let hash = 0;
-      for (let i = 0; i < dom.length; i++) {
-        hash = (hash * 31 + dom.charCodeAt(i)) % 1000003;
+      let countC = 0;
+      let countCL = 0;
+      let countL = 0;
+      const domainCounts: Record<string, { c: number; cl: number; l: number; total: number }> = {};
+      DOMAINS_SPEC.forEach((d) => {
+        domainCounts[d.slug] = { c: 0, cl: 0, l: 0, total: 0 };
+      });
+
+      let namedAuthorsCount = 0;
+      let wireCount = 0;
+      let anonCount = 0;
+      let partnerCount = 0;
+      let paywallCount = 0;
+      let sponsoredCount = 0;
+      let discoverCount = 0;
+      let uniqueCount = 0;
+
+      for (const a of sideArticles) {
+        const slug = a.domain || "spolecznosc";
+        const loc = a.locality || "C";
+        if (!domainCounts[slug]) domainCounts[slug] = { c: 0, cl: 0, l: 0, total: 0 };
+        if (loc === "L") {
+          countL++;
+          domainCounts[slug].l++;
+        } else if (loc === "CL") {
+          countCL++;
+          domainCounts[slug].cl++;
+        } else {
+          countC++;
+          domainCounts[slug].c++;
+        }
+        domainCounts[slug].total++;
+
+        if (a.byline_type === "named" || a.author_name) namedAuthorsCount++;
+        else if (a.byline_type === "anonymous") anonCount++;
+        else if (a.byline_type === "wire") wireCount++;
+        else if (a.byline_type === "partner") partnerCount++;
+
+        if (a.url?.includes("/ar/c1-") || a.title?.includes("[PLUS]")) paywallCount++;
+        if (a.title?.toLowerCase().includes("[sponsor]") || a.byline_type === "partner") sponsoredCount++;
+        if ((slug === "rozrywka" || slug === "styl_zycia") && loc === "C") discoverCount++;
+        if (!a.is_duplicate) uniqueCount++;
       }
-      const norm = isGroup ? 0.45 : (hash % 1000) / 1000;
-      const isDaily = titleObj.type.toLowerCase().includes("dziennik");
-      const isHyperlocal = dom.includes("naszemiasto") || titleObj.type.toLowerCase().includes("lokalny");
-      const isNational = dom === "i.pl";
 
-      const total = Math.max(1, agg.totalCount);
-      const lPct = Math.round((agg.countL / total) * 1000) / 10;
-      const clPct = Math.round((agg.countCL / total) * 1000) / 10;
-      const cPct = Math.max(0, Math.round((100.0 - lPct - clPct) * 10) / 10);
+      const lPct = total > 0 ? Math.round((countL / total) * 1000) / 10 : 0.0;
+      const clPct = total > 0 ? Math.round((countCL / total) * 1000) / 10 : 0.0;
+      const cPct = total > 0 ? Math.max(0, Math.round((100.0 - lPct - clPct) * 10) / 10) : 0.0;
 
-      const uniqPct = vit ? vit.uniqueness_pct : isGroup ? 34.2 : 46.4;
-      const clonesPct = vit ? vit.syndicated_clones_pct : isGroup ? 65.8 : 53.6;
-      const cronPct = vit ? vit.cron_scheduled_pct : isGroup ? 29.4 : 24.5;
-      const vitalityScore = vit ? vit.vitality_score : isGroup ? 68.5 : 72.0;
-      const vitalityLabel = vit ? vit.vitality_label : isGroup ? "Średnia sieci PPG" : "Aktywny";
-      const dailyCount = vit?.daily_articles_count || Math.max(1, isGroup ? (timePreset === "24h" ? total : Math.round(total / (timePreset === "7d" ? 7 : 30))) : Math.max(1, Math.round(total / (timePreset === "24h" ? 1 : 30))));
-      const uniqueDaily = vit ? vit.unique_articles_count : Math.round((dailyCount * uniqPct) / 100);
-      const namedAuthors = vit ? vit.named_authors_count : isGroup ? 412 : 14;
+      const uniqPct = total > 0 ? Math.round((uniqueCount / total) * 1000) / 10 : 100.0;
+      const clonesPct = total > 0 ? Math.max(0, Math.round((100.0 - uniqPct) * 10) / 10) : 0.0;
+      const namedPct = total > 0 ? Math.round((namedAuthorsCount / total) * 1000) / 10 : 0.0;
+      const anonPct = total > 0 ? Math.round((anonCount / total) * 1000) / 10 : 0.0;
+      const wirePct = total > 0 ? Math.round((wireCount / total) * 1000) / 10 : 0.0;
+      const partnerPct = total > 0 ? Math.max(0, Math.round((100.0 - namedPct - anonPct - wirePct) * 10) / 10) : 0.0;
 
-      const namedPct = Math.min(72.0, Math.max(8.0, Math.round((uniqPct * 0.92 + 6.5) * 10) / 10));
-      const partnerPct = Math.min(14.0, Math.max(2.5, Math.round((4.2 + (cronPct > 40 ? 2.8 : 1.1)) * 10) / 10));
-      const wirePct = Math.min(55.0, Math.max(8.0, Math.round(((100.0 - uniqPct) * 0.42) * 10) / 10));
-      const anonPct = Math.max(4.0, Math.round((100.0 - namedPct - wirePct - partnerPct) * 10) / 10);
+      const paywallPct = total > 0 ? Math.round((paywallCount / total) * 1000) / 10 : 0.0;
+      const sponsoredPct = total > 0 ? Math.round((sponsoredCount / total) * 1000) / 10 : 0.0;
+      const discoverBaitPct = total > 0 ? Math.round((discoverCount / total) * 1000) / 10 : 0.0;
 
-      const paywallPct = isDaily
-        ? Math.round((15.2 + norm * 8.4) * 10) / 10
-        : isHyperlocal
-        ? Math.round((3.4 + norm * 4.2) * 10) / 10
-        : Math.round((6.8 + norm * 5.5) * 10) / 10;
-      const sponsoredPct = isDaily
-        ? Math.round((5.8 + norm * 3.1) * 10) / 10
-        : isHyperlocal
-        ? Math.round((3.9 + norm * 2.8) * 10) / 10
-        : Math.round((7.4 + norm * 4.2) * 10) / 10;
-      const discoverBaitPct = isNational
-        ? 31.4
-        : isHyperlocal
-        ? Math.round((19.5 + norm * 14.2) * 10) / 10
-        : Math.round((14.8 + norm * 9.6) * 10) / 10;
+      const vit = isGroup ? null : data.portal_vitality_audit?.portals.find((p) => p.domain === dom) || null;
+      const vitalityScore = vit ? vit.vitality_score : total > 50 ? 82.0 : total > 0 ? 64.0 : 0.0;
+      const vitalityLabel = vit ? vit.vitality_label : total > 0 ? "Aktywny" : "Brak danych";
+      const cronPct = vit ? vit.cron_scheduled_pct : 0;
+      const uniqueDaily = Math.round(uniqueCount / Math.max(1, spanDays));
+      const dailyCount = Math.round(total / Math.max(1, spanDays));
 
-      const agendaGapScore = Math.round((16.5 + norm * 21.0) * 10) / 10;
-      const headlineMutations30d = Math.max(2, Math.round((total * (0.042 + norm * 0.025)) / 12));
-      const localInstitutionsCount =
-        isHyperlocal || isDaily ? Math.round(agg.countL * (0.44 + norm * 0.18)) : Math.round(agg.countCL * 0.25);
-      const externalCitations30d = isDaily ? Math.round(85 + norm * 140) : isNational ? 312 : Math.round(8 + norm * 34);
+      const agg: DomainBreakdownResult = {
+        totalCount: total,
+        countC,
+        countCL,
+        countL,
+        localContentShare: total > 0 ? Math.round(((countL + countCL) / total) * 1000) / 10 : 0.0,
+        localizationIndex: countC + countCL > 0 ? Math.round((countCL / (countC + countCL)) * 1000) / 10 : 0.0,
+        domains: DOMAINS_SPEC.map((d) => {
+          const item = domainCounts[d.slug] || { c: 0, cl: 0, l: 0, total: 0 };
+          return {
+            ...d,
+            countC: item.c,
+            countCL: item.cl,
+            countL: item.l,
+            total: item.total,
+            pct: total > 0 ? Math.round((item.total / total) * 1000) / 10 : 0.0,
+          };
+        }),
+      };
 
       const domainMap: Record<string, DomainStatItem> = {};
       agg.domains.forEach((d) => {
@@ -1918,7 +1925,7 @@ export default function PPGscopeApp() {
         vitalityLabel,
         dailyCount,
         uniqueDaily,
-        namedAuthors,
+        namedAuthors: namedAuthorsCount,
         namedPct,
         anonPct,
         wirePct,
@@ -1926,10 +1933,10 @@ export default function PPGscopeApp() {
         paywallPct,
         sponsoredPct,
         discoverBaitPct,
-        agendaGapScore,
-        headlineMutations30d,
-        localInstitutionsCount,
-        externalCitations30d,
+        agendaGapScore: 0.0,
+        headlineMutations30d: 0,
+        localInstitutionsCount: countL,
+        externalCitations30d: 0,
       };
     };
 
@@ -1961,7 +1968,7 @@ export default function PPGscopeApp() {
       strongestA,
       strongestB,
     };
-  }, [data, timePreset, selectedMediumDomain, compareMediumDomain, totalTitlesCount]);
+  }, [data, dateRange, timePreset, selectedMediumDomain, compareMediumDomain, totalTitlesCount]);
 
   // Chart Center data products: each visualisation uses the same live payload,
   // but the derived collections keep the rendering layer readable and fast.
