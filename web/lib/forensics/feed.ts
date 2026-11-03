@@ -185,30 +185,46 @@ export async function fetchFeed(source: FeedSource): Promise<FeedFetchResult> {
     }
   }
 
+  const items = attempt.ok && attempt.body ? parseFeed(attempt.body) : [];
+
+  // Jeśli bezpośredni RSS nie zadziałał (np. Cloudflare HTTP 403 na Vercelu) lub nie zwrócił elementów:
+  if (!attempt.ok || items.length === 0) {
+    try {
+      const parsedUrl = new URL(source.url);
+      const domain = parsedUrl.hostname.replace(/^www\./, "");
+      if (domain) {
+        const gNewsUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(`site:${domain} when:3d`)}&hl=pl&gl=PL&ceid=PL:pl`;
+        const gNewsAttempt = await fetchSingleUrl(gNewsUrl);
+        if (gNewsAttempt.ok && gNewsAttempt.body) {
+          const gNewsItems = parseFeed(gNewsAttempt.body);
+          if (gNewsItems.length > 0) {
+            const cleanItems = gNewsItems.map((item) => ({
+              ...item,
+              title: item.title.replace(/\s+-\s+[^-]+$/, "").trim(),
+            }));
+            return {
+              ...base,
+              url: gNewsUrl,
+              ok: true,
+              httpStatus: 200,
+              latencyMs: Date.now() - startedAt,
+              items: cleanItems,
+              error: null,
+            };
+          }
+        }
+      }
+    } catch {
+      // Ignoruj błąd wyznaczania domeny i zachowaj standardowy wynik
+    }
+  }
+
   const latencyMs = Date.now() - startedAt;
   if (!attempt.ok || !attempt.body) {
     return { ...base, url: effectiveUrl, ok: false, httpStatus: attempt.httpStatus, latencyMs, items: [], error: attempt.error };
   }
 
-  const items = parseFeed(attempt.body);
   if (items.length === 0) {
-    if (effectiveUrl === source.url && source.fallbackUrl) {
-      const fallbackAttempt = await fetchSingleUrl(source.fallbackUrl);
-      if (fallbackAttempt.ok && fallbackAttempt.body) {
-        const fallbackItems = parseFeed(fallbackAttempt.body);
-        if (fallbackItems.length > 0) {
-          return {
-            ...base,
-            url: source.fallbackUrl,
-            ok: true,
-            httpStatus: fallbackAttempt.httpStatus,
-            latencyMs: Date.now() - startedAt,
-            items: fallbackItems,
-            error: null,
-          };
-        }
-      }
-    }
     return { ...base, url: effectiveUrl, ok: false, httpStatus: attempt.httpStatus, latencyMs, items, error: "Kanał nie zawiera elementów <item>" };
   }
 

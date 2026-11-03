@@ -297182,12 +297182,12 @@
     "needs_review_count": 1123,
     "total_migrated": 5700
   },
-  "last_ingest_run": "2026-10-17T23:26:19.908221+00:00",
+  "last_ingest_run": "2026-11-03T21:10:43.158322+00:00",
   "ingest_summary": {
     "status": "LIVE_IN_FLIGHT",
     "live_articles_count": 1345,
-    "total_corpus_count": 12523,
-    "updated_at": "2026-10-26T14:12:25.469484+00:00",
+    "total_corpus_count": 17460,
+    "updated_at": "2026-11-03T21:10:43.158322+00:00",
     "storage_mode": "in_flight_memory_no_database",
     "source": "Google News RSS Live PPG Index (21 Regional Dailies)"
   },
