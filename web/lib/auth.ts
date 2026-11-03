@@ -63,7 +63,7 @@ export function isAuthenticated(request: Request): boolean {
   return isValidSessionToken(token);
 }
 
-const SYSTEM_PASSWORDS = ["MWB2026"];
+const SYSTEM_PASSWORDS = ["MWB2026", "PPG2026"];
 
 export function verifyPassword(password: unknown): boolean {
   if (typeof password !== "string" || !password) return false;
