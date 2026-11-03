@@ -63,3 +63,5 @@ data/tk_*.json
 *.pdf
 .project/
 .geminiignore
+.vercel
+.env*
