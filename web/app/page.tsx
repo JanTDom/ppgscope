@@ -6268,7 +6268,7 @@ export default function PPGscopeApp() {
                 <div className="flex shrink-0 items-center gap-2 font-mono text-[10px] text-zinc-400">
                   <span className="rounded-lg border border-teal-500/20 bg-teal-500/10 px-2.5 py-1.5 text-teal-300">{chartDomains.length || 18} dziedzin</span>
                   <span className="rounded-lg border border-white/[0.08] bg-black/30 px-2.5 py-1.5">{chartRegions.length || 16} regionów</span>
-                  <span className="rounded-lg border border-white/[0.08] bg-black/30 px-2.5 py-1.5">{chartPortals.length || 547} portali</span>
+                  <span className="rounded-lg border border-white/[0.08] bg-black/30 px-2.5 py-1.5">{chartPortals.length || 553} portali</span>
                 </div>
               </div>
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
@@ -6387,6 +6387,9 @@ export default function PPGscopeApp() {
                       <span className="flex items-center gap-2"><i className="h-0.5 w-5 border-t-2 border-dashed border-blue-300" /> Treści lokalne</span>
                       <span className="ml-auto text-zinc-500">Szczyt: {chartTimeseries.length ? Math.max(...chartTimeseries.map((point) => point.total)).toLocaleString("pl-PL") : "—"}</span>
                     </div>
+                    <p className="text-[10px] font-mono text-zinc-500 border-t border-white/[0.04] pt-2">
+                      <strong className="text-zinc-400">Uwaga metodologiczna:</strong> Szereg roczny (365 dni) stanowi makroekonomiczny model cyklu wydawniczego PPG (~11,4k art./dzień powszedni, ~7,2k art./weekend) skalibrowany i zakotwiczony empirycznym korpusem 23 170 artykułów.
+                    </p>
                   </div>
                 </ChartPanel>
 
@@ -7034,7 +7037,7 @@ export default function PPGscopeApp() {
                 )}
               </div>
 
-              {/* Filter & Sort Bar for the 547 Portals Table */}
+              {/* Filter & Sort Bar for the 553 Portals Table */}
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-4 text-xs font-mono">
                 <div className="flex flex-wrap items-center gap-2">
                   <input
