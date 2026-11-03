@@ -930,7 +930,7 @@ export default function PPGscopeApp() {
     actor_name?: string;
   } | null>(null);
 
-  // Single Medium Selector & Head-to-Head Comparison Selector (All 546 or specific media)
+  // Single Medium Selector & Head-to-Head Comparison Selector (All 553 or specific media)
   const [selectedMediumDomain, setSelectedMediumDomain] = useState<string>("ALL");
   const [mediumSearchQuery, setMediumSearchQuery] = useState<string>("");
   const [compareMediumDomain, setCompareMediumDomain] = useState<string>("NONE");
@@ -1733,7 +1733,7 @@ export default function PPGscopeApp() {
     };
   }, [domainBreakdown]);
 
-  // Complete 360-Degree Multi-Criteria Diagnostic Profile for ANY Selected Single Medium (1 of 546)
+  // Complete 360-Degree Multi-Criteria Diagnostic Profile for ANY Selected Single Medium (1 of 553)
   const selectedPortalFullAudit = useMemo(() => {
     if (selectedMediumDomain === "ALL" || !selectedMediumObj) return null;
 
@@ -2620,7 +2620,7 @@ export default function PPGscopeApp() {
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               }`}
             >
-              <Activity className="h-3.5 w-3.5 text-teal-400" /> Żywotność i unikalność (546)
+              <Activity className="h-3.5 w-3.5 text-teal-400" /> Żywotność i unikalność (553)
             </button>
 
             <button
@@ -2664,7 +2664,7 @@ export default function PPGscopeApp() {
                   : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               }`}
             >
-              <Database className="h-3.5 w-3.5 text-teal-400" /> Serwisy PPG (546)
+              <Database className="h-3.5 w-3.5 text-teal-400" /> Serwisy PPG (553)
             </button>
 
             <button
@@ -2704,7 +2704,7 @@ export default function PPGscopeApp() {
           scannedCount={filteredArticles.length}
         />
 
-        {/* Global Context Bar: Searchable 546-Medium Selector + Locality Toggles */}
+        {/* Global Context Bar: Searchable 553-Medium Selector + Locality Toggles */}
         {activeTab !== "forensics" && activeTab !== "investigation_reports" && (
         <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-3.5 sm:p-4 w-full min-w-0">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -3451,7 +3451,7 @@ export default function PPGscopeApp() {
           const livePeriodTotal = domainBreakdown.totalCount || livePeriodArticles.length || 10480;
           const livePeriodUnique = Math.round(livePeriodTotal * 0.85);
           const livePeriodLocalPct = domainBreakdown.localContentShare || 58.5;
-          const livePeriodPortals = selectedMediumDomain === "ALL" ? (data?.titles?.length || 546) : 1;
+          const livePeriodPortals = selectedMediumDomain === "ALL" ? (data?.titles?.length || 553) : 1;
 
           const periodShortLabel = timePreset === "24h" ? "24h" : timePreset === "7d" ? "7 dni" : timePreset === "30d" ? "30 dni" : timePreset === "90d" ? "90 dni" : timePreset === "1y" ? "1 rok" : timePreset === "all" ? "wszystkie" : "okres";
 
@@ -3660,7 +3660,7 @@ export default function PPGscopeApp() {
                       <span className="text-xl font-bold text-white">
                         {livePeriodTotal.toLocaleString("pl-PL")}
                       </span>
-                      <span className="text-[10px] text-teal-400 block mt-0.5">546 monitorowanych domen</span>
+                      <span className="text-[10px] text-teal-400 block mt-0.5">553 monitorowane domeny</span>
                     </div>
                     <div className="rounded-xl border border-white/[0.08] bg-black/50 p-3.5">
                       <span className="text-[10px] uppercase text-zinc-400 block">Teksty unikalne ({periodShortLabel})</span>
@@ -4476,7 +4476,7 @@ export default function PPGscopeApp() {
                     { label: "Dziennik Zachodni vs Głos Wielkopolski", a: "dziennikzachodni.pl", b: "gloswielkopolski.pl" },
                     { label: "Kraków NaszeMiasto vs Bochnia NaszeMiasto", a: "krakow.naszemiasto.pl", b: "bochnia.naszemiasto.pl" },
                     { label: "Strefa Biznesu vs Strefa Agro", a: "strefabiznesu.pl", b: "strefaagro.pl" },
-                    { label: "Portal i.pl vs Cała grupa PPG (546)", a: "i.pl", b: "ALL" },
+                    { label: "Portal i.pl vs Cała grupa PPG (553)", a: "i.pl", b: "ALL" },
                   ].map((preset) => (
                     <button
                       key={preset.label}
@@ -5492,7 +5492,7 @@ export default function PPGscopeApp() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono bg-teal-500/10 text-teal-300 border border-teal-500/20 px-3 py-1 rounded-lg">
-                      Zbadano 546 tytułów PPG
+                      Zbadano 553 tytuły PPG
                     </span>
                   </div>
                 </div>
@@ -6498,11 +6498,11 @@ export default function PPGscopeApp() {
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-sky-400" />
                 <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
-                  Sekcja strukturalna: stały katalog 546 domen PPG i profil regionalny
+                  Sekcja strukturalna: stały katalog 553 domen PPG i profil regionalny
                 </span>
               </div>
               <span className="text-[11px] font-mono text-sky-300">
-                N = 546 serwisów · stała architektura sieci PPG (niezależna od wybranego okresu)
+                N = 553 serwisy · stała architektura sieci PPG (niezależna od wybranego okresu)
               </span>
             </div>
 
@@ -6572,13 +6572,13 @@ export default function PPGscopeApp() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-              {/* Chart 1: Donut Chart - Struktura portfela 546 serwisów */}
+              {/* Chart 1: Donut Chart - Struktura portfela 553 serwisy */}
               <div className="rounded-2xl border border-white/[0.06] bg-[#0c0e12]/80 p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
                   <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                    <PieChart className="h-4 w-4 text-teal-400" /> Podział portfela 546 mediów PPG
+                    <PieChart className="h-4 w-4 text-teal-400" /> Podział portfela 553 mediów PPG
                   </h3>
-                  <span className="text-[10px] font-mono text-zinc-400">N = 546</span>
+                  <span className="text-[10px] font-mono text-zinc-400">N = 553</span>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-6 py-4">
@@ -6589,7 +6589,7 @@ export default function PPGscopeApp() {
                       <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f59e0b" strokeWidth="14" strokeDasharray="6 238" strokeDashoffset="-232" />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl font-bold text-white">546</span>
+                      <span className="text-xl font-bold text-white">553</span>
                       <span className="text-[9px] font-mono uppercase text-zinc-400">Portali</span>
                     </div>
                   </div>
@@ -6779,7 +6779,7 @@ export default function PPGscopeApp() {
         )}
 
         {/* ================================================================= */}
-        {/* TAB: ŻYWOTNOŚĆ I UNIKALNOŚĆ PORTALI (546 MEDIA HEALTH AUDIT) */}
+        {/* TAB: ŻYWOTNOŚĆ I UNIKALNOŚĆ PORTALI (553 MEDIA HEALTH AUDIT) */}
         {/* ================================================================= */}
         {activeTab === "vitality_audit" && (() => {
           const audit = data.portal_vitality_audit;
@@ -6847,7 +6847,7 @@ export default function PPGscopeApp() {
                 <div>
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     <Activity className="h-5 w-5 text-teal-400" />
-                    Audyt żywotności i unikalności portali wydawnictwa (546 mediów + archiwum)
+                    Audyt żywotności i unikalności portali wydawnictwa (553 mediów + archiwum)
                   </h2>
                   <p className="text-xs text-zinc-400 mt-1 max-w-3xl">
                     Weryfikacja oparta wyłącznie na zewnętrznych sygnałach bezpłatnych: kody odpowiedzi HTTP, świeżość
@@ -7967,7 +7967,7 @@ export default function PPGscopeApp() {
         {activeTab === "cross_sections" && <CrossSectionsView crossSections={data.cross_sections} />}
 
         {/* ================================================================= */}
-        {/* TAB: PORTALE PPG (546 TITLES DIRECTORY) */}
+        {/* TAB: PORTALE PPG (553 TITLES DIRECTORY) */}
         {/* ================================================================= */}
         {activeTab === "titles" && (
           <TitlesView
@@ -8030,7 +8030,7 @@ export default function PPGscopeApp() {
               {articlesViewMode === "live_session" && (
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-white/[0.06]">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-mono text-zinc-400">Wybierz portal do podglądu na żywo (546):</span>
+                    <span className="text-xs font-mono text-zinc-400">Wybierz portal do podglądu na żywo (553):</span>
                     <select
                       value={liveFetchDomain}
                       onChange={(e) => setLiveFetchDomain(e.target.value)}
