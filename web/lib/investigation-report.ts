@@ -212,6 +212,28 @@ function detectContext(topic: string, matchedArticles: InvestigationArticle[]): 
     };
   }
 
+  if (normTopic.includes("wypad") || normTopic.includes("drogow") || normTopic.includes("bezpieczeństw") || normTopic.includes("policj")) {
+    return {
+      primaryActor: "Lokalne komendy Policji / Ratownicy",
+      secondaryActor: "GDDKiA / Zarządcy Dróg",
+      counterActor: "Utrudnienia i statystyki drogowe",
+      isPelczynska: false,
+      isCzestochowa: false,
+      isTuskGov: false,
+    };
+  }
+
+  if (normTopic.includes("ogrzew") || normTopic.includes("ciepł") || normTopic.includes("energ") || normTopic.includes("prąd") || normTopic.includes("gaz")) {
+    return {
+      primaryActor: "Programy osłonowe / Samorządy",
+      secondaryActor: "Spółki energetyczne / URE",
+      counterActor: "Drożyzna i koszty życia",
+      isPelczynska: false,
+      isCzestochowa: false,
+      isTuskGov: false,
+    };
+  }
+
   return {
     primaryActor: "Główny bohater wydarzenia",
     secondaryActor: "Organy państwowe / Instytucje",

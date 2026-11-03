@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4500);
+      const timeoutId = setTimeout(() => controller.abort(), 1600);
       const rssResp = await fetch(`https://${domain}/rss`, {
         headers: browserHeaders,
         signal: controller.signal,
@@ -74,17 +74,31 @@ export async function GET(req: NextRequest) {
     if (!xmlText || !xmlText.includes("<item>")) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        const gUrl = `https://news.google.com/rss/search?q=site:${domain}&hl=pl&gl=PL&ceid=PL:pl`;
-        const gResp = await fetch(gUrl, {
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+        const gUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(`site:${domain} when:3d`)}&hl=pl&gl=PL&ceid=PL:pl`;
+        let gResp = await fetch(gUrl, {
           headers: browserHeaders,
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
         if (gResp.ok) {
           xmlText = await gResp.text();
-          httpStatus = 200;
-          sourceUsed = "google_news_index";
+          if (xmlText.includes("<item>")) {
+            httpStatus = 200;
+            sourceUsed = "google_news_live_3d";
+          }
+        }
+        if (!xmlText || !xmlText.includes("<item>")) {
+          const c2 = new AbortController();
+          const t2 = setTimeout(() => c2.abort(), 4000);
+          const gUrlStd = `https://news.google.com/rss/search?q=site:${domain}&hl=pl&gl=PL&ceid=PL:pl`;
+          gResp = await fetch(gUrlStd, { headers: browserHeaders, signal: c2.signal });
+          clearTimeout(t2);
+          if (gResp.ok) {
+            xmlText = await gResp.text();
+            httpStatus = 200;
+            sourceUsed = "google_news_index";
+          }
         }
       } catch {
         // Ignore fallback error

@@ -146,6 +146,22 @@ const PRESETS: InvestigationPreset[] = [
     userExpectations: "Zbadaj, czy dzienniki regionalne przypisują zasługę premierowi, czy uciekają w bezosobowy poradnik ZUS-u.",
     tag: "REFORMA RZĄDU",
   },
+  {
+    id: "road_safety_blackspots",
+    topic: "Wypadki drogowe i bezpieczeństwo na drogach krajowych",
+    angle: "LOCAL_VS_SYNDICATE",
+    description: "Audyt lokalności: doniesienia policyjne z powiatów vs centralne komunikaty GDDKiA.",
+    userExpectations: "Zbadaj proporcje doniesień własnych z komend powiatowych i wypadków lokalnych w stosunku do ogólnokrajowych ostrzeżeń.",
+    tag: "LOKALNOŚĆ I POLICJA",
+  },
+  {
+    id: "heating_energy_costs",
+    topic: "Koszty ogrzewania, bon energetyczny i sezon grzewczy",
+    angle: "ATTACK_RESISTANCE",
+    description: "Analiza nastrojów wokół cen ciepła, gazu i prądu w samorządach lokalnych.",
+    userExpectations: "Przeanalizuj, czy portale regionalne rzetelnie tłumaczą mechanizmy osłonowe, czy budują poczucie kryzysu kosztów życia.",
+    tag: "GOSPODARKA REGIONÓW",
+  },
 ];
 
 export function InvestigationReportsView({

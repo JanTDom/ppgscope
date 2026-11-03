@@ -1652,11 +1652,12 @@ export interface InputSentimentArticle {
 export function calculateAllPoliticalSentiments(
   articles: InputSentimentArticle[],
   totalPoliticalCount?: number,
-  spanDays: number = 30,
+  _spanDays: number = 30,
   domainScope: string = "all_political",
   weightingMode: SentimentWeightingMode = "raw",
   actorShifts?: Partial<Record<PoliticalActorId, number>>
 ): Record<PoliticalActorId, PoliticalSentimentData> {
+  void _spanDays;
   const result: Partial<Record<PoliticalActorId, PoliticalSentimentData>> = {};
 
   const targetArticles =
@@ -2132,7 +2133,24 @@ export function calculateMediaAccountability(
       }
     } else {
       // Legacy mock aggregate input handler (for unit tests passing mock aggregates)
-      const mockAggs = perMediumAggregates as Record<string, any> | undefined;
+      interface LegacyDomainItem {
+        slug: string;
+        total: number;
+      }
+      interface LegacyMediumItem {
+        totalCount?: number;
+        domains?: LegacyDomainItem[];
+        ko_sentiment?: {
+          net_sentiment_score: number;
+          ko_mentions_count?: number;
+          breakdown: {
+            positive: { count: number; pct: number };
+            neutral: { count: number; pct: number };
+            negative: { count: number; pct: number };
+          };
+        };
+      }
+      const mockAggs = perMediumAggregates as Record<string, LegacyMediumItem> | undefined;
       const medAgg = mockAggs?.[t.domain];
       totalCount =
         medAgg?.totalCount ||
@@ -2142,21 +2160,21 @@ export function calculateMediaAccountability(
       let baselineScopeTotal = 0;
       if (domainScope === "all_political") {
         const wladza =
-          medAgg?.domains?.find((x: any) => x.slug === "wladza")?.total ??
+          medAgg?.domains?.find((x: LegacyDomainItem) => x.slug === "wladza")?.total ??
           Math.round(totalCount * (isNationalCheck(t) ? 0.16 : isDailyCheck(t) ? 0.09 : 0.05));
         const gospodarka =
-          medAgg?.domains?.find((x: any) => x.slug === "gospodarka")?.total ?? Math.round(totalCount * 0.06);
+          medAgg?.domains?.find((x: LegacyDomainItem) => x.slug === "gospodarka")?.total ?? Math.round(totalCount * 0.06);
         const infra =
-          medAgg?.domains?.find((x: any) => x.slug === "infrastruktura")?.total ?? Math.round(totalCount * 0.05);
+          medAgg?.domains?.find((x: LegacyDomainItem) => x.slug === "infrastruktura")?.total ?? Math.round(totalCount * 0.05);
         const rolnictwo =
-          medAgg?.domains?.find((x: any) => x.slug === "rolnictwo")?.total ?? Math.round(totalCount * 0.04);
+          medAgg?.domains?.find((x: LegacyDomainItem) => x.slug === "rolnictwo")?.total ?? Math.round(totalCount * 0.04);
         baselineScopeTotal = Math.max(
           wladza + Math.round(gospodarka * 0.3) + Math.round(infra * 0.35) + Math.round(rolnictwo * 0.35),
           Math.round(totalCount * (isNationalCheck(t) ? 0.18 : isDailyCheck(t) ? 0.10 : 0.06))
         );
       } else {
         baselineScopeTotal =
-          medAgg?.domains?.find((x: any) => x.slug === domainScope)?.total ?? Math.round(totalCount * 0.05);
+          medAgg?.domains?.find((x: LegacyDomainItem) => x.slug === domainScope)?.total ?? Math.round(totalCount * 0.05);
       }
 
       const h = hashDomain(t.domain + "_" + actorId);

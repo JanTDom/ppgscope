@@ -183,12 +183,23 @@ export function parseRssFeed(xml: string, domain: string, region: string): LiveS
     const descMatch = block.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/i) || block.match(/<description>([\s\S]*?)<\/description>/i);
     const dateMatch = block.match(/<pubDate>([\s\S]*?)<\/pubDate>/i);
 
-    const rawTitle = titleMatch ? titleMatch[1].trim() : "";
+    let rawTitle = titleMatch ? titleMatch[1].trim() : "";
     const rawLink = linkMatch ? linkMatch[1].trim() : "";
     const rawDesc = descMatch ? descMatch[1].replace(/<[^>]+>/g, "").trim() : "";
     const rawDate = dateMatch ? dateMatch[1].trim() : new Date().toISOString();
 
     if (rawTitle && rawLink) {
+      // Decode HTML entities and clean Google News publisher suffix
+      rawTitle = rawTitle
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, "&")
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+        .replace(/\s+-\s+[^-]+$/, "")
+        .trim();
+
       const { domain: dSlug, locality: loc } = classifyInFlight(rawTitle, rawDesc);
       articles.push({
         id: `rss-${domain}-${counter++}`,
@@ -217,14 +228,59 @@ export async function fetchLivePortalArticles(
   region = "Polska",
   timeoutMs = 4000
 ): Promise<LiveScannedArticle[]> {
+  // 1. Primary high-speed path: Google News RSS with 3-day freshness window
+  const gNewsFreshUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(`site:${domain} when:3d`)}&hl=pl&gl=PL&ceid=PL:pl`;
+  const gNewsUrl = `https://news.google.com/rss/search?q=site:${domain}&hl=pl&gl=PL&ceid=PL:pl`;
   const sitemapUrl = `https://${domain}/google_news/`;
   const rssUrl = `https://${domain}/rss`;
-  const gNewsUrl = `https://news.google.com/rss/search?q=site:${domain}&hl=pl&gl=PL&ceid=PL:pl`;
 
-  // 1. Try Google News Sitemap first (richest 48h view, up to 200 real articles)
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const resp = await fetch(gNewsFreshUrl, {
+      headers: BROWSER_HEADERS,
+      signal: controller.signal,
+      cache: "no-store",
+    });
+    clearTimeout(timer);
+
+    if (resp.ok) {
+      const text = await resp.text();
+      if (text.includes("<item>")) {
+        const parsed = parseRssFeed(text, domain, region);
+        if (parsed.length > 0) return parsed;
+      }
+    }
+  } catch {
+    // Fall through to standard Google News RSS
+  }
+
+  // 2. Standard Google News RSS
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const resp = await fetch(gNewsUrl, {
+      headers: BROWSER_HEADERS,
+      signal: controller.signal,
+      cache: "no-store",
+    });
+    clearTimeout(timer);
+
+    if (resp.ok) {
+      const text = await resp.text();
+      if (text.includes("<item>")) {
+        const parsed = parseRssFeed(text, domain, region);
+        if (parsed.length > 0) return parsed;
+      }
+    }
+  } catch {
+    // Fall through to direct domain inspection
+  }
+
+  // 3. Fallback: Direct publisher sitemap / RSS (with short 1.8s timeout against Cloudflare WAF)
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 1800);
     const resp = await fetch(sitemapUrl, {
       headers: BROWSER_HEADERS,
       signal: controller.signal,
@@ -240,36 +296,13 @@ export async function fetchLivePortalArticles(
       }
     }
   } catch {
-    // Fall through to RSS
+    // Fall through to direct RSS
   }
 
-  // 2. Try direct RSS feed
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = setTimeout(() => controller.abort(), 1800);
     const resp = await fetch(rssUrl, {
-      headers: BROWSER_HEADERS,
-      signal: controller.signal,
-      cache: "no-store",
-    });
-    clearTimeout(timer);
-
-    if (resp.ok) {
-      const text = await resp.text();
-      if (text.includes("<item>")) {
-        const parsed = parseRssFeed(text, domain, region);
-        if (parsed.length > 0) return parsed;
-      }
-    }
-  } catch {
-    // Fall through to Google News RSS
-  }
-
-  // 3. Fallback to Google News RSS index
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const resp = await fetch(gNewsUrl, {
       headers: BROWSER_HEADERS,
       signal: controller.signal,
       cache: "no-store",

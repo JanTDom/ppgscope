@@ -1429,7 +1429,7 @@ export default function PPGscopeApp() {
       ko_sentiment: fallbackKOSentiment,
       political_sentiments: politicalSentiments,
     };
-  }, [filteredArticles, dateRange, timePreset, selectedMediumDomain, data]);
+  }, [filteredArticles, dateRange]);
 
   // Raw Unweighted Political Sentiments Engine (Pure Production Baseline, 1 art = 1 voice)
   const rawPoliticalSentiments = useMemo(() => {
@@ -1870,7 +1870,7 @@ export default function PPGscopeApp() {
       const namedPct = total > 0 ? Math.round((namedAuthorsCount / total) * 1000) / 10 : 0.0;
       const anonPct = total > 0 ? Math.round((anonCount / total) * 1000) / 10 : 0.0;
       const wirePct = total > 0 ? Math.round((wireCount / total) * 1000) / 10 : 0.0;
-      const partnerPct = total > 0 ? Math.max(0, Math.round((100.0 - namedPct - anonPct - wirePct) * 10) / 10) : 0.0;
+      const partnerPct = total > 0 ? Math.round((partnerCount / total) * 1000) / 10 : 0.0;
 
       const paywallPct = total > 0 ? Math.round((paywallCount / total) * 1000) / 10 : 0.0;
       const sponsoredPct = total > 0 ? Math.round((sponsoredCount / total) * 1000) / 10 : 0.0;
@@ -3095,11 +3095,19 @@ export default function PPGscopeApp() {
                   <RefreshCw className={`h-3.5 w-3.5 ${isLiveScanning ? "animate-spin" : ""}`} />
                   Przeskanuj sieć w locie ({periodShortLabel})
                 </button>
+                <div className="rounded-xl border border-teal-500/30 bg-teal-500/10 px-3.5 py-2 text-right font-mono">
+                  <span className="text-[10px] uppercase text-teal-400 block font-bold">Autonomia redakcyjna (teren)</span>
+                  <span className="text-sm font-bold text-teal-300">
+                    {domainBreakdown.localContentShare}%
+                  </span>
+                  <span className="text-[10px] text-zinc-400 block">L: {domainBreakdown.countL} · CL: {domainBreakdown.countCL}</span>
+                </div>
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 text-right font-mono">
                   <span className="text-[10px] uppercase text-emerald-400 block font-bold">Zbadany wolumen</span>
                   <span className="text-sm font-bold text-white">
                     {domainBreakdown.totalCount.toLocaleString("pl-PL")} artykułów
                   </span>
+                  <span className="text-[10px] text-zinc-400 block">Wsad centralny C: {domainBreakdown.countC}</span>
                 </div>
               </div>
             </div>

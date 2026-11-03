@@ -53,3 +53,13 @@ data/*.backup.json
 *.doc
 *.png
 *.html
+
+# External folders & symlinks
+sources/dropbox_polskapress
+external_polskapress
+
+# Temporary and report data files
+data/tk_*.json
+*.pdf
+.project/
+.geminiignore

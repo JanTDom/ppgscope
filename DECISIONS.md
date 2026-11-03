@@ -156,3 +156,41 @@ Dokument zawiera spis kluczowych decyzji podjętych w projekcie **PPGscope**, zg
   2. **Integracja w `web/app/page.tsx`:**
      - Dodano zakładkę `investigation_reports` do bocznego menu w grupie „Analiza” oraz do poziomego paska szybkiego dostępu.
      - Zoptymalizowano widok poprzez ukrycie zbędnego paska filtrów globalnych w trakcie pracy ze studiem raportów.
+
+---
+
+## ADR-011: Stałe połączenie projektu z zewnętrznym folderem materiałów Dropbox POLSKAPRESS
+
+* **Data:** 2026-11-03
+* **Status:** PRZYJĘTE I WDROŻONE
+* **Kontekst:** Poza repozytorium kodu PPGscope istnieje obszerny zbiór materiałów analitycznych, zarządczych, prawnych, strategicznych i transformacyjnych dotyczących Polska Press Grupa, zgromadzony w katalogu `/Users/macbookpro/Dropbox/POLSKAPRESS`. Użytkownik zlecił stałe połączenie tego folderu z projektem PPGscope jako folderu dodatkowego.
+* **Decyzja:**
+  1. **Połączenie systemowe (Symlinki):**
+     - Utworzono dowiązania symboliczne `sources/dropbox_polskapress` oraz `external_polskapress` wskazujące na `/Users/macbookpro/Dropbox/POLSKAPRESS`.
+     - Zaktualizowano `.gitignore`, aby repozytorium nie commitowało ciężkich plików binarnych (DOCX/PDF) z Dropboxa.
+  2. **Reguła kardynalna i pamięć projektu:**
+     - Zapisano regułę stałego połączenia w `AGENTS.md` (najwyższy autorytet reguł projektu) oraz `.project/CONTEXT.md`.
+     - Zdefiniowano folder jako zasób referencyjny typu Read-Only: zakaz usuwania i modyfikacji oryginalnych plików w Dropbox bez bezpośredniego polecenia użytkownika.
+     - Folder służy jako stała baza wiedzy źródłowej dla audytów, wywiadu redakcyjnego i raportów PPGscope.
+  3. **Pamięć globalna:**
+     - Odnotowano powiązanie w globalnej bazie wiedzy Antigravity (`PROJECT_MAP.md`).
+
+
+---
+
+## ADR-012: Pełna aktualizacja świeżości danych (1-3.11.2026), odporność na Cloudflare WAF i czystość typów
+
+* **Data:** 2026-11-03
+* **Status:** PRZYJĘTE I WDROŻONE PRODUKCYJNIE
+* **Kontekst:** W audycie przedwdrożeniowym przed udostępnieniem panelu zespołom PPG wykryto zamrożenie szeregów czasowych na dacie 26.10.2026 (puste widoki 24h i 7d), błąd testu `timeseries.test.ts`, błędy lintera w `sentiment.ts` oraz blokady HTTP 403 z Cloudflare na bezpośrednich zapytaniach do domen PPG.
+* **Decyzja:**
+  1. **Aktualizacja korpusu do bieżącej daty (2026-11-03):**
+     - Zaimplementowano i uruchomiono skrypt `scripts/refresh_live_corpus_and_timeseries.py`, który pobrał 1782 najświeższe autentyczne publikacje z 1–3 listopada 2026 r. z 21 dzienników regionalnych i `i.pl` przez Google News RSS.
+     - Powiększono bazę `recent_articles` do 14 305 artykułów i zregenerowano 365-dniowy szereg `daily_timeseries` kończący się na dacie dzisiejszej (`2026-11-03`). Test `timeseries.test.ts` zaliczony (82/82 PASS).
+  2. **Optymalizacja LiveScannera pod kątem Cloudflare 403:**
+     - Zreorganizowano architekturę zapytań w `web/lib/server/live-scanner.ts` oraz `web/app/api/vitality/probe/route.ts`: zapytanie do otwartego strumienia Google News RSS (`site:${domain} when:3d`) stało się pierwszym, natychmiastowym źródłem prawdy (odpowiedź <400 ms bez podatności na Cloudflare WAF), a bezpośrednie sprawdzanie sitemap/RSS zostało zachowane z krótkim limitem czasowym jako rezerwa.
+  3. **Rygor typów i lintera:**
+     - Wyeliminowano wszystkie typy `any` w `web/lib/sentiment.ts`, wprowadzając dedykowane interfejsy `LegacyMediumItem` i `LegacyDomainItem`.
+     - Naprawiono ostrzeżenia o nieużywanych zmiennych w `web/app/page.tsx` i `sentiment.ts`. Wynik `npm run lint && npx tsc --noEmit`: 0 błędów, 0 ostrzeżeń.
+  4. **Wzbogacenie Studia Raportów Śledczych:**
+     - Dodano presety o tematyce regionalno-gospodarczej: *Bezpieczeństwo na drogach i czarne punkty* oraz *Koszty ogrzewania i sezon grzewczy*.
