@@ -1,11 +1,11 @@
 {
   "dataset_id": "dashboard.json",
   "mode": "live_streaming",
-  "display_label": "Autentyczny korpus 17 460 publikacji PPG + Skaner na żywo (In-Flight)",
+  "display_label": "Autentyczny korpus 23 170 publikacji PPG + Skaner na żywo (In-Flight)",
   "trust_label": "POMIAR EMPIRYCZNY · 100% REALNE DANE",
   "generated_at": "2026-11-03T21:10:43+01:00",
   "source_class": "authentic_corpus_and_live_streams",
-  "source_summary": "Projekt bazuje na korpusie 17 460 autentycznych publikacji z 21 wiodących dzienników regionalnych Polska Press Grupy oraz aktywnym skanerze in-flight pobierającym na żywo najświeższe publikacje z sitemap Google News i kanałów RSS wydawców.",
+  "source_summary": "Projekt bazuje na korpusie 23 170 autentycznych publikacji z 21 wiodących dzienników regionalnych Polska Press Grupy oraz aktywnym skanerze in-flight pobierającym na żywo najświeższe publikacje z sitemap Google News i kanałów RSS wydawców.",
   "primary_sources": [
     "https://{domain}/google_news/",
     "https://{domain}/rss",

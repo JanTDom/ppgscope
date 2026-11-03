@@ -6455,6 +6455,9 @@ export default function PPGscopeApp() {
                         </span>
                       ))}
                     </div>
+                    <p className="mt-2 text-[10px] font-mono leading-relaxed text-zinc-500 border-t border-white/[0.05] pt-2">
+                      <span className="text-teal-400 font-semibold">MODEL MAKROEKONOMICZNY CYKLU REDAKCYJNEGO</span> · Estymacja rytmu wydawniczego grupy 553 serwisów PPG (~11,4k art./dzień w dni robocze, ~7,2k art./weekend). Próbka empiryczna do analizy jakościowej i sentymentu: {data?.recent_articles?.length.toLocaleString("pl-PL") || "23 170"} zbadanych publikacji.
+                    </p>
                   </div>
                 </ChartPanel>
 

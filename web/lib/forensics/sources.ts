@@ -68,6 +68,8 @@ export const COMPETITOR_FEEDS: readonly CompetitorFeedSource[] = [
   { id: "lovekrakow", name: "LoveKraków.pl", url: "https://lovekrakow.pl/rss.xml", region: "Małopolskie", ppgIds: ["gazetakrakowska"] },
   { id: "epoznan", name: "ePoznan.pl", url: "https://epoznan.pl/rss", region: "Wielkopolskie", ppgIds: ["gloswielkopolski"] },
   { id: "tuwroclaw", name: "TuWrocław.com", url: "https://tuwroclaw.com/rss", region: "Dolnośląskie", ppgIds: ["gazetawroclawska"] },
+  { id: "trojmiasto", name: "Trojmiasto.pl", url: "https://www.trojmiasto.pl/rss.xml", region: "Pomorskie", ppgIds: ["dziennikbaltycki"] },
+  { id: "slazag", name: "Ślązag.pl", url: "https://www.slazag.pl/rss", region: "Śląskie", ppgIds: ["dziennikzachodni"] },
 ];
 
 export const OFFICIAL_FEEDS: readonly FeedSource[] = [
