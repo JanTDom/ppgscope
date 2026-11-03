@@ -847,6 +847,13 @@ const LOCALITY_NAME_MAP: Record<string, string> = {
 
 const INTERNAL_CSV_MAX_BYTES = 1_000_000;
 const INTERNAL_CSV_HEADER = "url,pageviews,engaged_time_sec,strefa_plus_conversions";
+const INTERNAL_CSV_DEFAULT = `url,pageviews,engaged_time_sec,strefa_plus_conversions
+https://gazetakrakowska.pl/wypadek-na-zakopiance-korki-w-strone-nowego-targu/ar/c1-18920401,38420,142,18
+https://dziennikbaltycki.pl/nowy-odcinek-trasy-kaszubskiej-otwarty-dla-kierowcow/ar/c1-18921102,52100,185,29
+https://dziennikzachodni.pl/strajk-gornikow-w-kopalni-bobrek-interwencja-rzadu/ar/c1-18922303,46800,165,24
+https://gloswielkopolski.pl/inwestycje-w-poznanskim-szpitalu-miejskim-nowy-sprzet/ar/c1-18923404,29300,120,14
+https://expressbydgoski.pl/remont-mostu-uniwersyteckiego-w-bydgoszczy-zmiany/ar/c1-18924505,31200,135,11
+https://i.pl/nowe-przepisy-podatkowe-od-listopada-co-sie-zmienia-w-przepisach/ar/c1-18925606,89400,98,42`;
 
 export default function PPGscopeApp() {
   // Session Authentication State (server-issued HttpOnly cookie)
@@ -898,7 +905,7 @@ export default function PPGscopeApp() {
   const [selectedCompetitorRegion, setSelectedCompetitorRegion] = useState<string>("Małopolskie");
 
   // Internal Data Adapter (URL Matcher for GA4 / GSC / Strefa Plus)
-  const [internalCsvInput, setInternalCsvInput] = useState<string>(INTERNAL_CSV_HEADER);
+  const [internalCsvInput, setInternalCsvInput] = useState<string>(INTERNAL_CSV_DEFAULT);
 
 
   // Political Sentiment States (KO, PiS, PSL, Polska 2050, Lewica, Konfederacja, Karol Nawrocki, Rozwój Plus)
@@ -935,7 +942,7 @@ export default function PPGscopeApp() {
   // Time Period Filtering State
   const [timePreset, setTimePreset] = useState<"24h" | "7d" | "30d" | "90d" | "1y" | "all" | "custom">("30d");
   const [customStartDate, setCustomStartDate] = useState("2024-03-09");
-  const [customEndDate, setCustomEndDate] = useState("2026-10-26");
+  const [customEndDate, setCustomEndDate] = useState("2026-11-03");
   const [clientNow, setClientNow] = useState<number | null>(null);
 
   // Table & directory filters
@@ -1310,7 +1317,7 @@ export default function PPGscopeApp() {
   // =========================================================================
 
   const { dateRange, filteredArticles } = useMemo(() => {
-    const staticBase = new Date("2026-10-26T14:00:00Z");
+    const staticBase = new Date(data?.generated_at || "2026-11-03T20:00:00Z");
     if (!data || !data.recent_articles) {
       return {
         dateRange: { start: staticBase, end: staticBase },
@@ -1985,7 +1992,7 @@ export default function PPGscopeApp() {
     if (!raw.length) return [];
 
     // Dynamically extend series up to current date if client date is ahead of dataset
-    const todayStr = clientNow ? new Date(clientNow).toISOString().split("T")[0] : (raw[raw.length - 1]?.date || "2026-10-26");
+    const todayStr = clientNow ? new Date(clientNow).toISOString().split("T")[0] : (raw[raw.length - 1]?.date || "2026-11-03");
     let extended = raw;
     const lastPoint = raw[raw.length - 1];
     if (lastPoint && lastPoint.date < todayStr) {
@@ -4173,9 +4180,25 @@ export default function PPGscopeApp() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   <div className="lg:col-span-5 min-w-0 space-y-2">
-                    <label className="text-xs font-mono text-zinc-300 block break-words">
-                      Wejściowy zrzut z GA4 / Piano (CSV: <span className="break-all font-mono text-teal-300">`url,pageviews,engaged_time_sec,strefa_plus_conversions`</span>):
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-mono text-zinc-300 block break-words">
+                        Wejściowy zrzut z GA4 / Piano (CSV):
+                      </label>
+                      <div className="flex gap-2 text-[10px] font-mono">
+                        <button
+                          onClick={() => setInternalCsvInput(INTERNAL_CSV_DEFAULT)}
+                          className="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 transition-colors"
+                        >
+                          Wczytaj wzorzec
+                        </button>
+                        <button
+                          onClick={() => setInternalCsvInput(INTERNAL_CSV_HEADER)}
+                          className="px-2 py-0.5 rounded bg-white/[0.06] text-zinc-400 hover:text-white transition-colors"
+                        >
+                          Wyczyść
+                        </button>
+                      </div>
+                    </div>
                     <textarea
                       rows={8}
                       value={internalCsvInput}
