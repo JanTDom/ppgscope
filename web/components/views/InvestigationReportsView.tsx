@@ -36,6 +36,82 @@ export interface InvestigationPreset {
   tag: string;
 }
 
+export interface PrecompiledExecutiveReport {
+  filename: string;
+  title: string;
+  tag: string;
+  date: string;
+  size: string;
+  description: string;
+}
+
+export const PRECOMPILED_EXECUTIVE_REPORTS: PrecompiledExecutiveReport[] = [
+  {
+    filename: "Raport_Zarzadczy_Promocja_Opozycji_2025_2026.docx",
+    title: "Raport Zarządczy: Udział Mediów PPG w Promocji Opozycji",
+    tag: "MAP / AUDYT",
+    date: "2 lis 2026",
+    size: "47 KB",
+    description: "Analiza ekspozycji posłów i działaczy PiS oraz Konfederacji w 21 dziennikach regionalnych i na portalu i.pl vs przekaz koalicji rządzącej.",
+  },
+  {
+    filename: "Raport_Porownanie_Marek_Regionalnych_PPG_2026.docx",
+    title: "Porównanie Marek Regionalnych PPG (Dzienniki vs Powiaty)",
+    tag: "STRATEGIA MARKI",
+    date: "2 lis 2026",
+    size: "1,3 MB",
+    description: "Wycena rynkowa i audyt siły marek: Dziennik Bałtycki, Gazeta Krakowska, Dziennik Zachodni w zestawieniu z serwisami NaszeMiasto.",
+  },
+  {
+    filename: "Raport_Wdrozeniowy_Centralnosc_i_Lokalnosc.docx",
+    title: "Raport Wdrożeniowy: Centralność vs Lokalność w Redakcjach",
+    tag: "TRANSFORMACJA",
+    date: "2 lis 2026",
+    size: "995 KB",
+    description: "Wskaźniki syndykacji z centrali i.pl na makroregiony, eliminacja kanibalizacji SEO i realny wolumen produkcji w powiatach.",
+  },
+  {
+    filename: "Krytyczny_Raport_Lokalnosc_a_Zasiegi.docx",
+    title: "Krytyczny Raport: Lokalność PPG a Zasięgi Mediapanel",
+    tag: "AUDYT ZASIĘGÓW",
+    date: "1 lis 2026",
+    size: "302 KB",
+    description: "Korelacja między redukcją lokalnych newsroomów powiatowych a odpływem realnych użytkowników (RU) w badaniach PBI/Gemius.",
+  },
+  {
+    filename: "Raport_Rezygnacja_Pelczynska_Nalecz.docx",
+    title: "Raport Śledczy: Dymisja Min. Katarzyny Pełczyńskiej-Nałęcz",
+    tag: "CASE STUDY",
+    date: "26 paź 2026",
+    size: "254 KB",
+    description: "Chronologia publikacji w sieci PPG, test syndykacji i.pl oraz analiza wydźwięku wokół rekonstrukcji rządu Donalda Tuska.",
+  },
+  {
+    filename: "Raport_TK_i_Oredzie_Tuska.docx",
+    title: "Raport: Spór o Trybunał Konstytucyjny i Orędzie Tuska",
+    tag: "WIZERUNEK / PRAWO",
+    date: "1 lis 2026",
+    size: "463 KB",
+    description: "Relacjonowanie orędzia premiera i decyzji TK w prasie regionalnej; badanie symetrii komentarzy konstytucjonalistów.",
+  },
+  {
+    filename: "Raport_800plus_Tusk_PPG_vs_Media.docx",
+    title: "Benchmark Prasowy: Program 800+ – PPG vs Media Niezależne",
+    tag: "BENCHMARK A/B",
+    date: "21 paź 2026",
+    size: "297 KB",
+    description: "Porównanie nagłówków mediów Polska Press z serwisami Wirtualna Polska, Onet i Interia w kontekście polityki społecznej rządu.",
+  },
+  {
+    filename: "PPGscope_Projekt_Master_Architecture.docx",
+    title: "Architektura Docelowa i Metodologia PPGscope Intelligence",
+    tag: "SPECYFIKACJA v2.0",
+    date: "18 paź 2026",
+    size: "205 KB",
+    description: "Pełny opis systemu: taksonomia 18 dziedzin, model 553 mediów, 16 województw, wskaźniki Fable 5.1 i silnik OSINT.",
+  },
+];
+
 export interface GeneratedReportData {
   topicTitle: string;
   angleLabel: string;
@@ -808,6 +884,58 @@ export function InvestigationReportsView({
           <p className="mt-3 text-xs font-mono text-zinc-500">Dostępnych w lokalnym indeksie: {articles.length.toLocaleString("pl-PL")} artykułów</p>
         </div>
       )}
+
+      {/* OFICJALNA BIBLIOTEKA GOTOWYCH RAPORTÓW ZARZĄDCZYCH DOCX */}
+      <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e12]/80 p-6 space-y-4 print:hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+          <div>
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono flex items-center gap-2">
+              <Download className="h-4 w-4 text-teal-400" /> Oficjalna biblioteka gotowych raportów zarządczych (Format DOCX dla MAP i Zarządu PPG)
+            </h2>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Kompletne, sformatowane dokumenty analityczne opracowane w kanonie edytorskim z pełną aparaturą dowodową.
+            </p>
+          </div>
+          <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-300 self-start sm:self-center">
+            8 gotowych opracowań
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+          {PRECOMPILED_EXECUTIVE_REPORTS.map((doc) => (
+            <div
+              key={doc.filename}
+              className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 flex flex-col justify-between space-y-3 hover:border-teal-500/30 hover:bg-white/[0.04] transition group"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-bold text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded">
+                    {doc.tag}
+                  </span>
+                  <span className="text-[10px] font-mono text-zinc-500">{doc.date}</span>
+                </div>
+                <h3 className="text-xs font-bold text-white group-hover:text-teal-200 transition">
+                  {doc.title}
+                </h3>
+                <p className="text-[11px] text-zinc-400 leading-relaxed line-clamp-3">
+                  {doc.description}
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-white/[0.04] flex items-center justify-between">
+                <span className="text-[10px] font-mono text-zinc-500">{doc.size}</span>
+                <a
+                  href={`/reports/${doc.filename}`}
+                  download={doc.filename}
+                  className="px-2.5 py-1 rounded-lg bg-teal-500/15 hover:bg-teal-500/25 border border-teal-500/30 text-teal-300 text-xs font-semibold flex items-center gap-1.5 transition"
+                >
+                  <Download className="h-3 w-3" /> Pobierz DOCX
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

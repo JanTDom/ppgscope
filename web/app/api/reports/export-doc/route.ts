@@ -13,7 +13,7 @@ function escapeHtml(text: string): string {
 }
 
 function generateWordHtml(report: GeneratedReportData): string {
-  const casesRows = report.headlineCases
+  const casesRows = (report.headlineCases || [])
     .map(
       (c) => `
       <tr>
@@ -26,7 +26,7 @@ function generateWordHtml(report: GeneratedReportData): string {
     )
     .join("");
 
-  const metricsCards = report.keyMetrics
+  const metricsCards = (report.keyMetrics || [])
     .map(
       (m) => `
       <td style="width: 25%; padding: 8pt; border: 1pt solid #D9E0E7; background-color: #F4F6F8; vertical-align: top;">
@@ -38,7 +38,7 @@ function generateWordHtml(report: GeneratedReportData): string {
     )
     .join("");
 
-  const correctionsRows = report.editorialCorrections
+  const correctionsRows = (report.editorialCorrections || [])
     .map(
       (ec) => `
       <tr>
@@ -51,7 +51,7 @@ function generateWordHtml(report: GeneratedReportData): string {
     )
     .join("");
 
-  const strategicLossesList = report.strategicLosses
+  const strategicLossesList = (report.strategicLosses || [])
     .map(
       (sl) => `
       <li style="margin-bottom: 4pt; font-size: 9pt; color: #1B2430;">${escapeHtml(sl)}</li>
@@ -123,7 +123,7 @@ function generateWordHtml(report: GeneratedReportData): string {
       </div>
       <h1>${escapeHtml(report.topicTitle)}</h1>
       <div style="font-size: 8.5pt; color: #59636E; margin-bottom: 10pt;">
-        Kąt analityczny: <b>${escapeHtml(report.angleLabel)}</b> · Źródło: <b>${escapeHtml(report.sourceInfo.sourceLabel)}</b> · Status: <b>${report.sourceInfo.status}</b>
+        Kąt analityczny: <b>${escapeHtml(report.angleLabel || "OGÓLNY")}</b> · Źródło: <b>${escapeHtml(report.sourceInfo?.sourceLabel || "Korpus PPGscope")}</b> · Status: <b>${report.sourceInfo?.status || "EVIDENCE_FOUND"}</b>
       </div>
 
       <div style="background-color: #EAF0F7; border-left: 4pt solid #0F2747; padding: 10pt 12pt; margin-bottom: 12pt;">

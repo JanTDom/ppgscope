@@ -53,6 +53,10 @@ data/*.backup.json
 *.doc
 *.png
 *.html
+!web/public/reports/*.docx
+!web/public/reports/*.doc
+!web/public/docs/*.docx
+!web/public/docs/*.doc
 
 # External folders & symlinks
 sources/dropbox_polskapress
