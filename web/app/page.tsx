@@ -9,6 +9,8 @@ import { MethodologyView } from "@/components/views/MethodologyView";
 import { CrossSectionsView } from "@/components/views/CrossSectionsView";
 import { TitlesView } from "@/components/views/TitlesView";
 import { InvestigationReportsView } from "@/components/views/InvestigationReportsView";
+import { FrontpageMonitorView } from "@/components/views/FrontpageMonitorView";
+import { DiscoverCannibalizationView } from "@/components/views/DiscoverCannibalizationView";
 import {
   POLITICAL_ACTORS,
   ALL_POLITICAL_ACTOR_IDS,
@@ -70,6 +72,7 @@ import {
   SlidersHorizontal,
   Monitor,
   Radio,
+  Flame,
 } from "lucide-react";
 
 // =========================================================================
@@ -735,6 +738,7 @@ type AppTab =
   | "overview"
   | "domain_stats"
   | "executive_briefing"
+  | "frontpage_monitor"
   | "compare"
   | "vitality_audit"
   | "charts"
@@ -744,6 +748,7 @@ type AppTab =
   | "articles"
   | "methodology"
   | "ko_sentiment"
+  | "discover_cannibalization"
   | "investigation_reports"
   | "forensics";
 
@@ -760,6 +765,7 @@ const NAV_GROUPS: {
     icon: LayoutDashboard,
     items: [
       { id: "executive_briefing", label: "Briefing zarządczy", meta: "07:30", icon: Target },
+      { id: "frontpage_monitor", label: "Monitor Jedynki", meta: "07:30 / Czołówki", icon: Newspaper },
       { id: "domain_stats", label: "Dziedziny i lokalność", meta: "18", icon: BarChart3 },
     ],
   },
@@ -771,6 +777,7 @@ const NAV_GROUPS: {
       { id: "forensics", label: "Szyba śledcza", icon: Shield },
       { id: "compare", label: "Porównywarka mediów", meta: "A / B", icon: Scale },
       { id: "ko_sentiment", label: "Wydźwięk polityczny", meta: "8 sił", icon: Vote },
+      { id: "discover_cannibalization", label: "Kanibalizacja Discover", meta: "SEO / Bait", icon: Flame },
       { id: "vitality_audit", label: "Żywotność i unikalność", meta: "553", icon: Activity },
       { id: "charts", label: "Centrum wykresów", icon: PieChart },
       { id: "intelligence", label: "Wskaźniki wywiadu", icon: Zap },
@@ -2533,6 +2540,17 @@ export default function PPGscopeApp() {
             </button>
 
             <button
+              onClick={() => setActiveTab("frontpage_monitor")}
+              className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
+                activeTab === "frontpage_monitor"
+                  ? "bg-teal-500/20 text-teal-300 border border-teal-500/40 font-semibold"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+              }`}
+            >
+              <Newspaper className="h-3.5 w-3.5 text-teal-400" /> Monitor Jedynki (07:30)
+            </button>
+
+            <button
               onClick={() => setActiveTab("investigation_reports")}
               className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
                 activeTab === "investigation_reports"
@@ -2574,6 +2592,17 @@ export default function PPGscopeApp() {
               }`}
             >
               <Vote className="h-3.5 w-3.5 text-teal-400" /> Wydźwięk polityczny (8 sił)
+            </button>
+
+            <button
+              onClick={() => setActiveTab("discover_cannibalization")}
+              className={`rounded-lg px-3 py-1.5 transition-all flex items-center gap-1.5 ${
+                activeTab === "discover_cannibalization"
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+              }`}
+            >
+              <Flame className="h-3.5 w-3.5 text-amber-400" /> Kanibalizacja Discover
             </button>
 
             <button
@@ -3386,6 +3415,13 @@ export default function PPGscopeApp() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: MONITOR JEDYNKI (07:30 / CZOŁÓWKI DOM)                       */}
+        {/* ================================================================= */}
+        {activeTab === "frontpage_monitor" && (
+          <FrontpageMonitorView articles={data?.recent_articles || []} />
         )}
 
         {/* ================================================================= */}
@@ -6710,6 +6746,13 @@ export default function PPGscopeApp() {
         )}
 
         {/* ================================================================= */}
+        {/* TAB: KANIBALIZACJA GOOGLE DISCOVER                                */}
+        {/* ================================================================= */}
+        {activeTab === "discover_cannibalization" && (
+          <DiscoverCannibalizationView articles={data?.recent_articles || []} />
+        )}
+
+        {/* ================================================================= */}
         {/* TAB: ŻYWOTNOŚĆ I UNIKALNOŚĆ PORTALI (546 MEDIA HEALTH AUDIT) */}
         {/* ================================================================= */}
         {activeTab === "vitality_audit" && (() => {
@@ -8075,13 +8118,40 @@ export default function PPGscopeApp() {
 
             {/* List of Articles: Live Session or Sample Archive */}
             <div className="space-y-3">
-              {(articlesViewMode === "live_session" && liveSessionArticles.length > 0
-                ? liveSessionArticles
-                : filteredArticles
-                    .filter((a) => selectedDomainFilter === "wszystkie" || a.domain === selectedDomainFilter)
-                    .filter((a) => selectedLocalityFilter === "wszystkie" || a.locality === selectedLocalityFilter)
-                    .slice(0, 50)
-              ).map((art) => (
+              {(() => {
+                const displayList = (articlesViewMode === "live_session" && liveSessionArticles.length > 0
+                  ? liveSessionArticles
+                  : filteredArticles
+                      .filter((a) => selectedDomainFilter === "wszystkie" || a.domain === selectedDomainFilter)
+                      .filter((a) => selectedLocalityFilter === "wszystkie" || a.locality === selectedLocalityFilter)
+                      .slice(0, 50));
+
+                if (displayList.length === 0) {
+                  const targetDomain = selectedMediumDomain !== "ALL" ? selectedMediumDomain : liveFetchDomain;
+                  return (
+                    <div className="rounded-2xl border border-white/[0.08] bg-[#0c0e12]/80 p-8 text-center space-y-4">
+                      <div className="inline-flex p-3 rounded-full bg-teal-500/10 text-teal-300">
+                        <RefreshCw className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-base font-bold text-white">
+                        Brak publikacji w wybranym filtrze dla domeny {targetDomain}
+                      </h3>
+                      <p className="text-xs text-zinc-400 max-w-md mx-auto">
+                        Serwis jest zarejestrowany w sieci PPG (553 tytuły). Kliknij poniżej, aby natychmiast odpytać otwartą sieć (Google News RSS) i pobrać najświeższe artykuły bezpośrednio do bieżącej sesji analitycznej.
+                      </p>
+                      <button
+                        onClick={() => handleFetchLiveArticles(targetDomain)}
+                        disabled={isFetchingLive}
+                        className="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-semibold text-xs transition-all inline-flex items-center gap-2 disabled:opacity-50"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${isFetchingLive ? "animate-spin" : ""}`} />
+                        {isFetchingLive ? "Pobieram z sieci..." : `Przeskanuj ${targetDomain} na żywo`}
+                      </button>
+                    </div>
+                  );
+                }
+
+                return displayList.map((art) => (
                   <div key={art.id} className="rounded-xl border border-white/[0.06] bg-[#0c0e12]/80 p-4 space-y-2 hover:border-white/[0.12] transition-all">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
@@ -8142,7 +8212,8 @@ export default function PPGscopeApp() {
                       </button>
                     </div>
                   </div>
-                ))}
+                ));
+              })()}
             </div>
           </div>
         )}
