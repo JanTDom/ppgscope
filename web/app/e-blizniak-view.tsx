@@ -68,7 +68,7 @@ export function EBlizniakView({ onSwitchToScanner }: { onSwitchToScanner: () => 
       const ebitdaGain = automationBoost ? 8.4 : 3.2;
 
       return {
-        title: "SCENARIUSZ B: REORGANIZACJA W HUBY + AI-TELIER",
+        title: "SCENARIUSZ B: REORGANIZACJA STRUKTUR I AUTOMATYZACJA RUTYNY",
         badge: "Optymalizacja procesowa",
         badgeColor: "bg-teal-500/10 text-teal-400 border-teal-500/20",
         fteChange: 0,
@@ -156,7 +156,7 @@ export function EBlizniakView({ onSwitchToScanner }: { onSwitchToScanner: () => 
               PPG doszło do ściany: redukcje etatów zablokowały innowacje i nowe projekty
             </h2>
             <p className="text-sm text-zinc-300 leading-relaxed max-w-4xl">
-              Od końca 2019 roku do końca 2025 roku ubyło <strong>685 etatów</strong> (w tym <strong>267 osób w latach 2024–2025</strong>). Redakcje regionalne stopniały do 12–18 osób na całe województwo, a w serwisach miejskich NaszeMiasto wprowadzono normę <strong>1 dziennikarza na miasto</strong>. W tym stanie <strong>100% czasu pochłania bieżące utrzymanie</strong> (tanie komunikaty PR, zapowiedzi i „festynoza”). Zdolność do uruchomienia nowych projektów (AI-telier, wideo ZNAM, płatne subskrypcje) wynosi <strong>ZERO</strong>. Każde kolejne cięcie pogłębia stratę, zamiast ją zmniejszać.
+              Od końca 2019 roku do końca 2025 roku ubyło <strong>685 etatów</strong> (w tym <strong>267 osób w latach 2024–2025</strong>). Redakcje regionalne stopniały do 12–18 osób na całe województwo, a w serwisach miejskich NaszeMiasto wprowadzono normę <strong>1 dziennikarza na miasto</strong>. W tym stanie <strong>100% czasu pochłania bieżące utrzymanie</strong> (tanie komunikaty PR, zapowiedzi i „festynoza”). Zdolność do uruchomienia nowych projektów, formatów wideo czy płatnych subskrypcji wynosi <strong>ZERO</strong>. Każde kolejne cięcie pogłębia stratę, zamiast ją zmniejszać.
             </p>
           </div>
         </div>
@@ -256,7 +256,7 @@ export function EBlizniakView({ onSwitchToScanner }: { onSwitchToScanner: () => 
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm">Wariant 2: Huby regionalne + AI-telier</span>
+                  <span className="font-bold text-sm">Wariant 2: Huby regionalne i eliminacja dublowania</span>
                   <span className="text-[10px] font-mono bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded">
                     Rekomendacja
                   </span>
@@ -319,7 +319,7 @@ export function EBlizniakView({ onSwitchToScanner }: { onSwitchToScanner: () => 
                     onChange={(e) => setAutomationBoost(e.target.checked)}
                     className="accent-teal-500 h-4 w-4"
                   />
-                  <span>Aktywuj wdrożenie systemu wydawniczego AI-telier (+22% odzyskanego czasu)</span>
+                  <span>Aktywuj automatyzację depesz i zadań powtarzalnych (+22% odzyskanego czasu)</span>
                 </label>
               </div>
             )}
