@@ -2189,21 +2189,17 @@ export default function PPGscopeApp() {
   if (!isAuthenticated) {
     return (
       <div className="ppg-auth-screen min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center p-4 sm:p-6 selection:bg-teal-500 selection:text-black">
-        {/* Pasmo górne: Dużo logo PPGscope ale bez podpisów */}
-        <div className="w-full max-w-5xl mb-8 overflow-hidden">
-          <div className="flex items-center justify-center gap-4 sm:gap-6 py-3 px-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-md overflow-x-auto scrollbar-none">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="flex-shrink-0 flex items-center justify-center rounded-xl bg-white px-3 sm:px-4 py-1.5 shadow-sm border border-zinc-200">
-                <Image
-                  src="/logo.png"
-                  alt="PPGscope Logo"
-                  width={140}
-                  height={58}
-                  className="h-6 sm:h-8 w-auto object-contain"
-                  priority={i < 4}
-                />
-              </div>
-            ))}
+        {/* Pasmo górne: Jedno duże logo bez podpisów */}
+        <div className="w-full max-w-5xl mb-8 flex justify-center">
+          <div className="flex items-center justify-center rounded-2xl bg-white px-8 py-3.5 shadow-xl border border-zinc-200">
+            <Image
+              src="/logo.png"
+              alt="PPGscope Logo"
+              width={280}
+              height={110}
+              className="h-12 sm:h-16 w-auto object-contain"
+              priority
+            />
           </div>
         </div>
 
