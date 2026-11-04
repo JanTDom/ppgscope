@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import ForensicsPanel from "./forensics-panel";
+import { EBlizniakView } from "./e-blizniak-view";
 import { DataTrustBadge } from "@/components/DataTrustBadge";
 import { PresentationWall, type WallScene } from "@/components/PresentationWall";
 import { MethodologyView } from "@/components/views/MethodologyView";
@@ -860,6 +861,11 @@ export default function PPGscopeApp() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState(false);
+  const [activeSystem, setActiveSystem] = useState<"scanner" | "twin">("scanner");
+  const [scannerPasswordInput, setScannerPasswordInput] = useState("");
+  const [twinPasswordInput, setTwinPasswordInput] = useState("");
+  const [scannerPasswordError, setScannerPasswordError] = useState(false);
+  const [twinPasswordError, setTwinPasswordError] = useState(false);
 
   // Application Data State
   const [data, setData] = useState<DashboardPayload | null>(null);
@@ -1179,6 +1185,34 @@ export default function PPGscopeApp() {
       }
     } catch {
       setPasswordError(true);
+    }
+  };
+
+  const handleSystemLogin = async (e: React.FormEvent, targetSystem: "scanner" | "twin") => {
+    e.preventDefault();
+    if (targetSystem === "scanner") setScannerPasswordError(false);
+    else setTwinPasswordError(false);
+
+    const pwd = targetSystem === "scanner" ? scannerPasswordInput : twinPasswordInput;
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pwd }),
+      });
+      if (response.ok) {
+        setIsAuthenticated(true);
+        setActiveSystem(targetSystem);
+        setScannerPasswordInput("");
+        setTwinPasswordInput("");
+      } else {
+        if (targetSystem === "scanner") setScannerPasswordError(true);
+        else setTwinPasswordError(true);
+      }
+    } catch {
+      if (targetSystem === "scanner") setScannerPasswordError(true);
+      else setTwinPasswordError(true);
     }
   };
 
@@ -2154,75 +2188,157 @@ export default function PPGscopeApp() {
 
   if (!isAuthenticated) {
     return (
-      <div className="ppg-auth-screen min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center p-4 selection:bg-teal-500 selection:text-black">
-        <div className="ppg-auth-card w-full max-w-md p-8 rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 backdrop-blur-xl shadow-2xl">
-          {/* Project Brand Header */}
-          <div className="ppg-auth-brand flex flex-col items-center text-center mb-6">
-            <div className="relative mb-3 flex items-center justify-center rounded-2xl bg-white px-6 py-4 shadow-lg border border-zinc-200">
-              <Image
-                src="/logo.png"
-                alt="PPGscope Logo"
-                width={320}
-                height={133}
-                className="h-20 w-auto object-contain"
-                priority
-              />
-            </div>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <span className="text-[11px] font-mono uppercase bg-teal-500/10 text-teal-300 border border-teal-500/20 px-2 py-0.5 rounded">
-                Intelligence v2.0
-              </span>
-              <span className="text-[11px] font-mono bg-white/[0.06] text-zinc-400 border border-white/[0.08] px-2 py-0.5 rounded">
-                553 mediów PPG
-              </span>
-            </div>
-            <p className="text-xs text-zinc-400 mt-2">System wywiadu mediowego i taksonomii Polska Press Grupa</p>
-          </div>
-
-          <div className="mb-6 rounded-lg border border-white/[0.06] bg-black/40 p-3 text-[11px] text-zinc-400 font-mono">
-            Standard Fable 5.1 · Prawda danych ponad wszystko
-          </div>
-
-          <form onSubmit={handleLogin} className="ppg-auth-form space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                Hasło dostępu do systemu:
-              </label>
-              <div className="relative">
-              <input
-                  type="password"
-                  value={passwordInput}
-                  onChange={(e) => setPasswordInput(e.target.value)}
-                  placeholder="Wprowadź hasło analityczne..."
-                  className="w-full rounded-xl border border-white/[0.1] bg-black/60 py-2.5 pl-3.5 pr-10 text-sm text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 font-mono"
-                autoComplete="current-password"
-                  autoFocus
+      <div className="ppg-auth-screen min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center p-4 sm:p-6 selection:bg-teal-500 selection:text-black">
+        {/* Pasmo górne: Dużo logo PPGscope ale bez podpisów */}
+        <div className="w-full max-w-5xl mb-8 overflow-hidden">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 py-3 px-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-md overflow-x-auto scrollbar-none">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="flex-shrink-0 flex items-center justify-center rounded-xl bg-white px-3 sm:px-4 py-1.5 shadow-sm border border-zinc-200">
+                <Image
+                  src="/logo.png"
+                  alt="PPGscope Logo"
+                  width={140}
+                  height={58}
+                  className="h-6 sm:h-8 w-auto object-contain"
+                  priority={i < 4}
                 />
-                <Lock className="absolute right-3 top-3 h-4 w-4 text-zinc-500" />
               </div>
-            </div>
-
-            {passwordError && (
-              <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg">
-                <AlertTriangle className="h-4 w-4 shrink-0" />
-                <span>Nieprawidłowe hasło. Wymagana autoryzacja uprawnień.</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-teal-500 py-2.5 text-sm font-semibold text-black transition-all hover:bg-teal-400 active:scale-[0.99] shadow-lg shadow-teal-500/20"
-            >
-              Autoryzuj sesję analityczną
-            </button>
-          </form>
-
-          <div className="mt-6 pt-4 border-t border-white/[0.06] text-center">
-            <p className="text-[11px] text-zinc-500">
-              Dostęp autoryzowany wyłącznie dla analityków i redakcji PPGscope
-            </p>
+            ))}
           </div>
         </div>
+
+        {/* Podwójna brama autoryzacyjna (Dual Login) */}
+        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LEWE OKNO: SKANER PPG (BEZ LOGO) */}
+          <div className="ppg-auth-card p-6 sm:p-8 rounded-2xl border border-teal-500/30 bg-[#0c0e12]/95 backdrop-blur-xl shadow-2xl flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500/50 to-teal-300" />
+            <div>
+              <div className="mb-6">
+                <div className="inline-block text-[11px] font-mono uppercase bg-teal-500/10 text-teal-300 border border-teal-500/20 px-2.5 py-0.5 rounded-full mb-3">
+                  System Obserwacji Mediów
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight text-white font-mono">
+                  SKANER PPG
+                </h2>
+                <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                  Telemetria w czasie rzeczywistym, analiza 553 serwisów Polska Press, wydźwięk sceny politycznej, pluralizm i taksonomia publikacji.
+                </p>
+              </div>
+
+              <div className="mb-6 rounded-lg border border-white/[0.06] bg-black/40 p-3 text-[11px] text-zinc-400 font-mono">
+                Standard Fable 5.1 · Prawda danych ponad wszystko
+              </div>
+
+              <form onSubmit={(e) => handleSystemLogin(e, "scanner")} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                    Hasło dostępu do Skanera:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      value={scannerPasswordInput}
+                      onChange={(e) => setScannerPasswordInput(e.target.value)}
+                      placeholder="Wprowadź hasło analityczne..."
+                      className="w-full rounded-xl border border-white/[0.1] bg-black/60 py-2.5 pl-3.5 pr-10 text-sm text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 font-mono"
+                      autoComplete="current-password"
+                    />
+                    <Lock className="absolute right-3 top-3 h-4 w-4 text-zinc-500" />
+                  </div>
+                </div>
+
+                {scannerPasswordError && (
+                  <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <span>Nieprawidłowe hasło. Wymagana autoryzacja uprawnień.</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full rounded-xl bg-teal-500 py-2.5 text-sm font-semibold text-black transition-all hover:bg-teal-400 active:scale-[0.99] shadow-lg shadow-teal-500/20 cursor-pointer font-mono"
+                >
+                  Autoryzuj sesję Skanera
+                </button>
+              </form>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-white/[0.06] text-center">
+              <p className="text-[11px] text-zinc-500 font-mono">
+                Dostęp autoryzowany: analitycy mediów i audytorzy PPGscope
+              </p>
+            </div>
+          </div>
+
+          {/* PRAWE OKNO: E-BLIŹNIAK PPG */}
+          <div className="ppg-auth-card p-6 sm:p-8 rounded-2xl border border-sky-500/30 bg-[#0c0e12]/95 backdrop-blur-xl shadow-2xl flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500/50 to-indigo-500" />
+            <div>
+              <div className="mb-6">
+                <div className="inline-block text-[11px] font-mono uppercase bg-sky-500/10 text-sky-300 border border-sky-500/20 px-2.5 py-0.5 rounded-full mb-3">
+                  Digital Enterprise Twin
+                </div>
+                <h2 className="text-2xl font-bold tracking-tight text-white font-mono">
+                  E-BLIŹNIAK PPG
+                </h2>
+                <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                  Cyfrowy bliźniak holdingu Polska Press: potencjał ludzki (1 229 FTE), finanse (RZiS), analiza ściany cięć oraz symulacje zmian i restrukturyzacji.
+                </p>
+              </div>
+
+              <div className="mb-6 rounded-lg border border-sky-500/10 bg-sky-950/20 p-3 text-[11px] text-sky-300 font-mono">
+                Struktura organizacji · Ściana cięć · Potencjał zmian
+              </div>
+
+              <form onSubmit={(e) => handleSystemLogin(e, "twin")} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                    Hasło dostępu do E-Bliźniaka:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      value={twinPasswordInput}
+                      onChange={(e) => setTwinPasswordInput(e.target.value)}
+                      placeholder="Wprowadź hasło strategiczne..."
+                      className="w-full rounded-xl border border-white/[0.1] bg-black/60 py-2.5 pl-3.5 pr-10 text-sm text-white placeholder-zinc-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 font-mono"
+                      autoComplete="current-password"
+                    />
+                    <Lock className="absolute right-3 top-3 h-4 w-4 text-zinc-500" />
+                  </div>
+                </div>
+
+                {twinPasswordError && (
+                  <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    <span>Nieprawidłowe hasło. Wymagana autoryzacja uprawnień.</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full rounded-xl bg-sky-500 py-2.5 text-sm font-semibold text-black transition-all hover:bg-sky-400 active:scale-[0.99] shadow-lg shadow-sky-500/20 cursor-pointer font-mono"
+                >
+                  Autoryzuj sesję E-Bliźniaka
+                </button>
+              </form>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-white/[0.06] text-center">
+              <p className="text-[11px] text-zinc-500 font-mono">
+                Dostęp: zarząd, dyrektorzy strategii i planiści PPG Twin
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeSystem === "twin") {
+    return (
+      <div className="ppg-app-shell bg-[#060709] min-h-screen text-zinc-100">
+        <EBlizniakView onSwitchToScanner={() => setActiveSystem("scanner")} />
       </div>
     );
   }
@@ -2363,6 +2479,32 @@ export default function PPGscopeApp() {
               <p className="text-[11px] text-zinc-400 mt-0.5">
                 Kategoryzacja tematyczna i analityka lokalności (C / CL / L)
               </p>
+            </div>
+
+            {/* Ekosystem Switcher */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-black/60 border border-white/[0.08] ml-2">
+              <button
+                type="button"
+                onClick={() => setActiveSystem("scanner")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                  (activeSystem as string) === "scanner"
+                    ? "bg-teal-500 text-black font-bold shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                SKANER PPG
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveSystem("twin")}
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                  (activeSystem as string) === "twin"
+                    ? "bg-sky-500 text-black font-bold shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                E-BLIŹNIAK PPG
+              </button>
             </div>
           </div>
 
