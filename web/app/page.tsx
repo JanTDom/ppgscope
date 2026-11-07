@@ -10,6 +10,7 @@ import { CrossSectionsView } from "@/components/views/CrossSectionsView";
 import { TitlesView } from "@/components/views/TitlesView";
 import { InvestigationReportsView } from "@/components/views/InvestigationReportsView";
 import { FrontpageMonitorView } from "@/components/views/FrontpageMonitorView";
+import { LocalBenchmarkView } from "@/components/views/LocalBenchmarkView";
 import { DiscoverCannibalizationView } from "@/components/views/DiscoverCannibalizationView";
 import {
   POLITICAL_ACTORS,
@@ -739,6 +740,7 @@ type AppTab =
   | "domain_stats"
   | "executive_briefing"
   | "frontpage_monitor"
+  | "local_benchmark"
   | "compare"
   | "vitality_audit"
   | "charts"
@@ -766,6 +768,7 @@ const NAV_GROUPS: {
     items: [
       { id: "executive_briefing", label: "Briefing zarządczy", meta: "07:30", icon: Target },
       { id: "frontpage_monitor", label: "Monitor Jedynki", meta: "07:30 / Czołówki", icon: Newspaper },
+      { id: "local_benchmark", label: "PPG vs Rynek lokalny", meta: "20 par / SGL", icon: Compass },
       { id: "domain_stats", label: "Dziedziny i lokalność", meta: "18", icon: BarChart3 },
     ],
   },
@@ -3432,6 +3435,13 @@ export default function PPGscopeApp() {
             articles={data?.recent_articles || []}
             editorialIntelligence={data?.editorial_intelligence}
           />
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB: PPG VS RYNEK LOKALNY (BENCHMARK 20 RYNKÓW / SGL)             */}
+        {/* ================================================================= */}
+        {activeTab === "local_benchmark" && (
+          <LocalBenchmarkView />
         )}
 
         {/* ================================================================= */}
