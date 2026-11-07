@@ -28,6 +28,7 @@ wheels/
 htmlcov/
 
 # Node & Next.js
+!web/lib/
 node_modules/
 .next/
 out/
