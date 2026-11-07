@@ -23,6 +23,7 @@ sys.path.insert(0, BASE_DIR)
 from ppgscope.press.pbc_registry import PBCRegistry
 from ppgscope.press.frontpage_monitor import FrontpageMonitor
 from ppgscope.press.editorial_autonomy import EditorialAutonomyAnalyzer
+from scripts.refresh_local_benchmark_live import refresh_live_benchmark
 
 LOG_DIR = os.path.join(BASE_DIR, "data", "cron_logs")
 os.makedirs(LOG_DIR, exist_ok=True)
@@ -123,6 +124,14 @@ def refresh_frontpages_cycle() -> dict:
             logger.info("Pomyślnie zaktualizowano dashboard.json najświeższym audytem czołówek.")
         except Exception as e:
             logger.error(f"Błąd aktualizacji dashboard.json: {e}")
+
+    # 6. Automatyczny skan live konkurentów lokalnych i prasy SGL
+    logger.info("Krok 6: Automatyczny audyt porównawczy PPG vs Rynek Lokalny...")
+    try:
+        benchmark_res = refresh_live_benchmark()
+        logger.info(f"Pomyślnie zaktualizowano benchmark 20 rynków lokalnych: {benchmark_res.get('updated_pairs_count')} par.")
+    except Exception as e:
+        logger.error(f"Błąd odświeżania benchmarku lokalnego: {e}")
 
     duration = (datetime.now() - start_time).total_seconds()
     logger.info(f"=== CYKL ZAKOŃCZONY W CZASIE {duration:.1f}s. Autonomia: {autonomy_report.editorial_autonomy_rate_pct}% ===")

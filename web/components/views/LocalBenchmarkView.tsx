@@ -19,7 +19,8 @@ import {
   Zap,
   Info,
   Radio,
-  FileText
+  FileText,
+  RefreshCw
 } from "lucide-react";
 
 interface MediaEntity {
@@ -39,14 +40,17 @@ interface MediaEntity {
 interface FrontpageDuel {
   scan_time: string;
   ppg_hero_title: string;
+  ppg_hero_url?: string;
   ppg_hero_category: string;
   ppg_is_syndicated: boolean;
   ppg_origin: string;
   competitor_hero_title: string;
+  competitor_hero_url?: string;
   competitor_hero_category: string;
   competitor_author: string;
   topic_convergence: boolean;
   verdict: string;
+  last_scanned_iso?: string;
 }
 
 interface BenchmarkPair {
@@ -65,6 +69,8 @@ interface BenchmarkPair {
 
 interface BenchmarkData {
   generated_at: string;
+  last_live_scan_at?: string;
+  live_scan_status?: string;
   methodology: string;
   sample_size_articles: number;
   summary_metrics: {
@@ -105,6 +111,44 @@ export function LocalBenchmarkView({ initialData }: LocalBenchmarkViewProps) {
   const [selectedPairId, setSelectedPairId] = useState<string>("pomorskie-gdansk");
   const [searchQuery, setSearchQuery] = useState("");
   const [tierFilter, setTierFilter] = useState<"ALL" | "METROPOLITAN" | "COUNTY_SGL">("ALL");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState<string | null>(null);
+
+  const handleRefreshLive = async () => {
+    setIsRefreshing(true);
+    setRefreshMessage("Skanowanie na żywo czołówek Chromium (Slot #1)...");
+    try {
+      const res = await fetch("/api/benchmark/live?refresh=true", { method: "POST" });
+      if (!res.ok) throw new Error("Błąd odświeżania na żywo");
+      const json = await res.json();
+      if (json.benchmark) {
+        setData(json.benchmark);
+        setRefreshMessage("Pomyślnie zaktualizowano czołówki na żywo!");
+      } else {
+        const freshRes = await fetch(`/data/local_benchmark.json?t=${Date.now()}`);
+        if (freshRes.ok) {
+          const freshData = await freshRes.json();
+          setData(freshData);
+          setRefreshMessage("Pomyślnie odświeżono dane czołówek!");
+        }
+      }
+    } catch (err) {
+      console.warn("Błąd podczas odświeżania na żywo, pobieranie najnowszych danych z dysku:", err);
+      try {
+        const freshRes = await fetch(`/data/local_benchmark.json?t=${Date.now()}`);
+        if (freshRes.ok) {
+          const freshData = await freshRes.json();
+          setData(freshData);
+          setRefreshMessage("Załadowano najnowsze dane z dysku.");
+        }
+      } catch (fallbackErr) {
+        console.error("Fallback pobierania danych nie powiódł się:", fallbackErr);
+      }
+    } finally {
+      setIsRefreshing(false);
+      setTimeout(() => setRefreshMessage(null), 4000);
+    }
+  };
 
   // Ładowanie danych z public/data/local_benchmark.json w przypadku braku props
   React.useEffect(() => {
@@ -190,57 +234,83 @@ export function LocalBenchmarkView({ initialData }: LocalBenchmarkViewProps) {
           pojedynku czołówek na żywo w renderowanym DOM.
         </p>
 
-        {/* PRZEŁĄCZNIK WIDOKÓW */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab("duel")}
-            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-              activeTab === "duel"
-                ? "bg-[#0f4c81] text-white shadow-sm"
-                : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
-            }`}
-          >
-            <Radio className="h-3.5 w-3.5" />
-            Pojedynek czołówek (Slot #1 Duel)
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("matrix")}
-            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-              activeTab === "matrix"
-                ? "bg-[#0f4c81] text-white shadow-sm"
-                : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
-            }`}
-          >
-            <Scale className="h-3.5 w-3.5" />
-            Pełna matryca par (20 rynków)
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("deserts")}
-            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-              activeTab === "deserts"
-                ? "bg-[#0f4c81] text-white shadow-sm"
-                : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
-            }`}
-          >
-            <Compass className="h-3.5 w-3.5" />
-            Pustynie informacyjne (News Desert Index)
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("methodology")}
-            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-              activeTab === "methodology"
-                ? "bg-[#0f4c81] text-white shadow-sm"
-                : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
-            }`}
-          >
-            <Info className="h-3.5 w-3.5" />
-            Metodologia audytu
-          </button>
+        {/* PRZEŁĄCZNIK WIDOKÓW I LIVE REFRESH */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab("duel")}
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                activeTab === "duel"
+                  ? "bg-[#0f4c81] text-white shadow-sm"
+                  : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
+              }`}
+            >
+              <Radio className="h-3.5 w-3.5" />
+              Pojedynek czołówek (Slot #1 Duel)
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("matrix")}
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                activeTab === "matrix"
+                  ? "bg-[#0f4c81] text-white shadow-sm"
+                  : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
+              }`}
+            >
+              <Scale className="h-3.5 w-3.5" />
+              Pełna matryca par (20 rynków)
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("deserts")}
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                activeTab === "deserts"
+                  ? "bg-[#0f4c81] text-white shadow-sm"
+                  : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
+              }`}
+            >
+              <Compass className="h-3.5 w-3.5" />
+              Pustynie informacyjne (News Desert Index)
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("methodology")}
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                activeTab === "methodology"
+                  ? "bg-[#0f4c81] text-white shadow-sm"
+                  : "bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
+              }`}
+            >
+              <Info className="h-3.5 w-3.5" />
+              Metodologia audytu
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {data.last_live_scan_at && (
+              <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Live DOM: <strong className="text-zinc-200 font-mono">{new Date(data.last_live_scan_at).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}</strong></span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleRefreshLive}
+              disabled={isRefreshing}
+              className="flex items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/[0.08] disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 text-emerald-400 ${isRefreshing ? "animate-spin" : ""}`} />
+              <span>{isRefreshing ? "Skanowanie Chromium..." : "Odśwież czołówki live"}</span>
+            </button>
+          </div>
         </div>
+
+        {refreshMessage && (
+          <div className="mt-2 text-xs font-mono text-emerald-400">
+            {refreshMessage}
+          </div>
+        )}
       </div>
 
       {/* ===================================================================== */}
@@ -390,7 +460,12 @@ export function LocalBenchmarkView({ initialData }: LocalBenchmarkViewProps) {
               {/* JEDYNKA PPG */}
               <div className="mt-4 rounded-xl border border-white/[0.06] bg-black/40 p-4">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-mono text-[10px] text-zinc-400">SLOT #1 · CZOŁÓWKA NA ŻYWO</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-[10px] text-zinc-400">SLOT #1</span>
+                    <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-mono text-sky-300">
+                      LIVE CHROMIUM DOM
+                    </span>
+                  </div>
                   {selectedPair.duel.ppg_is_syndicated ? (
                     <span className="rounded bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
                       SYNDYKACJA SIECIOWA
@@ -404,6 +479,18 @@ export function LocalBenchmarkView({ initialData }: LocalBenchmarkViewProps) {
                 <p className="mt-2 text-base font-semibold leading-snug text-white">
                   {selectedPair.duel.ppg_hero_title}
                 </p>
+                {selectedPair.duel.ppg_hero_url && (
+                  <div className="mt-2">
+                    <a
+                      href={selectedPair.duel.ppg_hero_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] text-sky-400 hover:text-sky-300 hover:underline"
+                    >
+                      Otwórz artykuł czołówkowy PPG <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
+                  </div>
+                )}
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
                   <span className="rounded bg-white/[0.04] px-2 py-0.5 text-[11px]">
                     Kategoria: <strong className="text-zinc-200">{selectedPair.duel.ppg_hero_category}</strong>
@@ -467,7 +554,12 @@ export function LocalBenchmarkView({ initialData }: LocalBenchmarkViewProps) {
               {/* JEDYNKA KONKURENTA */}
               <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-950/10 p-4">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-mono text-[10px] text-zinc-400">SLOT #1 · CZOŁÓWKA NA ŻYWO</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-[10px] text-zinc-400">SLOT #1</span>
+                    <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-mono text-emerald-300">
+                      LIVE CHROMIUM DOM
+                    </span>
+                  </div>
                   <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
                     100% TEMAT MIEJSKI / LOKALNY
                   </span>
@@ -475,6 +567,18 @@ export function LocalBenchmarkView({ initialData }: LocalBenchmarkViewProps) {
                 <p className="mt-2 text-base font-semibold leading-snug text-white">
                   {selectedPair.duel.competitor_hero_title}
                 </p>
+                {selectedPair.duel.competitor_hero_url && (
+                  <div className="mt-2">
+                    <a
+                      href={selectedPair.duel.competitor_hero_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline"
+                    >
+                      Otwórz artykuł czołówkowy rywala <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
+                  </div>
+                )}
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
                   <span className="rounded bg-white/[0.04] px-2 py-0.5 text-[11px]">
                     Kategoria: <strong className="text-emerald-300">{selectedPair.duel.competitor_hero_category}</strong>
