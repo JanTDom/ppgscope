@@ -48,6 +48,7 @@ data/*.db
 data/*.log
 data/*.backup*.json
 data/*.backup.json
+data/press_covers/
 
 # Local exports
 *.docx

@@ -3428,7 +3428,10 @@ export default function PPGscopeApp() {
         {/* TAB: MONITOR JEDYNKI (07:30 / CZOŁÓWKI DOM)                       */}
         {/* ================================================================= */}
         {activeTab === "frontpage_monitor" && (
-          <FrontpageMonitorView articles={data?.recent_articles || []} />
+          <FrontpageMonitorView
+            articles={data?.recent_articles || []}
+            editorialIntelligence={data?.editorial_intelligence}
+          />
         )}
 
         {/* ================================================================= */}
