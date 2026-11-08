@@ -49,6 +49,7 @@ data/*.log
 data/*.backup*.json
 data/*.backup.json
 data/press_covers/
+data/cron_logs/
 
 # Local exports
 *.docx

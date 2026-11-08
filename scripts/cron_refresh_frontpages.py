@@ -120,7 +120,7 @@ def refresh_frontpages_cycle() -> dict:
             dash_data["last_frontpage_refresh"] = datetime.now().isoformat()
 
             with open(dashboard_path, "w", encoding="utf-8") as f:
-                json.dump(dash_data, f, indent=2, ensure_ascii=False)
+                json.dump(dash_data, f, separators=(',', ':'), ensure_ascii=False)
             logger.info("Pomyślnie zaktualizowano dashboard.json najświeższym audytem czołówek.")
         except Exception as e:
             logger.error(f"Błąd aktualizacji dashboard.json: {e}")
