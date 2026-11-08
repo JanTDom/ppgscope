@@ -250,7 +250,7 @@ export function CrossSectionsView({ crossSections }: CrossSectionsViewProps) {
 
               <div>
                 <div className="flex justify-between text-xs font-mono mb-1.5">
-                  <span className="text-zinc-300">Syndykacja centralna (Wsad z Warszawy C)</span>
+                  <span className="text-zinc-300">Syndykacja sieciowa (Wsad ponadlokalny / centralny C)</span>
                   <span className="text-amber-400 font-bold tabular-nums">{activeStats.syndicated_pct}%</span>
                 </div>
                 <div className="h-2.5 w-full bg-white/[0.06] rounded-full overflow-hidden">

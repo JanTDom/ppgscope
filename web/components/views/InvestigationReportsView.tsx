@@ -184,7 +184,7 @@ const ANALYSIS_ANGLE_GROUPS: Array<{
     options: [
       { id: "DEPOLITICIZATION_SEO", label: "Ucieczka w poradnictwo SEO", desc: "Czy temat sprowadzono do suchego poradnika pod algorytm Google?" },
       { id: "ATTACK_RESISTANCE", label: "Odporność na ataki opozycji", desc: "Czy media objaśniły wątpliwości, czy powieliły krytykę?" },
-      { id: "LOCAL_VS_SYNDICATE", label: "Lokalność vs centralny wsad", desc: "Czy redakcje lokalne pisały same, czy powieliły depeszę z Warszawy?" },
+      { id: "LOCAL_VS_SYNDICATE", label: "Lokalność vs wsad sieciowy", desc: "Czy redakcje lokalne pisały same, czy powieliły depeszę syndykowaną (centrala / hub)?" },
     ],
   },
 ];
