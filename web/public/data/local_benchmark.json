@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-08T16:32:41.641214+00:00",
+  "generated_at": "2026-11-09T06:09:18.890803+00:00",
   "methodology": "PPGscope Benchmark V1 · Analiza parowana 20 rynków · Audyt próby artykułów czołówkowych N=4,200 · Klasyfikacja taksonomiczna tematów · Pomiar autorstwa i syndykacji",
   "sample_size_articles": 4200,
   "summary_metrics": {
@@ -54,19 +54,19 @@
         "editorial_staff_est": "ok. 60 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "W strzelaninie w Krakowie zginęła mieszkanka gminy Chodzież. Zostawiła czwórkę dzieci",
-        "ppg_hero_category": "DZIŚ I JUTRO ŻAŁOBA NARODOWA",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (pila.naszemiasto.pl)",
-        "competitor_hero_title": "Arka wygrała, a trener przeprasza",
+        "ppg_origin": "Syndykacja (gazetakrakowska.pl)",
+        "competitor_hero_title": "Księgi Kondolencyjne po sobotniej tragedii",
         "competitor_hero_category": "Infrastruktura i Transport",
         "competitor_author": "Michał Brancewicz",
         "topic_convergence": false,
         "verdict": "PPG w Gdańsk stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://pila.naszemiasto.pl/w-strzelaninie-w-krakowie-zginela-mieszkanka-gminy-chodziez-izabela-osierocila-czworke-dzieci-to-wielka-niesprawiedliwosc/ar/c1p2-29509683",
-        "competitor_hero_url": "https://www.trojmiasto.pl/sport/Arka-Gdynia-wygrala-Trener-przeprosil-ze-kibice-musieli-to-ogladac-do-przerwy-n228602.html",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "ppg_hero_url": "https://gazetakrakowska.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319",
+        "competitor_hero_url": "https://www.trojmiasto.pl/wiadomosci/Ksiegi-Kondolencyjne-po-sobotniej-tragedii-n228617.html",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Trójmiasto posiada najsilniejszy i najbardziej dochodowy niezależny portal lokalny w Polsce (Trojmiasto.pl). Brak ryzyka próżni.",
@@ -105,19 +105,19 @@
         "editorial_staff_est": "ok. 14 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Jakub Kulik. Jeden z krakowskich superbohaterów. „Dla mnie to jest heroizm”",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Rynek Główny jak twierdza? Kraków po ataku terrorysty rozważa stałe bariery",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (gazetakrakowska.pl)",
-        "competitor_hero_title": "POLICJA Policjant ratował innych, teraz sam potrzebuje pomocy. „Twardziel, jeszcze raz twardziel”",
-        "competitor_hero_category": "POLICJA",
+        "competitor_hero_title": "BEZPIECZEŃSTWO Sprawca zamachu w Krakowie zmarł w szpitalu",
+        "competitor_hero_category": "Najnowsze",
         "competitor_author": "Patryk Strzałkowski",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Kraków: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://gazetakrakowska.pl/zamach-w-krakowie-jakub-kulik-oto-jeden-z-bohaterskich-policjantow-ktorzy-zneutralizowali-zamachowca-to-byly-zolnierz-i-strazak/ar/c1p2-29509671",
-        "competitor_hero_url": "https://lovekrakow.pl/policjant-ratowal-innych-teraz-sam-potrzebuje-pomocy-twardziel-jeszcze-raz-twardziel",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "ppg_hero_url": "https://gazetakrakowska.pl/krakow-po-ataku-terrorysty-rozwaza-zamontowanie-stalych-barier-ochronnych-w-okolicy-rynku-czasowe-szykany-w-centrum-miasta-juz-byly/ar/c1p2-29509921",
+        "competitor_hero_url": "https://lovekrakow.pl/sprawca-zamachu-w-krakowie-zmarl-w-szpitalu",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Kraków ma bogaty ekosystem mediów niezależnych (LoveKraków, KRKnews, Krowoderska.pl).",
@@ -156,19 +156,19 @@
         "editorial_staff_est": "Zintegrowany newsroom z TV WTK (ok. 35 osób)"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "W strzelaninie w Krakowie zginęła Wielkopolanka. Zostawiła czwórkę dzieci",
-        "ppg_hero_category": "DZIŚ I JUTRO ŻAŁOBA NARODOWA",
-        "ppg_is_syndicated": false,
-        "ppg_origin": "Redakcja (gloswielkopolski.pl)",
-        "competitor_hero_title": "Słowa wsparcia dla Krakowa. Miasto Poznań uruchomiło internetową księgę kondolencyjną",
-        "competitor_hero_category": "29 minut temu",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
+        "ppg_is_syndicated": true,
+        "ppg_origin": "Syndykacja (gazetakrakowska.pl)",
+        "competitor_hero_title": "Nie żyje zamachowiec z Krakowa. Zmarł w poniedziałek nad ranem KRAJ",
+        "competitor_hero_category": "3 minuty temu",
         "competitor_author": "Redakcja ePoznan / Alert",
         "topic_convergence": false,
-        "verdict": "Zróżnicowana agenda w Poznań: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://gloswielkopolski.pl/w-strzelaninie-w-krakowie-zginela-mieszkanka-gminy-chodziez-izabela-osierocila-czworke-dzieci-to-wielka-niesprawiedliwosc/ar/c1p2-29509683",
-        "competitor_hero_url": "https://epoznan.pl/news-news-181768-slowa_wsparcia_dla_krakowa_miasto_poznan_uruchomilo_internetowa_ksiege_kondolencyjna",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "verdict": "PPG w Poznań stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
+        "ppg_hero_url": "https://gazetakrakowska.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319",
+        "competitor_hero_url": "https://epoznan.pl/news-news-181772-nie_zyje_zamachowiec_z_krakowa_zmarl_w_poniedzialek_nad_ranem",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Silna synergia ePoznań z kanałem WTK daje pełne pokrycie bieżących wydarzeń aglomeracji.",
@@ -207,7 +207,7 @@
         "editorial_staff_est": "ok. 12 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "07:09 (Live DOM Slot #1)",
         "ppg_hero_title": "Nowe bariery i więcej patroli w centrum Wrocławia. Najnowsze decyzje władz miasta",
         "ppg_hero_category": "TRAGEDIA W KRAKOWIE I OSTROWCU. CZY WROCŁAW JEST BEZPIECZNY?",
         "ppg_is_syndicated": false,
@@ -219,7 +219,7 @@
         "verdict": "Zróżnicowana agenda w Wrocław: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "ppg_hero_url": "https://gazetawroclawska.pl/po-strzelaninie-w-krakowie-wroclaw-wzmacnia-zabezpieczenia-dodatkowe-bariery-w-centrum-i-wiecej-patroli/ar/c1p2-29509239",
         "competitor_hero_url": "https://tuwroclaw.com/artykul/wroclawska-policja-wysyla-n2571956",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "Presja ze strony biuletynu urzędowego Wroclaw.pl (finansowanego ze środków miasta) osłabia niezależny rynek reklamowy.",
@@ -258,19 +258,19 @@
         "editorial_staff_est": "ok. 10 dziennikarzy śledczych i publicystów"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "W strzelaninie w Krakowie zginęła mieszkanka gminy Chodzież. Zostawiła czwórkę dzieci",
-        "ppg_hero_category": "DZIŚ I JUTRO ŻAŁOBA NARODOWA",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (pila.naszemiasto.pl)",
-        "competitor_hero_title": "MARCIN MUSIAŁ Marzy mi się pojemna, łaskawa śląska pamięć",
+        "ppg_origin": "Syndykacja (gazetakrakowska.pl)",
+        "competitor_hero_title": "Ten straszny Śląsk. Jak Ślązacy rozwinęli horrory",
         "competitor_hero_category": "Gospodarka i Przemysł Śląska",
         "competitor_author": "Marcin Zasada",
         "topic_convergence": false,
         "verdict": "PPG w Katowice stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://pila.naszemiasto.pl/w-strzelaninie-w-krakowie-zginela-mieszkanka-gminy-chodziez-izabela-osierocila-czworke-dzieci-to-wielka-niesprawiedliwosc/ar/c1p2-29509683",
-        "competitor_hero_url": "https://www.slazag.pl/marcin-musial-marzy-mi-sie-pojemna-laskawa-slaska-pamiec-w-ktorej-mieszcza-sie-konserwa-lysko-lewaczka-skiendziel-i-libek-fuglewicz",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "ppg_hero_url": "https://gazetakrakowska.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319",
+        "competitor_hero_url": "https://www.slazag.pl/ten-straszny-slask-czyli-jak-slazacy-dolozyli-swoja-cegielke-do-rozwoju-horroru-od-golema-i-karkonoskich-mgiel-po-franza-waxmana-i-hanne-schygullea",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Śląsk posiada aktywną scenę mediów tożsamościowych (Ślązag, InfoKatowice, Nowiny Gliwickie).",
@@ -309,19 +309,19 @@
         "editorial_staff_est": "ok. 9 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "W strzelaninie w Krakowie zginęła mieszkanka gminy Chodzież. Zostawiła czwórkę dzieci",
-        "ppg_hero_category": "DZIŚ I JUTRO ŻAŁOBA NARODOWA",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (pila.naszemiasto.pl)",
-        "competitor_hero_title": "08.11.2026 | 12:24 Nowy gracz bydgoskiej Astorii. Transfer wprost z Estonii",
+        "ppg_origin": "Syndykacja (gazetakrakowska.pl)",
+        "competitor_hero_title": "08.11.2026 | 15:20 Komunikat o zmianach w wydarzeniach organizowanych przez Adria Art",
         "competitor_hero_category": "Inwestycje Miejskie",
         "competitor_author": "Błażej Bembnista",
         "topic_convergence": false,
         "verdict": "PPG w Bydgoszcz stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://pila.naszemiasto.pl/w-strzelaninie-w-krakowie-zginela-mieszkanka-gminy-chodziez-izabela-osierocila-czworke-dzieci-to-wielka-niesprawiedliwosc/ar/c1p2-29509683",
-        "competitor_hero_url": "https://metropoliabydgoska.pl/nowy-gracz-bydgoskiej-astorii-transfer-wprost-z-estonii/",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "ppg_hero_url": "https://gazetakrakowska.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319",
+        "competitor_hero_url": "https://metropoliabydgoska.pl/komunikat-o-zmianach-w-wydarzeniach-organizowanych-przez-adria-art/",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "W mniejszych miastach regionu (Grudziądz, Brodnica) Pomorska pozostaje monopolistą.",
@@ -360,19 +360,19 @@
         "editorial_staff_est": "ok. 6 analityków śledczych i prawników"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "W strzelaninie w Krakowie zginęła mieszkanka gminy Chodzież. Zostawiła czwórkę dzieci",
-        "ppg_hero_category": "DZIŚ I JUTRO ŻAŁOBA NARODOWA",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (pila.naszemiasto.pl)",
+        "ppg_origin": "Syndykacja (gazetakrakowska.pl)",
         "competitor_hero_title": "Bezpieczeństwo 3 minuty czytania Na ulicach więcej patroli, na jarmarkach specjalna ochrona",
         "competitor_hero_category": "Bezpieczeństwo",
         "competitor_author": "Krzysztof Kowalik",
         "topic_convergence": false,
         "verdict": "PPG w Lublin stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://pila.naszemiasto.pl/w-strzelaninie-w-krakowie-zginela-mieszkanka-gminy-chodziez-izabela-osierocila-czworke-dzieci-to-wielka-niesprawiedliwosc/ar/c1p2-29509683",
+        "ppg_hero_url": "https://gazetakrakowska.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319",
         "competitor_hero_url": "https://jawnylublin.pl/na-ulicach-wiecej-patroli-na-jarmarkach-specjalna-ochrona/",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Poza Lublinem (gdzie działa Jawny Lublin) w powiatach lubelskich brak niezależnej prasy.",
@@ -411,8 +411,8 @@
         "editorial_staff_est": "ok. 7 reporterów"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Jakub Kulik. Jeden z krakowskich superbohaterów. „Dla mnie to jest heroizm”",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Nowiny24 ustaliły: Mieszkanka Podkarpacia wśród ofiar zamachu na krakowskim Rynku",
         "ppg_hero_category": "POLSKA W ŻAŁOBIE",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (nowiny24.pl)",
@@ -421,9 +421,9 @@
         "competitor_author": "Redakcja Rzeszów News",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Rzeszów: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://nowiny24.pl/zamach-w-krakowie-jakub-kulik-oto-jeden-z-bohaterskich-policjantow-ktorzy-zneutralizowali-zamachowca-to-byly-zolnierz-i-strazak/ar/c1p2-29509671",
+        "ppg_hero_url": "https://nowiny24.pl/nowiny24-ustalily-mieszkanka-podkarpacia-wsrod-ofiar-zamachu-na-krakowskim-rynku/ar/c1p2-29510115",
         "competitor_hero_url": "https://rzeszow-news.pl/",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "W Rzeszowie równowaga zachowana, w Bieszczadach i na północy regionu silny deficyt niezależnych mediów.",
@@ -462,19 +462,19 @@
         "editorial_staff_est": "ok. 11 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "W strzelaninie w Krakowie zginęła mieszkanka gminy Chodzież. Zostawiła czwórkę dzieci",
-        "ppg_hero_category": "DZIŚ I JUTRO ŻAŁOBA NARODOWA",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (pila.naszemiasto.pl)",
+        "ppg_origin": "Syndykacja (gazetakrakowska.pl)",
         "competitor_hero_title": "Biegnę dla Niepodległej",
         "competitor_hero_category": "Samorząd i Środowisko",
         "competitor_author": "Anna Kowalczuk",
         "topic_convergence": false,
         "verdict": "PPG w Białystok stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://pila.naszemiasto.pl/w-strzelaninie-w-krakowie-zginela-mieszkanka-gminy-chodziez-izabela-osierocila-czworke-dzieci-to-wielka-niesprawiedliwosc/ar/c1p2-29509683",
+        "ppg_hero_url": "https://gazetakrakowska.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319",
         "competitor_hero_url": "https://www.bialystokonline.pl/biegne-dla-niepodleglej,impreza,151370,4,1.html",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Kurier Poranny i Gazeta Współczesna (obie PPG) tworzą de facto jeden zunifikowany newsroom w regionie.",
@@ -513,19 +513,19 @@
         "editorial_staff_est": "ok. 12 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "W strzelaninie w Krakowie zginęła mieszkanka gminy Chodzież. Zostawiła czwórkę dzieci",
-        "ppg_hero_category": "DZIŚ I JUTRO ŻAŁOBA NARODOWA",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (pila.naszemiasto.pl)",
-        "competitor_hero_title": "Żadna inna architektura nie budzi tak skrajnych emocji. Czy opłaca się zastępować ją 90-metrowymi wieżowcami?",
+        "ppg_origin": "Syndykacja (gazetakrakowska.pl)",
+        "competitor_hero_title": "NAJBLIŻSZA AUDYCJA Pogoń Szczecin znowu traci bramki. Co się stało z obroną Portowców? Sport wSzczecinie.pl",
         "competitor_hero_category": "Aktualności",
         "competitor_author": "Janusz Krasucki",
         "topic_convergence": false,
         "verdict": "PPG w Szczecin stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://pila.naszemiasto.pl/w-strzelaninie-w-krakowie-zginela-mieszkanka-gminy-chodziez-izabela-osierocila-czworke-dzieci-to-wielka-niesprawiedliwosc/ar/c1p2-29509683",
-        "competitor_hero_url": "https://wszczecinie.pl/zadna-inna-architektura-nie-budzi-tak-skrajnych-emocji-czy-oplaca-sie-zastepowac-ja-90-metrowymi-wiezowcami/56576",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "ppg_hero_url": "https://gazetakrakowska.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319",
+        "competitor_hero_url": "https://wszczecinie.pl/pogon-szczecin-znowu-traci-bramki-co-sie-stalo-z-obrona-portowcow-sport-wszczeciniepl/56582",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "wSzczecinie.pl dynamicznie przejęło rolę medium miejskiego pierwszego wyboru.",
@@ -564,8 +564,8 @@
         "editorial_staff_est": "ok. 6 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Kiedy zginęła rodzina 24-latka? Prokuratura daje pierwsze odpowiedzi [ZDJĘCIA, WIDEO]",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "24-letni zamachowiec zmarł nad ranem w szpitalu w Krakowie",
         "ppg_hero_category": "ŚWIĘTOKRZYSKIE",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (echodnia.eu)",
@@ -574,9 +574,9 @@
         "competitor_author": "Redakcja FK24",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Kielce: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://echodnia.eu/swietokrzyskie/prokuratura-wysoce-prawdopodobne-ze-to-24-latek-dokonal-zabojstwa-rodziny-kiedy-doszlo-do-smierci-trzech-osob/ar/c1p2-29509611",
+        "ppg_hero_url": "https://echodnia.eu/swietokrzyskie/zamach-w-krakowie-24-letni-napastnik-zmarl-nad-ranem-w-szpitalu-w-krakowie/ar/c1p2-29510519",
         "competitor_hero_url": "https://faktykielce24.pl/news/na-sygnale/straz-pozarna/pozary-w-regionie-przerazaja-mieszkancow-szokujacy-bilans-i-grozny-wzrost-statystyk/",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Echo Dnia ma pozycję niemal monopolistyczną w całym województwie, wypierając mniejsze tytuły.",
@@ -615,19 +615,19 @@
         "editorial_staff_est": "ok. 5 dziennikarzy śledczych"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "W strzelaninie w Krakowie zginęła mieszkanka gminy Chodzież. Zostawiła czwórkę dzieci",
-        "ppg_hero_category": "DZIŚ I JUTRO ŻAŁOBA NARODOWA",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (pila.naszemiasto.pl)",
+        "ppg_origin": "Syndykacja (gazetakrakowska.pl)",
         "competitor_hero_title": "120 zgłoszeń, 32 inicjatywy. Kobiety z Opolskiego pokazały, na co czekały",
         "competitor_hero_category": "Śledztwo / Kontrola Władzy",
         "competitor_author": "Jolanta Jasińska-Mrukot",
         "topic_convergence": false,
         "verdict": "PPG w Opole stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://pila.naszemiasto.pl/w-strzelaninie-w-krakowie-zginela-mieszkanka-gminy-chodziez-izabela-osierocila-czworke-dzieci-to-wielka-niesprawiedliwosc/ar/c1p2-29509683",
+        "ppg_hero_url": "https://gazetakrakowska.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319",
         "competitor_hero_url": "https://opowiecie.info/120-zgloszen-32-inicjatywy-kobiety-z-opolskiego-pokazaly-na-co-czekaly/",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "KRYTYCZNE",
       "risk_notes": "NTO po przejęciu przez Orlen zanotowało drastyczny spadek zaufania; rynek niezależny jest skrajnie niedofinansowany.",
@@ -666,19 +666,19 @@
         "editorial_staff_est": "ok. 7 reporterów"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "07:09 (Live DOM Slot #1)",
         "ppg_hero_title": "„Tato, tam strzelają do ludzi, padają na ziemię!”. Dwaj chirurdzy ruszyli na pomoc",
         "ppg_hero_category": "ZAMACH W KRAKOWIE",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (gazetalubuska.pl)",
-        "competitor_hero_title": "Hity & kity po gorzowsku: Nowy rozkład, stare dziury?",
+        "competitor_hero_title": "Darmowe przejazdy tylko po weryfikacji. Trzeba pokazać nowy PIT",
         "competitor_hero_category": "Kolej i Wykluczenie Komunikacyjne",
         "competitor_author": "Redakcja Gorzowianin",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Zielona Góra: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "ppg_hero_url": "https://gazetalubuska.pl/zamach-w-krakowie-ranni-jeszcze-na-ulicy-trafili-pod-opieke-chirurgow-lekarze-jedli-obiad-w-restauracji-obok-z-rodzinami/ar/c1p2-29508091",
-        "competitor_hero_url": "https://gorzowianin.com/wiadomosc/30333-hity-kity-po-gorzowsku-nowy-rozklad-stare-dziury.html",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "competitor_hero_url": "https://gorzowianin.com/wiadomosc/30323-przedluzenie-karty-miejskiej-gorzow-wniosek-pit.html",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Podział na północ i południe osłabia zasięgi; w powiatach południowych brak silnych rywali cyfrowych.",
@@ -717,19 +717,19 @@
         "editorial_staff_est": "ok. 9 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "W strzelaninie w Krakowie zginęła mieszkanka gminy Chodzież. Zostawiła czwórkę dzieci",
-        "ppg_hero_category": "DZIŚ I JUTRO ŻAŁOBA NARODOWA",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (pila.naszemiasto.pl)",
-        "competitor_hero_title": "Mieszkańcy bloków zapłacą nawet przy zimnych grzejnikach. Zmieniają się zasady POLSKA I ŚWIAT",
-        "competitor_hero_category": "POLSKA I ŚWIAT",
+        "ppg_origin": "Syndykacja (gazetakrakowska.pl)",
+        "competitor_hero_title": "Odbiór mieszkania to nie formalność! Ekspert zdradza, co sprawdzać WIADOMOŚCI ŁÓDŹ",
+        "competitor_hero_category": "WIADOMOŚCI ŁÓDŹ",
         "competitor_author": "Kornel Pawłowski",
         "topic_convergence": false,
         "verdict": "PPG w Łódź stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://pila.naszemiasto.pl/w-strzelaninie-w-krakowie-zginela-mieszkanka-gminy-chodziez-izabela-osierocila-czworke-dzieci-to-wielka-niesprawiedliwosc/ar/c1p2-29509683",
-        "competitor_hero_url": "https://tulodz.pl/polska-i-swiat/zakrecasz-kaloryfery-zeby-mniej-placic-nowe-rozliczenie-moze-cie-zaskoczyc/S2F5qOMzK6gMEl1h4mEt",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "ppg_hero_url": "https://gazetakrakowska.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319",
+        "competitor_hero_url": "https://tulodz.pl/wiadomosci-lodz/kupujesz-mieszkanie-ekspert-ostrzega-przed-kosztownymi-bledami-o-tym-trzeba-pamietac/0Hp8UpQ9jKzv3Okf91Aa",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "Ekosystem łódzki jest silnie zniekształcony przez potężny miejski portal Łódź.pl (medium władzy).",
@@ -768,7 +768,7 @@
         "editorial_staff_est": "ok. 8 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "07:09 (Live DOM Slot #1)",
         "ppg_hero_title": "Wielka awantura w Sejmie! Posłowie krzyczeli z mównicy, marszałek musiał przerwać obrady",
         "ppg_hero_category": "Polityka Ogólnopolska (Sejm)",
         "ppg_is_syndicated": false,
@@ -779,7 +779,7 @@
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Warszawa: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "competitor_hero_url": "https://www.raportwarszawski.pl/artykul/5525,nowe-osiedle-na-kamionku-w-symfonii-praga-powstanie-156-mieszkan-i-nietypowe-udogodnienia",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Warszawa ma nasycony rynek medialny, jednak tytuł PPG całkowicie zatracił lokalny warszawski charakter.",
@@ -818,19 +818,19 @@
         "editorial_staff_est": "ok. 9 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "07:09 (Live DOM Slot #1)",
         "ppg_hero_title": "\"Jesteśmy Krakowem\". Mieszkańcy i turyści zapalają znicze przy wejściu do Rynku",
         "ppg_hero_category": "Tragiczne wydarzenia w Krakowie. Są zabici i ranni",
         "ppg_is_syndicated": true,
         "ppg_origin": "Syndykacja (naszemiasto.pl)",
-        "competitor_hero_title": "Miliony czternastek wypłacone. ZUS wysłał ponad 6,1 mln decyzji",
+        "competitor_hero_title": "Olsztyn chce przyciągnąć nowych inwestorów. Jeśli postawią nowy budynek - nie zapłacą podatku",
         "competitor_hero_category": "Samorząd i Finanse",
         "competitor_author": "Redakcja Olsztyn.com.pl",
         "topic_convergence": false,
         "verdict": "PPG w Olsztyn stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "ppg_hero_url": "https://naszemiasto.pl/jestem-krakowem-mieszkancy-i-turysci-zapalaja-znicze-przy-wejsciu-do-rynku-glownego/ar/c1p2-29509393",
-        "competitor_hero_url": "https://www.olsztyn.com.pl/artykul,miliony-czternastek-wyplacone-zus-wyslal-ponad-6-1-mln-decyzji,48419.html",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "competitor_hero_url": "https://www.olsztyn.com.pl/artykul,olsztyn-chce-przyciagnac-nowych-inwestorow-nie-zaplaca-oni-podatku-od-nowych-budynkow,48203.html",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "W regionie silną pozycję ma Gazeta Olsztyńska (niezależna, poza strukturami PPG).",
@@ -869,19 +869,19 @@
         "editorial_staff_est": "ok. 15 niezależnych reporterów śledczych"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "\"Jesteśmy Krakowem\". Mieszkańcy i turyści zapalają znicze przy wejściu do Rynku",
-        "ppg_hero_category": "Tragiczne wydarzenia w Krakowie. Są zabici i ranni",
+        "scan_time": "07:09 (Live DOM Slot #1)",
+        "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
+        "ppg_hero_category": "Polska w żałobie po zamachu na ulicach Krakowa",
         "ppg_is_syndicated": true,
         "ppg_origin": "Syndykacja (naszemiasto.pl)",
-        "competitor_hero_title": "Fałszywy alarm w Podwilku",
+        "competitor_hero_title": "Rynek w Krakowie ponownie otwarty. Znicze, ślady po kulach i porzucone stoliki przypominają o tragedii 6",
         "competitor_hero_category": "Śledztwo Dziennikarskie / Ochrona Przyrody",
         "competitor_author": "Jerzy Jurecki / Paweł Pełka",
         "topic_convergence": false,
         "verdict": "PPG w Nowy Targ stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "competitor_hero_url": "https://24tp.pl/pl/890_region/156682_falszywy-alarm-w-podwilku.html",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00",
-        "ppg_hero_url": "https://naszemiasto.pl/jestem-krakowem-mieszkancy-i-turysci-zapalaja-znicze-przy-wejsciu-do-rynku-glownego/ar/c1p2-29509393"
+        "competitor_hero_url": "https://24tp.pl/pl/890_region/156697_rynek-w-krakowie-ponownie-otwarty-znicze-slady-po-kulach-i-porzucone-stoliki-przypominaja-o-tragedii.html",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00",
+        "ppg_hero_url": "https://naszemiasto.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Dzięki Tygodnikowi Podhalańskiemu region ten jest jednym z najlepiej chronionych przed bezkarnością władzy.",
@@ -920,7 +920,7 @@
         "editorial_staff_est": "ok. 10 dziennikarzy lokalnych"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "07:09 (Live DOM Slot #1)",
         "ppg_hero_title": "Wypadek na autostradzie A4 pod Gliwicami. Dwa auta rozbite, ruch spowolniony",
         "ppg_hero_category": "Kronika Drogowa",
         "ppg_is_syndicated": false,
@@ -931,7 +931,7 @@
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Gliwice: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "competitor_hero_url": "https://nowiny.gliwice.pl/okraglak-znow-robota-wokol-pawilonu",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Tradycyjna gazeta powiatowa zachowuje wiodącą rolę kontrolną wobec prezydenta Gliwic i radnych.",
@@ -970,18 +970,18 @@
         "editorial_staff_est": "ok. 12 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "07:09 (Live DOM Slot #1)",
         "ppg_hero_title": "Paweł Mateńczuk \"Naval\" po zamachu w Krakowie: Reakcja policjantów była perfekcyjna",
         "ppg_hero_category": "Tragiczne wydarzenia w Krakowie. Są zabici i ranni",
         "ppg_is_syndicated": true,
         "ppg_origin": "Syndykacja (naszemiasto.pl)",
-        "competitor_hero_title": "Co dalej z kultowym basenem w Żerkowie? WIADOMOŚCI Burmistrz odpowiada",
+        "competitor_hero_title": "Uroczystości patriotyczne w Witaszycach WIADOMOŚCI ZOBACZ ZDJĘCIA",
         "competitor_hero_category": "WIADOMOŚCI",
         "competitor_author": "Anna Karlińska",
         "topic_convergence": false,
         "verdict": "PPG w Jarocin stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "competitor_hero_url": "https://jarocinska.pl/wiadomosci/co-dalej-z-kultowym-basenem-w-zerkowie-burmistrz-zdecydowana-wiekszosc-takich-obiektow-zostala-zasypana/NBn4Pi3qJhYCNCfN103z",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00",
+        "competitor_hero_url": "https://jarocinska.pl/wiadomosci/witaszyce-oddaly-czesc-walczacym-o-wolna-polske-zdjecia/7Hq66sM20y0LYzpRGY5T",
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00",
         "ppg_hero_url": "https://naszemiasto.pl/pawel-matenczuk-naval-po-zamachu-w-krakowie-reakcja-policjantow-byla-perfekcyjna/ar/c1p2-29509823"
       },
       "news_desert_risk": "NISKIE",
@@ -1021,7 +1021,7 @@
         "editorial_staff_est": "ok. 14 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "07:09 (Live DOM Slot #1)",
         "ppg_hero_title": "Uwaga kierowcy: Mgły ograniczają widoczność do 100 metrów na drogach Mazowsza",
         "ppg_hero_category": "Pogoda i Ostrzeżenia IMGW",
         "ppg_is_syndicated": true,
@@ -1032,7 +1032,7 @@
         "topic_convergence": false,
         "verdict": "PPG w Siedlce stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "competitor_hero_url": "https://tygodniksiedlecki.com/wiadomosci",
-        "last_scanned_iso": "2026-11-08T16:32:41.641214+00:00"
+        "last_scanned_iso": "2026-11-09T06:09:18.890803+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Tygodnik Siedlecki ma ogromny nakład i penetrację w 6 okolicznych powiatach.",
@@ -1057,6 +1057,6 @@
     ],
     "key_finding": "W 75% badanych miast i powiatów media niezależne i prasa SGL wykazują ponad 2-krotnie wyższą intensywność kontroli samorządu (watchdog) niż media PPG, podczas gdy PPG w ponad 40% opiera się na syndykacji i lifestyle."
   },
-  "last_live_scan_at": "2026-11-08T16:32:41.641214+00:00",
+  "last_live_scan_at": "2026-11-09T06:09:18.890803+00:00",
   "live_scan_status": "SUCCESS"
 }
