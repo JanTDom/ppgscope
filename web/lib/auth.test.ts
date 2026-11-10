@@ -102,6 +102,10 @@ describe("hasło", () => {
     assert.equal(verifyPassword("DRS2026"), true);
   });
 
+  it("przyjmuje hasło PPGIT2026", () => {
+    assert.equal(verifyPassword("PPGIT2026"), true);
+  });
+
   it("przyjmuje hasła rozdzielone przecinkiem", () => {
     process.env.PPGSCOPE_AUTH_PASSWORD = "haslo1,haslo2,haslo3";
     assert.equal(verifyPassword("haslo1"), true);
