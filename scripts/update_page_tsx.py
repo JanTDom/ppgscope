@@ -667,7 +667,7 @@ export default function PPGscopeApp() {
           </div>
 
           <div className="mb-6 rounded-lg border border-white/[0.06] bg-black/40 p-3 text-[11px] text-zinc-400 font-mono">
-            Standard Fable 5.1 · Prawda danych ponad wszystko
+            Prawda danych ponad wszystko
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -1963,7 +1963,7 @@ export default function PPGscopeApp() {
       {/* Footer */}
       <footer className="border-t border-white/[0.06] bg-[#060709] py-6 px-4 text-center text-[11px] font-mono text-zinc-500">
         <p>
-          PPGscope v2.0 Intelligence · 546 serwisów Polska Press Grupa · Taksonomia 18 Dziedzin & Lokalność (C/CL/L) · Standard Fable 5.1
+          PPGscope v2.0 Intelligence · 546 serwisów Polska Press Grupa · Taksonomia 18 Dziedzin & Lokalność (C/CL/L) · Prawda danych ponad wszystko
         </p>
       </footer>
     </div>

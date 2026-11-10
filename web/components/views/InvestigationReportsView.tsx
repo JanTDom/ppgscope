@@ -108,7 +108,7 @@ export const PRECOMPILED_EXECUTIVE_REPORTS: PrecompiledExecutiveReport[] = [
     tag: "SPECYFIKACJA v2.0",
     date: "18 paź 2026",
     size: "205 KB",
-    description: "Pełny opis systemu: taksonomia 18 dziedzin, model 553 mediów, 16 województw, wskaźniki Fable 5.1 i silnik OSINT.",
+    description: "Pełny opis systemu: taksonomia 18 dziedzin, model 553 mediów, 16 województw, wskaźniki dowodowe MetricProof i silnik OSINT.",
   },
 ];
 

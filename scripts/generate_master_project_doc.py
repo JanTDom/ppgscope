@@ -59,7 +59,7 @@ def build_document_sections() -> List[Tuple[str, str]]:
 | **Tryb pracy docelowej** | Ciągły monitoring czasu rzeczywistego 24/7 na centralnym pulpicie zarządczym i redakcyjnym w trzech pętlach: gorącej (15–60 sekund), ciepłej (3–15 minut) oraz chłodnej (1–24 godziny) |
 | **Główne filary badawcze** | 1. Taksonomia 18 dziedzin (v2.0) · 2. Lokalność trójstopniowa (`L / CL / C`) · 3. Audyt żywotności i unikalności 546 portali · 4. Audyt pluralizmu, równowagi i tendencji politycznych w regionach · 5. Radar Jedynek i mutacji nagłówków 48h · 6. Fuzja z danymi wewnętrznymi (ruch, czas czytania, Paywall *Strefa Plus*, przychody reklamowe) · 7. Porównywarka wielowymiarowa 360° (`Medium A vs Medium B`) |
 | **Wdrożenie produkcyjne** | `https://ppgscope.pl` |
-| **Standard jakości** | Fable 5.1 (pełna rozliczalność liczbowa, obiekt dowodowy `MetricProof` dla każdego wskaźnika, testy istotności statystycznej, brak niejawnych przybliżeń) |
+| **Standard jakości** | Pełna rozliczalność liczbowa, obiekt dowodowy `MetricProof` dla każdego wskaźnika, testy istotności statystycznej, brak niejawnych przybliżeń |
 
 ---
 
@@ -623,7 +623,7 @@ Przy badaniu zmian między okresem bieżącym (`p2 = k2 / n2`) a okresem bazowym
 
 ## 8.2. Obiekt dowodowy `MetricProof` (`ppgscope/proof_models.py`)
 
-W myśl standardu Fable 5.1 każdy zagregowany wskaźnik wyświetlany w PPGscope posiada przypisaną strukturę dowodową `MetricProof`:
+W myśl kanonu prawdy danych każdy zagregowany wskaźnik wyświetlany w PPGscope posiada przypisaną strukturę dowodową `MetricProof`:
 
 ```json
 {

@@ -611,7 +611,7 @@ def run():
     # Assemble complete dashboard data
     dashboard_payload = {
         "generated_at": now.isoformat(),
-        "methodology": "Standard Fable 5.1 · Dwustronny Z-test proporcji z korektą ciągłości · MinHash LSH (J >= 0.80) · Gemini AI Classifier",
+        "methodology": "Dwustronny Z-test proporcji z korektą ciągłości · MinHash LSH (J >= 0.80) · Gemini AI Classifier",
         "taxonomy": tax_data,
         "titles": titles_raw,
         "recent_articles": articles,

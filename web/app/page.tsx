@@ -2183,7 +2183,7 @@ export default function PPGscopeApp() {
           </div>
 
           <div className="mb-6 rounded-lg border border-white/[0.06] bg-black/40 p-3 text-[11px] text-zinc-400 font-mono">
-            Standard Fable 5.1 · Prawda danych ponad wszystko
+            Prawda danych ponad wszystko
           </div>
 
           <form onSubmit={handleLogin} className="ppg-auth-form space-y-4">
@@ -8443,7 +8443,7 @@ export default function PPGscopeApp() {
           />
         </div>
         <p>
-          PPGscope v2.0 Intelligence · 553 serwisy Polska Press Grupa · Taksonomia 18 Dziedzin & Lokalność (C/CL/L) · Standard Fable 5.1
+          PPGscope v2.0 Intelligence · 553 serwisy Polska Press Grupa · Taksonomia 18 Dziedzin & Lokalność (C/CL/L) · Prawda danych ponad wszystko
         </p>
       </footer>
     </div>

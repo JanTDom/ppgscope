@@ -1,6 +1,6 @@
 # Rejestr decyzji architektonicznych i technicznych (DECISIONS.md)
 
-Dokument zawiera spis kluczowych decyzji podjętych w projekcie **PPGscope**, zgodnie ze standardem rzemiosła inżynierskiego Fable 5.1 i filozofią prawdy danych.
+Dokument zawiera spis kluczowych decyzji podjętych w projekcie **PPGscope**, zgodnie z rygorystycznym standardem rzemiosła inżynierskiego i filozofią prawdy danych.
 
 ---
 
