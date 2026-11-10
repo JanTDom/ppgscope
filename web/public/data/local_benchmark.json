@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T16:32:28.075155+00:00",
+  "generated_at": "2026-11-10T07:03:16.788369+00:00",
   "methodology": "PPGscope Benchmark V1 · Analiza parowana 20 rynków · Audyt próby artykułów czołówkowych N=4,200 · Klasyfikacja taksonomiczna tematów · Pomiar autorstwa i syndykacji",
   "sample_size_articles": 4200,
   "summary_metrics": {
@@ -54,19 +54,19 @@
         "editorial_staff_est": "ok. 60 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Bohaterscy policjanci odznaczeni orderami",
+        "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (nowiny24.pl)",
-        "competitor_hero_title": "Trójmiasto w budowie. Dolne Miasto się zmienia",
+        "ppg_origin": "Syndykacja (i.pl)",
+        "competitor_hero_title": "Gęsina wraca na stoły w Trójmieście. Gdzie zjeść i za ile?",
         "competitor_hero_category": "Infrastruktura i Transport",
         "competitor_author": "Michał Brancewicz",
         "topic_convergence": false,
         "verdict": "PPG w Gdańsk stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
-        "competitor_hero_url": "https://www.trojmiasto.pl/wiadomosci/Trojmiasto-w-Budowie-Dolne-Miasto-sie-zmienia-n228134.html",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "ppg_hero_url": "https://i.pl/prezydent-zdecydowal-o-nadaniu-krzyzy-oficerskich-orderu-odrodzenia-polski-policjantom-z-krakowa/ar/c1p2-29513137",
+        "competitor_hero_url": "https://www.trojmiasto.pl/trendy/Gesina-wraca-na-stoly-w-Trojmiescie-Gdzie-zjesc-i-za-ile-n228377.html",
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Trójmiasto posiada najsilniejszy i najbardziej dochodowy niezależny portal lokalny w Polsce (Trojmiasto.pl). Brak ryzyka próżni.",
@@ -105,19 +105,19 @@
         "editorial_staff_est": "ok. 14 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "„Jak wszedłem do Rynku, poczułem się niedobrze”. Kraków stara się podnieść po zamachu",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "„Kraków był, jest i będzie bezpiecznym miastem”. Co mówią ludzie dwa dni po tragedii",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (gazetakrakowska.pl)",
-        "competitor_hero_title": "PIŁKA NOŻNA Derby, czyli zapadnia dla trenerów. Grzelak jest kolejnym",
+        "competitor_hero_title": "9 BIZNES Hotel z Krakowa nagrodzony w Paryżu. Zaprojektowali go Krakowianie",
         "competitor_hero_category": "Najnowsze",
         "competitor_author": "Patryk Strzałkowski",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Kraków: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://gazetakrakowska.pl/rynek-po-zamachu-i-ludzie-ktorzy-wrocili-tu-do-pracy-czuje-sie-bezpiecznie-ufam-policjantom-tak-krakow-stara-sie-podniesc-po-tragedii/ar/c1p2-29511793",
-        "competitor_hero_url": "https://lovekrakow.pl/derby-czyli-zapadnia-dla-trenerow-grzelak-jest-kolejnym",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "ppg_hero_url": "https://gazetakrakowska.pl/krakow-dwa-dni-po-zamachu-czy-mieszkancy-obawiaja-sie-o-bezpieczenstwo-musimy-zyc-dalej/ar/c1p2-29512729",
+        "competitor_hero_url": "https://lovekrakow.pl/hotel-z-krakowa-nagrodzony-w-paryzu-zaprojektowali-go-krakowianie",
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Kraków ma bogaty ekosystem mediów niezależnych (LoveKraków, KRKnews, Krowoderska.pl).",
@@ -156,19 +156,19 @@
         "editorial_staff_est": "Zintegrowany newsroom z TV WTK (ok. 35 osób)"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Bohaterscy policjanci odznaczeni orderami",
+        "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (nowiny24.pl)",
-        "competitor_hero_title": "Znów rozdają darmowe choinki. Miasto zapewnia też lampki oraz pokrywa opłatę za zajęcie pasa drogowego",
-        "competitor_hero_category": "29 minut temu",
+        "ppg_origin": "Syndykacja (i.pl)",
+        "competitor_hero_title": "Trwa trzecia w tym roku wymiana murawy na Enea Stadionie. \"Pierwszy raz przyjedzie nawierzchnia z Niemiec\"",
+        "competitor_hero_category": "12 minut temu",
         "competitor_author": "Redakcja ePoznan / Alert",
         "topic_convergence": false,
         "verdict": "PPG w Poznań stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
-        "competitor_hero_url": "https://epoznan.pl/news-news-181795-znow_rozdaja_darmowe_choinki_miasto_zapewnia_tez_lampki_oraz_pokrywa_oplate_za_zajecie_pasa_drogowego",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "ppg_hero_url": "https://i.pl/prezydent-zdecydowal-o-nadaniu-krzyzy-oficerskich-orderu-odrodzenia-polski-policjantom-z-krakowa/ar/c1p2-29513137",
+        "competitor_hero_url": "https://epoznan.pl/news-news-181816-trwa_trzecia_w_tym_roku_wymiana_murawy_na_enea_stadionie_pierwszy_raz_przyjedzie_nawierzchnia_z_niemiec",
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Silna synergia ePoznań z kanałem WTK daje pełne pokrycie bieżących wydarzeń aglomeracji.",
@@ -207,9 +207,9 @@
         "editorial_staff_est": "ok. 12 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Zbrodnie stają się internetowym trendem. Niebezpieczna nisza dociera do młodych ludzi",
-        "ppg_hero_category": "TRAGEDIA W KRAKOWIE. ZAMACHOWIEC ZASTRZELIŁ 6 OSÓB",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Najgorsze miasta do życia na Dolnym Śląsku 2026. Mieszkańcom nie jest tu łatwo",
+        "ppg_hero_category": "DZIEŃ DOBRY!",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (gazetawroclawska.pl)",
         "competitor_hero_title": "Wiadukt na Poprzecznej ma być gotowy za 4 lata. Koniec stania przed rogatkami",
@@ -217,9 +217,9 @@
         "competitor_author": "Marcin Hołubowicz",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Wrocław: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://gazetawroclawska.pl/niepokojace-nagrania-po-tragedii-w-krakowie-niebezpieczna-nisza-gloryfikuje-zbrodnie-napedza-ja-m-in-tiktok/ar/c1p2-29509343",
+        "ppg_hero_url": "https://gazetawroclawska.pl/najgorsze-miasta-do-zycia-na-dolnym-slasku-2026-mieszkancom-tych-miejsc-nie-jest-latwo-najnowszy-ranking/ar/c1p2-29511169",
         "competitor_hero_url": "https://tuwroclaw.com/artykul/wielki-wiadukt-na-polnocy-n2573395",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "Presja ze strony biuletynu urzędowego Wroclaw.pl (finansowanego ze środków miasta) osłabia niezależny rynek reklamowy.",
@@ -258,19 +258,19 @@
         "editorial_staff_est": "ok. 10 dziennikarzy śledczych i publicystów"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Bohaterscy policjanci odznaczeni orderami",
+        "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (nowiny24.pl)",
+        "ppg_origin": "Syndykacja (i.pl)",
         "competitor_hero_title": "Życie w nowych o(n)kolicznościach. Szczerze o walce z rakiem",
         "competitor_hero_category": "Gospodarka i Przemysł Śląska",
         "competitor_author": "Marcin Zasada",
         "topic_convergence": false,
         "verdict": "PPG w Katowice stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
+        "ppg_hero_url": "https://i.pl/prezydent-zdecydowal-o-nadaniu-krzyzy-oficerskich-orderu-odrodzenia-polski-policjantom-z-krakowa/ar/c1p2-29513137",
         "competitor_hero_url": "https://www.slazag.pl/zycie-w-nowych-onkolicznosciach-prof-marek-migalski-szczerze-o-walce-z-rakiem-strachu-i-docenianiu-kazdego-dnia-rozmowa-wideo",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Śląsk posiada aktywną scenę mediów tożsamościowych (Ślązag, InfoKatowice, Nowiny Gliwickie).",
@@ -309,19 +309,19 @@
         "editorial_staff_est": "ok. 9 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Bohaterscy policjanci odznaczeni orderami",
+        "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (nowiny24.pl)",
-        "competitor_hero_title": "09.11.2026 | 10:45 Co z meczem Zawisza – GKS? Zobacz ZDJĘCIA z zamglonego stadionu na Gdańskiej!",
+        "ppg_origin": "Syndykacja (i.pl)",
+        "competitor_hero_title": "09.11.2026 | 13:22 Powiat inowrocławski przeciwko marszałkowskiej fuzji szpitali",
         "competitor_hero_category": "Inwestycje Miejskie",
         "competitor_author": "Błażej Bembnista",
         "topic_convergence": false,
         "verdict": "PPG w Bydgoszcz stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
-        "competitor_hero_url": "https://metropoliabydgoska.pl/co-z-meczem-zawisza-gks-zobacz-zdjecia-z-zamglonego-stadionu-na-gdanskiej/",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "ppg_hero_url": "https://i.pl/prezydent-zdecydowal-o-nadaniu-krzyzy-oficerskich-orderu-odrodzenia-polski-policjantom-z-krakowa/ar/c1p2-29513137",
+        "competitor_hero_url": "https://metropoliabydgoska.pl/powiat-inowroclawski-przeciwko-marszalkowskiej-fuzji-szpitali/",
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "W mniejszych miastach regionu (Grudziądz, Brodnica) Pomorska pozostaje monopolistą.",
@@ -360,19 +360,19 @@
         "editorial_staff_est": "ok. 6 analityków śledczych i prawników"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Bohaterscy policjanci odznaczeni orderami",
+        "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (nowiny24.pl)",
+        "ppg_origin": "Syndykacja (i.pl)",
         "competitor_hero_title": "Bezpieczeństwo 3 minuty czytania Na ulicach więcej patroli, na bożonarodzeniowych jarmarkach specjalna ochrona",
         "competitor_hero_category": "Bezpieczeństwo",
         "competitor_author": "Krzysztof Kowalik",
         "topic_convergence": false,
         "verdict": "PPG w Lublin stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
+        "ppg_hero_url": "https://i.pl/prezydent-zdecydowal-o-nadaniu-krzyzy-oficerskich-orderu-odrodzenia-polski-policjantom-z-krakowa/ar/c1p2-29513137",
         "competitor_hero_url": "https://jawnylublin.pl/na-ulicach-wiecej-patroli-na-jarmarkach-specjalna-ochrona/",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Poza Lublinem (gdzie działa Jawny Lublin) w powiatach lubelskich brak niezależnej prasy.",
@@ -411,9 +411,9 @@
         "editorial_staff_est": "ok. 7 reporterów"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Dr Mateusz Wierdak dla portalu nowiny24.pl: Ratowałem życie bohaterowi",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Czy trzeba zmienić przepisy o dostępie do broni? Ekspert zabiera głos po zamachu",
+        "ppg_hero_category": "POLSKA PO ZAMACHU",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (nowiny24.pl)",
         "competitor_hero_title": "Rzeszów News – najnowsze wiadomości, wydarzenia i aktualności z Rzeszowa i Podkarpacia",
@@ -421,9 +421,9 @@
         "competitor_author": "Redakcja Rzeszów News",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Rzeszów: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://nowiny24.pl/dr-mateusz-wierdak-dla-portalu-nowiny24-pl-ratowalem-zycie-bohaterowi-ktory-najpierw-uratowal-zycie-moje-i-wielu-innych/ar/c1p2-29511659",
+        "ppg_hero_url": "https://nowiny24.pl/dr-wosek-nie-kazdy-posiadacz-broni-jest-potencjalnym-terrorysta-czy-trzeba-zmienic-przepisy-o-dostepie-do-broni/ar/c1p2-29512527",
         "competitor_hero_url": "https://rzeszow-news.pl/",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "W Rzeszowie równowaga zachowana, w Bieszczadach i na północy regionu silny deficyt niezależnych mediów.",
@@ -462,19 +462,19 @@
         "editorial_staff_est": "ok. 11 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Bohaterscy policjanci odznaczeni orderami",
+        "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (nowiny24.pl)",
+        "ppg_origin": "Syndykacja (i.pl)",
         "competitor_hero_title": "Biegnę dla Niepodległej",
         "competitor_hero_category": "Samorząd i Środowisko",
         "competitor_author": "Anna Kowalczuk",
         "topic_convergence": false,
         "verdict": "PPG w Białystok stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
+        "ppg_hero_url": "https://i.pl/prezydent-zdecydowal-o-nadaniu-krzyzy-oficerskich-orderu-odrodzenia-polski-policjantom-z-krakowa/ar/c1p2-29513137",
         "competitor_hero_url": "https://www.bialystokonline.pl/biegne-dla-niepodleglej,impreza,151370,4,1.html",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Kurier Poranny i Gazeta Współczesna (obie PPG) tworzą de facto jeden zunifikowany newsroom w regionie.",
@@ -513,19 +513,19 @@
         "editorial_staff_est": "ok. 12 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
-        "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (nowiny24.pl)",
-        "competitor_hero_title": "NAJBLIŻSZA AUDYCJA Pogoń Szczecin znowu traci bramki. Co się stało z obroną Portowców? Sport wSzczecinie.pl",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Nowy prom w Szczecinie. Przed Bursztynem chrzest i podniesienie bandery [ZDJĘCIA]",
+        "ppg_hero_category": "BURSZTYN UNITY GOTOWY DO CHRZTU",
+        "ppg_is_syndicated": false,
+        "ppg_origin": "Redakcja (gs24.pl)",
+        "competitor_hero_title": "Szansa na ożywienie Starego Miasta, czy zagrożenie dla przedsiębiorców? Pytamy o pomysł na nowy deptak",
         "competitor_hero_category": "Aktualności",
         "competitor_author": "Janusz Krasucki",
         "topic_convergence": false,
-        "verdict": "PPG w Szczecin stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
-        "competitor_hero_url": "https://wszczecinie.pl/pogon-szczecin-znowu-traci-bramki-co-sie-stalo-z-obrona-portowcow-sport-wszczeciniepl/56582",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "verdict": "Zróżnicowana agenda w Szczecin: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
+        "ppg_hero_url": "https://gs24.pl/bursztyn-unity-juz-w-szczecinie-nowy-prom-przyplynal-do-miasta-przed-nim-chrzest-i-podniesienie-bandery-zdjecia/ar/c1p2-29510927",
+        "competitor_hero_url": "https://wszczecinie.pl/szansa-na-ozywienie-starego-miasta-czy-zagrozenie-dla-przedsiebiorcow-pytamy-o-pomysl-na-nowy-deptak/56595",
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "wSzczecinie.pl dynamicznie przejęło rolę medium miejskiego pierwszego wyboru.",
@@ -564,8 +564,8 @@
         "editorial_staff_est": "ok. 6 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Szok w Waśniowie. To stąd pochodził zamachowiec. Tu będzie pogrzeb?",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Rodzinę zamachowca znaleziono w łóżkach. Szokujące ustalenia o zabójstwie w Ostrowcu",
         "ppg_hero_category": "ŚWIĘTOKRZYSKIE",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (echodnia.eu)",
@@ -574,9 +574,9 @@
         "competitor_author": "Redakcja FK24",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Kielce: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://echodnia.eu/swietokrzyskie/w-wasniowie-skad-pochodzi-zamachowiec-wciaz-nie-moga-uwierzyc-w-tragedie-ktora-rozegrala-sie-w-krakowie-tu-odbedzie-sie-pogrzeb/ar/c1p2-29512421",
+        "ppg_hero_url": "https://echodnia.eu/swietokrzyskie/zabojstwo-w-ostrowcu-gdzie-znajdowaly-sie-ofiary-czy-znaleziono-list-czy-zamachowiec-michal-oksinski-dzialal-sam-sledczy-odpowiadaja/ar/c1p2-29513601",
         "competitor_hero_url": "https://faktykielce24.pl/news/na-sygnale/straz-pozarna/pozary-w-regionie-przerazaja-mieszkancow-szokujacy-bilans-i-grozny-wzrost-statystyk/",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Echo Dnia ma pozycję niemal monopolistyczną w całym województwie, wypierając mniejsze tytuły.",
@@ -615,19 +615,19 @@
         "editorial_staff_est": "ok. 5 dziennikarzy śledczych"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Bohaterscy policjanci odznaczeni orderami",
+        "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (nowiny24.pl)",
+        "ppg_origin": "Syndykacja (i.pl)",
         "competitor_hero_title": "88 lat temu naziści spalili opolską synagogę. Opole uczciło ofiary pogromu",
         "competitor_hero_category": "Śledztwo / Kontrola Władzy",
         "competitor_author": "Jolanta Jasińska-Mrukot",
         "topic_convergence": false,
         "verdict": "PPG w Opole stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
+        "ppg_hero_url": "https://i.pl/prezydent-zdecydowal-o-nadaniu-krzyzy-oficerskich-orderu-odrodzenia-polski-policjantom-z-krakowa/ar/c1p2-29513137",
         "competitor_hero_url": "https://opowiecie.info/88-lat-temu-nazisci-spalili-opolska-synagoge-opole-uczcilo-ofiary-pogromu/",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "KRYTYCZNE",
       "risk_notes": "NTO po przejęciu przez Orlen zanotowało drastyczny spadek zaufania; rynek niezależny jest skrajnie niedofinansowany.",
@@ -666,8 +666,8 @@
         "editorial_staff_est": "ok. 7 reporterów"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Nie żyje sprawca zamachu w Krakowie",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Czytelnik GL pojechał do sanatorium z przyjaciółką i... tego się nie spodziewał",
         "ppg_hero_category": "OD WYDAWCY",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (gazetalubuska.pl)",
@@ -676,9 +676,9 @@
         "competitor_author": "Redakcja Gorzowianin",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Zielona Góra: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://gazetalubuska.pl/w-szpitalu-zmarl-24-letni-sprawca-zamachu-w-krakowie-poinformowala-o-tym-policja/ar/c1p2-29510569",
+        "ppg_hero_url": "https://gazetalubuska.pl/czytelnik-pojechal-do-sanatorium-z-przyjaciolka-i-tego-sie-nie-spodziewal-to-nie-jest-kolko-rozancowe-czy-klasztor-mowi-gl-ma-racje/ar/c1p2-29511263",
         "competitor_hero_url": "https://gorzowianin.com/wiadomosc/30338-oszustwo-aplikacja-gorzow-oddala-kurierowi-240-tys-zl.html",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Podział na północ i południe osłabia zasięgi; w powiatach południowych brak silnych rywali cyfrowych.",
@@ -717,19 +717,19 @@
         "editorial_staff_est": "ok. 9 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
-        "ppg_hero_category": "POLSKA W ŻAŁOBIE PO TRAGEDII W KRAKOWIE",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Bohaterscy policjanci odznaczeni orderami",
+        "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
-        "ppg_origin": "Syndykacja (nowiny24.pl)",
-        "competitor_hero_title": "Z Łodzi do Warszawy pojedziemy inaczej. Od kiedy? ŁÓDZKIE",
-        "competitor_hero_category": "ŁÓDZKIE",
+        "ppg_origin": "Syndykacja (i.pl)",
+        "competitor_hero_title": "Alert pogodowy dla Łodzi i Łódzkiego WIADOMOŚCI ŁÓDŹ",
+        "competitor_hero_category": "WIADOMOŚCI ŁÓDŹ",
         "competitor_author": "Kornel Pawłowski",
         "topic_convergence": false,
         "verdict": "PPG w Łódź stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
-        "competitor_hero_url": "https://tulodz.pl/lodzkie/z-lodzi-do-warszawy-pojedziemy-inaczej-wielki-remont-zmieni-trasy-pociagow/5jEtruHsb4csB1Dx99be",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "ppg_hero_url": "https://i.pl/prezydent-zdecydowal-o-nadaniu-krzyzy-oficerskich-orderu-odrodzenia-polski-policjantom-z-krakowa/ar/c1p2-29513137",
+        "competitor_hero_url": "https://tulodz.pl/wiadomosci-lodz/alert-pogodowy-dla-lodzi-i-woj-lodzkiego-zacznie-sie-po-poludniu/ZW2ZpLSk45Ohj1azGCfm",
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "Ekosystem łódzki jest silnie zniekształcony przez potężny miejski portal Łódź.pl (medium władzy).",
@@ -768,7 +768,7 @@
         "editorial_staff_est": "ok. 8 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "08:03 (Live DOM Slot #1)",
         "ppg_hero_title": "Wielka awantura w Sejmie! Posłowie krzyczeli z mównicy, marszałek musiał przerwać obrady",
         "ppg_hero_category": "Polityka Ogólnopolska (Sejm)",
         "ppg_is_syndicated": false,
@@ -779,7 +779,7 @@
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Warszawa: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "competitor_hero_url": "https://www.raportwarszawski.pl/artykul/5525,nowe-osiedle-na-kamionku-w-symfonii-praga-powstanie-156-mieszkan-i-nietypowe-udogodnienia",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Warszawa ma nasycony rynek medialny, jednak tytuł PPG całkowicie zatracił lokalny warszawski charakter.",
@@ -818,19 +818,19 @@
         "editorial_staff_est": "ok. 9 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "08:03 (Live DOM Slot #1)",
         "ppg_hero_title": "20-latka spod Cieszyna wśród rannych w zamachu w Krakowie",
         "ppg_hero_category": "Polska w żałobie po zamachu na ulicach Krakowa",
         "ppg_is_syndicated": true,
         "ppg_origin": "Syndykacja (naszemiasto.pl)",
-        "competitor_hero_title": "Ruszył proces ws. ataku nożem w Lidzbarku Warmińskim. Dwie kobiety i mężczyzna na ławie oskarżonych",
+        "competitor_hero_title": "Rozpędzony kierowca taksówki potrącił 23-letniego Czarka z powiatu bartoszyckiego. Ruszyła zbiórka",
         "competitor_hero_category": "Samorząd i Finanse",
         "competitor_author": "Redakcja Olsztyn.com.pl",
         "topic_convergence": false,
         "verdict": "PPG w Olsztyn stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "ppg_hero_url": "https://naszemiasto.pl/zamach-w-krakowie-20-latka-z-woj-slaskiego-wsrod-rannych-to-studentka-spod-cieszyna-jej-stan-jest-stabilny/ar/c1p2-29511339",
-        "competitor_hero_url": "https://www.olsztyn.com.pl/artykul,ruszyl-proces-ws-brutalnego-ataku-nozem-w-lidzbarku-warminskim-dwie-kobiety-i-mezczyzna-na-lawie-oskarzonych,48508.html",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "competitor_hero_url": "https://www.olsztyn.com.pl/artykul,rozpedzony-kierowca-taksowki-potracil-23-letniego-czarka-z-powiatu-bartoszyckiego-ruszyla-zbiorka,48503.html",
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "W regionie silną pozycję ma Gazeta Olsztyńska (niezależna, poza strukturami PPG).",
@@ -869,18 +869,18 @@
         "editorial_staff_est": "ok. 15 niezależnych reporterów śledczych"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "08:03 (Live DOM Slot #1)",
         "ppg_hero_title": "Jakie były motywy zamachowca z Krakowa? Minister Sprawiedliwości: mamy pewne dowody",
         "ppg_hero_category": "Polska w żałobie po zamachu na ulicach Krakowa",
         "ppg_is_syndicated": true,
         "ppg_origin": "Syndykacja (naszemiasto.pl)",
-        "competitor_hero_title": "Lekcja patriotyzmu z \"Lotniczką\"",
+        "competitor_hero_title": "Młode Szarotki nie dały rywalom szans. Komplet zwycięstw w Krakowie",
         "competitor_hero_category": "Śledztwo Dziennikarskie / Ochrona Przyrody",
         "competitor_author": "Jerzy Jurecki / Paweł Pełka",
         "topic_convergence": false,
         "verdict": "PPG w Nowy Targ stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "competitor_hero_url": "https://24tp.pl/pl/19_wiadomosci-z-regionu/833_gmina-poronin/156622_lekcja-patriotyzmu-z-lotniczka.html",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00",
+        "competitor_hero_url": "https://24tp.pl/pl/821_miasto-nowy-targ/156781_mlode-szarotki-nie-daly-rywalom-szans-komplet-zwyciestw-w-krakowie.html",
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00",
         "ppg_hero_url": "https://naszemiasto.pl/jakie-byly-motywy-zamachowca-z-krakowa-waldemar-zurek-ujawnia-mamy-pewne-dowody-ktore-rzucaja-glebsze-swiatlo-na-caly-ten-dramat/ar/c1p2-29510319"
       },
       "news_desert_risk": "NISKIE",
@@ -920,9 +920,9 @@
         "editorial_staff_est": "ok. 10 dziennikarzy lokalnych"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Gdyński radny szerzy dezinformację po zamachu w Krakowie. Sprawa trafi do prokuratury",
-        "ppg_hero_category": "Polska w żałobie po zamachu na ulicach Krakowa",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Wypadek w gliwickim autobusie! Ranna pasażerska trafiła do szpitala",
+        "ppg_hero_category": "Dzieje się w Gliwicach i w powiecie",
         "ppg_is_syndicated": true,
         "ppg_origin": "Syndykacja (naszemiasto.pl)",
         "competitor_hero_title": "OKRĄGLAK. ZNÓW ROBOTA WOKÓŁ PAWILONU",
@@ -931,8 +931,8 @@
         "topic_convergence": false,
         "verdict": "PPG w Gliwice stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "competitor_hero_url": "https://nowiny.gliwice.pl/okraglak-znow-robota-wokol-pawilonu",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00",
-        "ppg_hero_url": "https://naszemiasto.pl/gdynia-zawiadamia-prokurature-w-sprawie-wpisow-radnego-o-zamachu-w-krakowie-publikowal-wygenerowane-przez-ai-zdjecie/ar/c1p2-29512465"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00",
+        "ppg_hero_url": "https://naszemiasto.pl/wypadek-w-gliwicach-autobus-gwaltownie-zahamowal-ranna-pasazerska-trafila-do-szpitala/ar/c1p2-29511871"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Tradycyjna gazeta powiatowa zachowuje wiodącą rolę kontrolną wobec prezydenta Gliwic i radnych.",
@@ -971,18 +971,18 @@
         "editorial_staff_est": "ok. 12 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
+        "scan_time": "08:03 (Live DOM Slot #1)",
         "ppg_hero_title": "Paweł Mateńczuk \"Naval\" po zamachu w Krakowie: Reakcja policjantów była perfekcyjna",
         "ppg_hero_category": "Tragiczne wydarzenia w Krakowie. Są zabici i ranni",
         "ppg_is_syndicated": true,
         "ppg_origin": "Syndykacja (naszemiasto.pl)",
-        "competitor_hero_title": "Nowy laryngolog w Jarocinie WIADOMOŚCI Przyjmuje na NFZ dorosłych i dzieci",
+        "competitor_hero_title": "„Wartości naszych przodków są wciąż żywe” WIADOMOŚCI Obchody Święta Niepodległości",
         "competitor_hero_category": "WIADOMOŚCI",
         "competitor_author": "Anna Karlińska",
         "topic_convergence": false,
         "verdict": "PPG w Jarocin stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
-        "competitor_hero_url": "https://jarocinska.pl/wiadomosci/nowy-laryngolog-w-jarocinie-przyjmuje-na-nfz-doroslych-i-dzieci/HpoV1ezBFOeFhwVJHICS",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00",
+        "competitor_hero_url": "https://jarocinska.pl/wiadomosci/msza-przemarsz-i-capstrzyk-jarocin-pamieta-o-bohaterach-i-ofiarach-tragedii/Faa45LqCE06CCXaFKS2W",
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00",
         "ppg_hero_url": "https://naszemiasto.pl/pawel-matenczuk-naval-po-zamachu-w-krakowie-reakcja-policjantow-byla-perfekcyjna/ar/c1p2-29509823"
       },
       "news_desert_risk": "NISKIE",
@@ -1022,18 +1022,19 @@
         "editorial_staff_est": "ok. 14 dziennikarzy"
       },
       "duel": {
-        "scan_time": "17:32 (Live DOM Slot #1)",
-        "ppg_hero_title": "Uwaga kierowcy: Mgły ograniczają widoczność do 100 metrów na drogach Mazowsza",
-        "ppg_hero_category": "Pogoda i Ostrzeżenia IMGW",
-        "ppg_is_syndicated": true,
-        "ppg_origin": "Hub Pogodowy",
+        "scan_time": "08:03 (Live DOM Slot #1)",
+        "ppg_hero_title": "Uwaga: Opady śniegu (10.11 07:02)",
+        "ppg_hero_category": "W Naszym Mieście",
+        "ppg_is_syndicated": false,
+        "ppg_origin": "Redakcja (siedlce.naszemiasto.pl)",
         "competitor_hero_title": "Najnowsze wiadomości Siedlce",
         "competitor_hero_category": "Śledztwo / Samorząd",
         "competitor_author": "Mariusz Szostak",
         "topic_convergence": false,
-        "verdict": "PPG w Siedlce stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
+        "verdict": "Zróżnicowana agenda w Siedlce: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "competitor_hero_url": "https://tygodniksiedlecki.com/wiadomosci",
-        "last_scanned_iso": "2026-11-09T16:32:28.075155+00:00"
+        "last_scanned_iso": "2026-11-10T07:03:16.788369+00:00",
+        "ppg_hero_url": "https://siedlce.naszemiasto.pl/ostrzezenie-dla-mazowieckiego-10-11-2026-07-02-opady-sniegu/ar/c1p1-19787537"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Tygodnik Siedlecki ma ogromny nakład i penetrację w 6 okolicznych powiatach.",
@@ -1058,6 +1059,6 @@
     ],
     "key_finding": "W 75% badanych miast i powiatów media niezależne i prasa SGL wykazują ponad 2-krotnie wyższą intensywność kontroli samorządu (watchdog) niż media PPG, podczas gdy PPG w ponad 40% opiera się na syndykacji i lifestyle."
   },
-  "last_live_scan_at": "2026-11-09T16:32:28.075155+00:00",
+  "last_live_scan_at": "2026-11-10T07:03:16.788369+00:00",
   "live_scan_status": "SUCCESS"
 }
