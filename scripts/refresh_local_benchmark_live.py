@@ -89,7 +89,7 @@ def refresh_live_benchmark(target_pair_ids: list[str] | None = None) -> dict[str
     comp_results = {}
     try:
         cmd_comp = ["node", str(COMPETITOR_SCANNER), json.dumps(competitor_targets)]
-        proc_comp = subprocess.run(cmd_comp, capture_output=True, text=True, timeout=120, check=True)
+        proc_comp = subprocess.run(cmd_comp, capture_output=True, text=True, timeout=180, check=True)
         raw_comp = json.loads(proc_comp.stdout)
         for r in raw_comp:
             if r.get("hero_title"):

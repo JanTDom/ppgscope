@@ -34,8 +34,8 @@ async function scanCompetitor(browser, target) {
     });
 
     try {
-      await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 22000 });
-      await new Promise(r => setTimeout(r, 1200));
+      await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 14000 });
+      await new Promise(r => setTimeout(r, 1000));
     } catch (navErr) {
       console.warn(`[WARN] Timeout nawigacji dla ${targetUrl}: ${navErr.message}`);
     }
@@ -220,7 +220,7 @@ async function main() {
     ]
   });
 
-  const concurrency = 4;
+  const concurrency = 6;
   const results = [];
 
   for (let i = 0; i < targets.length; i += concurrency) {

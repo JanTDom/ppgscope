@@ -6,8 +6,8 @@
   "editorial_autonomy_rate_pct": 50.0,
   "circulation_weighted_autonomy_pct": 40.3,
   "top_syndication_sources": {
-    "gazetakrakowska.pl": 11,
-    "dziennikpolski24.pl": 6
+    "gazetakrakowska.pl": 6,
+    "dziennikpolski24.pl": 1
   },
   "records": [
     {
@@ -17,14 +17,14 @@
       "voivodeship": "małopolskie",
       "circ_paid_pbc": 4120,
       "readers_cpw": 11536,
-      "hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
-      "hero_url": "https://gazetakrakowska.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
-      "article_id": "29516175",
+      "hero_title": "Strażak własnym ciałem osłonił żonę. Kule trafiły go w twarz. „Nie może mówić”",
+      "hero_url": "https://gazetakrakowska.pl/to-w-jego-samochod-wjechal-zamachowiec-w-krakowie-strazak-tomasz-mlynarczyk-oslonil-wlasna-zone-sam-zostal-ciezko-ranny-nie-moze-mowic/ar/c1p2-29515195",
+      "article_id": "29515195",
       "origin_domain": "gazetakrakowska.pl",
       "is_cross_domain": false,
       "autonomy_status": "HUB_SYNDYKACJI",
-      "cluster_id": "29516175",
-      "cluster_size": 7,
+      "cluster_id": "29515195",
+      "cluster_size": 2,
       "autonomy_score": 1.0
     },
     {
@@ -41,7 +41,7 @@
       "is_cross_domain": true,
       "autonomy_status": "SYNDYKACJA_SIECIOWA",
       "cluster_id": "29516175",
-      "cluster_size": 7,
+      "cluster_size": 5,
       "autonomy_score": 0.0
     },
     {
@@ -58,7 +58,7 @@
       "is_cross_domain": true,
       "autonomy_status": "SYNDYKACJA_SIECIOWA",
       "cluster_id": "29516175",
-      "cluster_size": 7,
+      "cluster_size": 5,
       "autonomy_score": 0.0
     },
     {
@@ -75,7 +75,7 @@
       "is_cross_domain": true,
       "autonomy_status": "SYNDYKACJA_SIECIOWA",
       "cluster_id": "29516175",
-      "cluster_size": 7,
+      "cluster_size": 5,
       "autonomy_score": 0.0
     },
     {
@@ -92,7 +92,7 @@
       "is_cross_domain": true,
       "autonomy_status": "SYNDYKACJA_SIECIOWA",
       "cluster_id": "29516175",
-      "cluster_size": 7,
+      "cluster_size": 5,
       "autonomy_score": 0.0
     },
     {
@@ -119,13 +119,13 @@
       "voivodeship": "dolnośląskie",
       "circ_paid_pbc": 3490,
       "readers_cpw": 9772,
-      "hero_title": "W aucie zamachowca znaleziono tłumik do broni. Waldemar Żurek ujawnia nowe fakty",
-      "hero_url": "https://gazetawroclawska.pl/waldemar-zurek-w-samochodzie-sprawcy-zamachu-w-krakowie-odnaleziono-tlumik-do-broni-przeszukano-tez-jego-komputer/ar/c1p2-29513741",
-      "article_id": "29513741",
+      "hero_title": "Święto Niepodległości w cieniu strzelaniny. Służby pozostają w gotowości",
+      "hero_url": "https://gazetawroclawska.pl/swieto-niepodleglosci-w-cieniu-strzelaniny-wroclaw-nie-odwoluje-wydarzen-na-11-listopada-wszystkie-sluzby-pozostaja-w-gotowosci/ar/c1p2-29511801",
+      "article_id": "29511801",
       "origin_domain": "gazetawroclawska.pl",
       "is_cross_domain": false,
       "autonomy_status": "AUTONOMICZNA_LOKALNA",
-      "cluster_id": "29513741",
+      "cluster_id": "29511801",
       "cluster_size": 1,
       "autonomy_score": 1.0
     },
@@ -160,7 +160,7 @@
       "is_cross_domain": true,
       "autonomy_status": "SYNDYKACJA_SIECIOWA",
       "cluster_id": "29516175",
-      "cluster_size": 7,
+      "cluster_size": 5,
       "autonomy_score": 0.0
     },
     {
@@ -170,14 +170,14 @@
       "voivodeship": "małopolskie",
       "circ_paid_pbc": 2640,
       "readers_cpw": 7392,
-      "hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
-      "hero_url": "https://dziennikpolski24.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
-      "article_id": "29516175",
+      "hero_title": "Strażak własnym ciałem osłonił żonę. Kule trafiły go w twarz. „Nie może mówić”",
+      "hero_url": "https://dziennikpolski24.pl/to-w-jego-samochod-wjechal-zamachowiec-w-krakowie-strazak-tomasz-mlynarczyk-oslonil-wlasna-zone-sam-zostal-ciezko-ranny-nie-moze-mowic/ar/c1p2-29515195",
+      "article_id": "29515195",
       "origin_domain": "dziennikpolski24.pl",
       "is_cross_domain": false,
       "autonomy_status": "HUB_SYNDYKACJI",
-      "cluster_id": "29516175",
-      "cluster_size": 7,
+      "cluster_id": "29515195",
+      "cluster_size": 2,
       "autonomy_score": 1.0
     }
   ]

@@ -19,8 +19,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "PPGscope — Bieżąca analityka mediów Polska Press Grupa",
-  description: "Bieżące śledzenie obecności i oddziaływania mediów Polska Press Grupa w sieci oraz struktury tematycznej publikacji z dowodem danych.",
+  title: "Logowanie",
+  description: "",
 };
 
 export default function RootLayout({

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-10T18:31:57.009293+00:00",
+  "generated_at": "2026-11-10T20:34:21.181326+00:00",
   "methodology": "PPGscope Benchmark V1 · Analiza parowana 20 rynków · Audyt próby artykułów czołówkowych N=4,200 · Klasyfikacja taksonomiczna tematów · Pomiar autorstwa i syndykacji",
   "sample_size_articles": 4200,
   "summary_metrics": {
@@ -54,7 +54,7 @@
         "editorial_staff_est": "ok. 60 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
@@ -66,7 +66,7 @@
         "verdict": "PPG w Gdańsk stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "ppg_hero_url": "https://gazetakrakowska.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
         "competitor_hero_url": "https://www.trojmiasto.pl/moto/Czytelnik-wzrok-w-telefonie-sluchawki-w-uszach-a-na-pasy-wchodza-bez-patrzenia-n228332.html",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Trójmiasto posiada najsilniejszy i najbardziej dochodowy niezależny portal lokalny w Polsce (Trojmiasto.pl). Brak ryzyka próżni.",
@@ -105,8 +105,8 @@
         "editorial_staff_est": "ok. 14 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
-        "ppg_hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
+        "scan_time": "21:34 (Live DOM Slot #1)",
+        "ppg_hero_title": "Strażak własnym ciałem osłonił żonę. Kule trafiły go w twarz. „Nie może mówić”",
         "ppg_hero_category": "KRAKÓW PODNOSI SIĘ PO ZAMACHU",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (gazetakrakowska.pl)",
@@ -115,9 +115,9 @@
         "competitor_author": "Patryk Strzałkowski",
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Kraków: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://gazetakrakowska.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
+        "ppg_hero_url": "https://gazetakrakowska.pl/to-w-jego-samochod-wjechal-zamachowiec-w-krakowie-strazak-tomasz-mlynarczyk-oslonil-wlasna-zone-sam-zostal-ciezko-ranny-nie-moze-mowic/ar/c1p2-29515195",
         "competitor_hero_url": "https://lovekrakow.pl/nie-mamy-nastroju-do-radosci-powazne-zmiany-w-planach-na-swieto-niepodleglosci",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Kraków ma bogaty ekosystem mediów niezależnych (LoveKraków, KRKnews, Krowoderska.pl).",
@@ -156,7 +156,7 @@
         "editorial_staff_est": "Zintegrowany newsroom z TV WTK (ok. 35 osób)"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
@@ -168,7 +168,7 @@
         "verdict": "PPG w Poznań stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "ppg_hero_url": "https://gazetakrakowska.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
         "competitor_hero_url": "https://epoznan.pl/news-news-181846-wielkie_przygotowania_do_imienin_ulicy_swiety_marcin_utrudnienia_juz_od_dzis",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Silna synergia ePoznań z kanałem WTK daje pełne pokrycie bieżących wydarzeń aglomeracji.",
@@ -207,19 +207,19 @@
         "editorial_staff_est": "ok. 12 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
-        "ppg_hero_title": "W aucie zamachowca znaleziono tłumik do broni. Waldemar Żurek ujawnia nowe fakty",
+        "scan_time": "21:34 (Live DOM Slot #1)",
+        "ppg_hero_title": "Święto Niepodległości w cieniu strzelaniny. Służby pozostają w gotowości",
         "ppg_hero_category": "TRAGEDIA W KRAKOWIE. ZAMACHOWIEC ZASTRZELIŁ 6 OSÓB",
         "ppg_is_syndicated": false,
         "ppg_origin": "Redakcja (gazetawroclawska.pl)",
         "competitor_hero_title": "Święto Niepodległości 2026 we Wrocławiu. Radosna Parada i Marsz Polaków przejdą przez miasto",
         "competitor_hero_category": "DZIŚ",
         "competitor_author": "Marcin Hołubowicz",
-        "topic_convergence": false,
-        "verdict": "Zróżnicowana agenda w Wrocław: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
-        "ppg_hero_url": "https://gazetawroclawska.pl/waldemar-zurek-w-samochodzie-sprawcy-zamachu-w-krakowie-odnaleziono-tlumik-do-broni-przeszukano-tez-jego-komputer/ar/c1p2-29513741",
+        "topic_convergence": true,
+        "verdict": "Zbieżność tematyczna w Wrocław: oba media wiodąco monitorują to samo kluczowe wydarzenie miejskie.",
+        "ppg_hero_url": "https://gazetawroclawska.pl/swieto-niepodleglosci-w-cieniu-strzelaniny-wroclaw-nie-odwoluje-wydarzen-na-11-listopada-wszystkie-sluzby-pozostaja-w-gotowosci/ar/c1p2-29511801",
         "competitor_hero_url": "https://tuwroclaw.com/artykul/swieto-niepodleglosci-n2574587",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "Presja ze strony biuletynu urzędowego Wroclaw.pl (finansowanego ze środków miasta) osłabia niezależny rynek reklamowy.",
@@ -258,7 +258,7 @@
         "editorial_staff_est": "ok. 10 dziennikarzy śledczych i publicystów"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
@@ -270,7 +270,7 @@
         "verdict": "PPG w Katowice stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "ppg_hero_url": "https://gazetakrakowska.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
         "competitor_hero_url": "https://www.slazag.pl/31-nowych-pociagow-dla-metropolii-i-wojewodztwa-podpisano-umowy-na-dofinansowanie",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Śląsk posiada aktywną scenę mediów tożsamościowych (Ślązag, InfoKatowice, Nowiny Gliwickie).",
@@ -309,7 +309,7 @@
         "editorial_staff_est": "ok. 9 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
@@ -321,7 +321,7 @@
         "verdict": "PPG w Bydgoszcz stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "ppg_hero_url": "https://gazetakrakowska.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
         "competitor_hero_url": "https://metropoliabydgoska.pl/bydgoszcz-rosnie-jako-hub-technologiczny-jakie-innowacyjne-projekty-it-realizuje-sie-nad-brda/",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "W mniejszych miastach regionu (Grudziądz, Brodnica) Pomorska pozostaje monopolistą.",
@@ -360,7 +360,7 @@
         "editorial_staff_est": "ok. 6 analityków śledczych i prawników"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Po zamachu w Krakowie. Śmierć człowieka nigdy nie powinna być powodem do satysfakcji",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": false,
@@ -372,7 +372,7 @@
         "verdict": "Zróżnicowana agenda w Lublin: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "ppg_hero_url": "https://kurierlubelski.pl/katarzyna-walczewska-psychoterapeuta-po-zamachu-w-krakowie-empatia-nie-powinna-byc-nagroda-za-zbiezne-z-nami-poglady/ar/c1p2-29514843",
         "competitor_hero_url": "https://jawnylublin.pl/budzet-lublina-2027-miasto-chce-budowac-to-co-obiecuje-od-lat/",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Poza Lublinem (gdzie działa Jawny Lublin) w powiatach lubelskich brak niezależnej prasy.",
@@ -411,7 +411,7 @@
         "editorial_staff_est": "ok. 7 reporterów"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Ewelina z Podkarpacia zginęła w zamachu w Krakowie. „Była kolorowym, wolnym ptakiem”",
         "ppg_hero_category": "POLSKA PO ZAMACHU",
         "ppg_is_syndicated": false,
@@ -423,7 +423,7 @@
         "verdict": "Zróżnicowana agenda w Rzeszów: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "ppg_hero_url": "https://nowiny24.pl/ewelina-z-podkarpacia-zginela-w-zamachu-w-krakowie-byla-kolorowym-wolnym-ptakiem-mieszkancy-nie-moga-uwierzyc-w-tragedie/ar/c1p2-29512069",
         "competitor_hero_url": "https://rzeszow-news.pl/",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "W Rzeszowie równowaga zachowana, w Bieszczadach i na północy regionu silny deficyt niezależnych mediów.",
@@ -462,7 +462,7 @@
         "editorial_staff_est": "ok. 11 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
@@ -474,7 +474,7 @@
         "verdict": "PPG w Białystok stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "ppg_hero_url": "https://gazetakrakowska.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
         "competitor_hero_url": "https://www.bialystokonline.pl/biegne-dla-niepodleglej,impreza,151370,4,1.html",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Kurier Poranny i Gazeta Współczesna (obie PPG) tworzą de facto jeden zunifikowany newsroom w regionie.",
@@ -513,7 +513,7 @@
         "editorial_staff_est": "ok. 12 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Konferencja na pokładzie promu Bursztyn Unity. Nadchodzą ważne zmiany dla PŻB i PŻM",
         "ppg_hero_category": "BURSZTYN UNITY GOTOWY DO CHRZTU",
         "ppg_is_syndicated": false,
@@ -525,7 +525,7 @@
         "verdict": "Zróżnicowana agenda w Szczecin: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "ppg_hero_url": "https://gs24.pl/konferencja-na-pokladzie-promu-bursztyn-unity-grupa-pzm-inwestorem-strategicznym-polskiej-zeglugi-baltyckiej-zdjecia/ar/c1p2-29515723",
         "competitor_hero_url": "https://wszczecinie.pl/szczecin-bedzie-portem-macierzystym-bursztynu-unity-bialo-czerwona-dolacza-do-najsilniejszych/56606",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "wSzczecinie.pl dynamicznie przejęło rolę medium miejskiego pierwszego wyboru.",
@@ -564,7 +564,7 @@
         "editorial_staff_est": "ok. 6 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Wiemy, kiedy kierowcy pojadą nową obwodnicą Morawicy! [ZDJĘCIA]",
         "ppg_hero_category": "ŚWIĘTOKRZYSKIE",
         "ppg_is_syndicated": false,
@@ -576,7 +576,7 @@
         "verdict": "Zróżnicowana agenda w Kielce: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "ppg_hero_url": "https://echodnia.eu/swietokrzyskie/wiemy-kiedy-kierowcy-pojada-nowa-obwodnica-morawicy-zobacz-jak-wyglada-milionowa-inwestycja-na-zdjeciach-z-drona/ar/c1p2-29515595",
         "competitor_hero_url": "https://faktykielce24.pl/news/na-sygnale/straz-pozarna/pozary-w-regionie-przerazaja-mieszkancow-szokujacy-bilans-i-grozny-wzrost-statystyk/",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Echo Dnia ma pozycję niemal monopolistyczną w całym województwie, wypierając mniejsze tytuły.",
@@ -615,7 +615,7 @@
         "editorial_staff_est": "ok. 5 dziennikarzy śledczych"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
@@ -627,7 +627,7 @@
         "verdict": "PPG w Opole stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "ppg_hero_url": "https://gazetakrakowska.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
         "competitor_hero_url": "https://opowiecie.info/opolskie-i-nadrenia-palatynat-swietowaly-25-lat-partnerstwa-w-moguncji/",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "KRYTYCZNE",
       "risk_notes": "NTO po przejęciu przez Orlen zanotowało drastyczny spadek zaufania; rynek niezależny jest skrajnie niedofinansowany.",
@@ -666,7 +666,7 @@
         "editorial_staff_est": "ok. 7 reporterów"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Zielonogórzanie solidarni z Krakowem. Znicze na placu przed Filharmonią Zielonogórską",
         "ppg_hero_category": "POLSKA W ŻAŁOBIE. ZAMACHOWIEC ZABIŁ SZEŚĆ OSÓB",
         "ppg_is_syndicated": false,
@@ -678,7 +678,7 @@
         "verdict": "Zróżnicowana agenda w Zielona Góra: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "ppg_hero_url": "https://gazetalubuska.pl/zielonogorzanie-z-gestem-wsparcia-dla-bliskich-ofiar-tragedii-w-krakowie-i-wszystkich-poszkodowanych/ar/c1p2-29512457",
         "competitor_hero_url": "https://gorzowianin.com/wiadomosc/30354-brak-pieniedzy-remont-okolnej-gorzow.html",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "WYSOKIE",
       "risk_notes": "Podział na północ i południe osłabia zasięgi; w powiatach południowych brak silnych rywali cyfrowych.",
@@ -717,7 +717,7 @@
         "editorial_staff_est": "ok. 9 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Rozpoczął się montaż barier w centrum Krakowa. Utrudnią wjazd samochodem na Rynek",
         "ppg_hero_category": "KRAKÓW W ŻAŁOBIE PO TRAGEDII",
         "ppg_is_syndicated": true,
@@ -729,7 +729,7 @@
         "verdict": "PPG w Łódź stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "ppg_hero_url": "https://gazetakrakowska.pl/rozpoczal-sie-montaz-tymczasowych-barier-w-centrum-krakowa-utrudnia-wjazd-samochodem-na-rynek/ar/c1p2-29516175",
         "competitor_hero_url": "https://tulodz.pl/polska-i-swiat/kaucja-obejmie-kolejne-butelki-za-popularne-malpki-zaplacimy-wiecej-ministerstwo-podalo-szczegoly/kibnbsTj4Rg1yvMezVlc",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "Ekosystem łódzki jest silnie zniekształcony przez potężny miejski portal Łódź.pl (medium władzy).",
@@ -768,7 +768,7 @@
         "editorial_staff_est": "ok. 8 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Wielka awantura w Sejmie! Posłowie krzyczeli z mównicy, marszałek musiał przerwać obrady",
         "ppg_hero_category": "Polityka Ogólnopolska (Sejm)",
         "ppg_is_syndicated": false,
@@ -779,7 +779,7 @@
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Warszawa: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "competitor_hero_url": "https://www.raportwarszawski.pl/artykul/5525,nowe-osiedle-na-kamionku-w-symfonii-praga-powstanie-156-mieszkan-i-nietypowe-udogodnienia",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Warszawa ma nasycony rynek medialny, jednak tytuł PPG całkowicie zatracił lokalny warszawski charakter.",
@@ -818,7 +818,7 @@
         "editorial_staff_est": "ok. 9 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Niepokojące sygnały z granicy z Rosją. Dodatkowe siły ściągnięte na Warmię i Mazury",
         "ppg_hero_category": "Dzieje się w Olsztynie i regionie",
         "ppg_is_syndicated": false,
@@ -830,7 +830,7 @@
         "verdict": "Zróżnicowana agenda w Olsztyn: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "ppg_hero_url": "https://olsztyn.naszemiasto.pl/niepokojace-sygnaly-z-granicy-z-rosja-policja-sciaga-dodatkowe-sily-na-warmie-i-mazury/ar/c1p2-29493353",
         "competitor_hero_url": "https://www.olsztyn.com.pl/artykul,z-warmii-i-mazur-zrobilby-sie-skansen-rozmawiamy-z-dyrektorem-gddkia-w-olsztynie-o-drogach-w-regionie-wideo,48476.html",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00"
       },
       "news_desert_risk": "ŚREDNIE",
       "risk_notes": "W regionie silną pozycję ma Gazeta Olsztyńska (niezależna, poza strukturami PPG).",
@@ -869,7 +869,7 @@
         "editorial_staff_est": "ok. 15 niezależnych reporterów śledczych"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Kasprowy cieplejszy od Nowego Targu. Inwersja i halny zapowiadają zmiany",
         "ppg_hero_category": "W Naszym Mieście",
         "ppg_is_syndicated": false,
@@ -880,7 +880,7 @@
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Nowy Targ: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "competitor_hero_url": "https://24tp.pl/pl/890_region/156817_probna-ewakuacja-i-wizja-lokalna-w-nowym-osrodku-zdrowia.html",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00",
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00",
         "ppg_hero_url": "https://nowytarg.naszemiasto.pl/na-kasprowym-wierchu-cieplej-niz-w-nowym-targu-inwersja-i-halny-zwiastuja-zmiane-pogody/ar/c1p2-29514437"
       },
       "news_desert_risk": "NISKIE",
@@ -920,8 +920,8 @@
         "editorial_staff_est": "ok. 10 dziennikarzy lokalnych"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
-        "ppg_hero_title": "Wypadek w gliwickim autobusie! Ranna pasażerska trafiła do szpitala",
+        "scan_time": "21:34 (Live DOM Slot #1)",
+        "ppg_hero_title": "Gliwicki Jarmark Bożonarodzeniowy coraz bliżej",
         "ppg_hero_category": "Dzieje się w Gliwicach i w powiecie",
         "ppg_is_syndicated": true,
         "ppg_origin": "Syndykacja (naszemiasto.pl)",
@@ -931,8 +931,8 @@
         "topic_convergence": false,
         "verdict": "PPG w Gliwice stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "competitor_hero_url": "https://nowiny.gliwice.pl/okraglak-znow-robota-wokol-pawilonu",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00",
-        "ppg_hero_url": "https://naszemiasto.pl/wypadek-w-gliwicach-autobus-gwaltownie-zahamowal-ranna-pasazerska-trafila-do-szpitala/ar/c1p2-29511871"
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00",
+        "ppg_hero_url": "https://naszemiasto.pl/gliwicki-jarmark-bozonarodzeniowy-coraz-blizej-na-rynku-stanie-swiateczna-kraina-cudow-miasto-rozpoczelo-odliczanie/ar/c1p2-29516221"
       },
       "news_desert_risk": "NISKIE",
       "risk_notes": "Tradycyjna gazeta powiatowa zachowuje wiodącą rolę kontrolną wobec prezydenta Gliwic i radnych.",
@@ -971,7 +971,7 @@
         "editorial_staff_est": "ok. 12 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Paweł Mateńczuk \"Naval\" po zamachu w Krakowie: Reakcja policjantów była perfekcyjna",
         "ppg_hero_category": "Tragiczne wydarzenia w Krakowie. Są zabici i ranni",
         "ppg_is_syndicated": true,
@@ -982,7 +982,7 @@
         "topic_convergence": false,
         "verdict": "PPG w Jarocin stawia na syndykację ogólnopolską/sieciową; rywal niezależny relacjonuje autentyczny temat lokalny.",
         "competitor_hero_url": "https://jarocinska.pl/wiadomosci/policja-zatrzymala-pijanego-rowerzyste-mezczyzna-dostal-mandat/abFjI3K6IoDpVYBE8PWq",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00",
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00",
         "ppg_hero_url": "https://naszemiasto.pl/pawel-matenczuk-naval-po-zamachu-w-krakowie-reakcja-policjantow-byla-perfekcyjna/ar/c1p2-29509823"
       },
       "news_desert_risk": "NISKIE",
@@ -1022,7 +1022,7 @@
         "editorial_staff_est": "ok. 14 dziennikarzy"
       },
       "duel": {
-        "scan_time": "19:31 (Live DOM Slot #1)",
+        "scan_time": "21:34 (Live DOM Slot #1)",
         "ppg_hero_title": "Uwaga: Opady śniegu (10.11 07:02)",
         "ppg_hero_category": "W Naszym Mieście",
         "ppg_is_syndicated": false,
@@ -1033,7 +1033,7 @@
         "topic_convergence": false,
         "verdict": "Zróżnicowana agenda w Siedlce: medium PPG i niezależny rywal podejmują odmienne wątki lokalne.",
         "competitor_hero_url": "https://tygodniksiedlecki.com/wiadomosci",
-        "last_scanned_iso": "2026-11-10T18:31:57.009293+00:00",
+        "last_scanned_iso": "2026-11-10T20:34:21.181326+00:00",
         "ppg_hero_url": "https://siedlce.naszemiasto.pl/ostrzezenie-dla-mazowieckiego-10-11-2026-07-02-opady-sniegu/ar/c1p1-19787537"
       },
       "news_desert_risk": "NISKIE",
@@ -1059,6 +1059,6 @@
     ],
     "key_finding": "W 75% badanych miast i powiatów media niezależne i prasa SGL wykazują ponad 2-krotnie wyższą intensywność kontroli samorządu (watchdog) niż media PPG, podczas gdy PPG w ponad 40% opiera się na syndykacji i lifestyle."
   },
-  "last_live_scan_at": "2026-11-10T18:31:57.009293+00:00",
+  "last_live_scan_at": "2026-11-10T20:34:21.181326+00:00",
   "live_scan_status": "SUCCESS"
 }

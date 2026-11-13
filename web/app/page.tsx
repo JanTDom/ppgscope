@@ -1059,6 +1059,14 @@ export default function PPGscopeApp() {
   };
 
   useEffect(() => {
+    if (isAuthenticated) {
+      document.title = "PPGscope — Bieżąca analityka mediów Polska Press Grupa";
+    } else {
+      document.title = "Logowanie";
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     if (!isAuthenticated) return;
     fetch("/api/gemini/config", { cache: "no-store" })
       .then((response) => response.json())
@@ -2158,47 +2166,27 @@ export default function PPGscopeApp() {
   if (!isAuthenticated) {
     return (
       <div className="ppg-auth-screen min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center p-4 selection:bg-teal-500 selection:text-black">
-        <div className="ppg-auth-card w-full max-w-md p-8 rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 backdrop-blur-xl shadow-2xl">
-          {/* Project Brand Header */}
-          <div className="ppg-auth-brand flex flex-col items-center text-center mb-6">
-            <div className="relative mb-3 flex items-center justify-center rounded-2xl bg-white px-6 py-4 shadow-lg border border-zinc-200">
-              <Image
-                src="/logo.png"
-                alt="PPGscope Logo"
-                width={320}
-                height={133}
-                className="h-20 w-auto object-contain"
-                priority
-              />
+        <div className="ppg-auth-card w-full max-w-sm p-8 rounded-2xl border border-white/[0.08] bg-[#0c0e12]/90 backdrop-blur-xl shadow-2xl">
+          <div className="flex flex-col items-center text-center mb-6">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.05] border border-white/[0.08] mb-3 text-zinc-400">
+              <Lock className="h-5 w-5" />
             </div>
-            <div className="flex items-center justify-center gap-2 mt-2">
-              <span className="text-[11px] font-mono uppercase bg-teal-500/10 text-teal-300 border border-teal-500/20 px-2 py-0.5 rounded">
-                Intelligence v2.0
-              </span>
-              <span className="text-[11px] font-mono bg-white/[0.06] text-zinc-400 border border-white/[0.08] px-2 py-0.5 rounded">
-                553 mediów PPG
-              </span>
-            </div>
-            <p className="text-xs text-zinc-400 mt-2">System wywiadu mediowego i taksonomii Polska Press Grupa</p>
-          </div>
-
-          <div className="mb-6 rounded-lg border border-white/[0.06] bg-black/40 p-3 text-[11px] text-zinc-400 font-mono">
-            Prawda danych ponad wszystko
+            <h1 className="text-base font-medium text-white">Logowanie</h1>
           </div>
 
           <form onSubmit={handleLogin} className="ppg-auth-form space-y-4">
             <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                Hasło dostępu do systemu:
+              <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                Hasło
               </label>
               <div className="relative">
-              <input
+                <input
                   type="password"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  placeholder="Wprowadź hasło analityczne..."
+                  placeholder="Wprowadź hasło..."
                   className="w-full rounded-xl border border-white/[0.1] bg-black/60 py-2.5 pl-3.5 pr-10 text-sm text-white placeholder-zinc-500 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500 font-mono"
-                autoComplete="current-password"
+                  autoComplete="current-password"
                   autoFocus
                 />
                 <Lock className="absolute right-3 top-3 h-4 w-4 text-zinc-500" />
@@ -2208,7 +2196,7 @@ export default function PPGscopeApp() {
             {passwordError && (
               <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                <span>Nieprawidłowe hasło. Wymagana autoryzacja uprawnień.</span>
+                <span>Nieprawidłowe hasło</span>
               </div>
             )}
 
@@ -2216,15 +2204,9 @@ export default function PPGscopeApp() {
               type="submit"
               className="w-full rounded-xl bg-teal-500 py-2.5 text-sm font-semibold text-black transition-all hover:bg-teal-400 active:scale-[0.99] shadow-lg shadow-teal-500/20"
             >
-              Autoryzuj sesję analityczną
+              Zaloguj
             </button>
           </form>
-
-          <div className="mt-6 pt-4 border-t border-white/[0.06] text-center">
-            <p className="text-[11px] text-zinc-500">
-              Dostęp autoryzowany wyłącznie dla analityków i redakcji PPGscope
-            </p>
-          </div>
         </div>
       </div>
     );
@@ -2234,21 +2216,9 @@ export default function PPGscopeApp() {
   if (loading || !data) {
     return (
       <div className="min-h-screen bg-[#060709] text-zinc-100 flex flex-col justify-center items-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex items-center rounded-2xl bg-white px-6 py-3 shadow-xl border border-zinc-200">
-            <Image
-              src="/logo.png"
-              alt="PPGscope Logo"
-              width={200}
-              height={80}
-              className="h-10 w-auto object-contain"
-              priority
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            <RefreshCw className="h-5 w-5 animate-spin text-teal-400" />
-            <span className="text-sm font-mono text-zinc-400">Inicjalizacja 553 mediów PPGscope...</span>
-          </div>
+        <div className="flex flex-col items-center gap-3">
+          <RefreshCw className="h-5 w-5 animate-spin text-teal-400" />
+          <span className="text-sm font-mono text-zinc-400">Ładowanie...</span>
         </div>
       </div>
     );
